@@ -12,6 +12,27 @@ En la radio: *Ajustes > Acerca de* (o *Información del sistema*). Anota:
 - Si tiene Play Store
 - Si tiene GPS propio y si trae un explorador de archivos
 
+## Radio de prueba: la del pitufo
+
+Datos tomados de la pantalla de información de fábrica de la radio:
+
+| | |
+|---|---|
+| Firmware | `YT7311B_00020_V001` |
+| Android | 13 |
+| Pantalla | 1280 × 720 (16:9, horizontal) |
+| CPU / memoria | 8 núcleos a 2,0 GHz · 4 GB RAM · 64 GB de almacenamiento |
+| MCU | 0.8 (AC8258) |
+| CAN bus | 1.022, **desconectado**, perfil "Haval H…" (el texto se corta) |
+
+Qué implica:
+
+- **Android 13:** la app está pensada para funcionar desde Android 5, así que no hay problema de versión. Para elegir la pantalla de inicio, en Android 13 suele ser *Ajustes > Apps > Apps predeterminadas > App de inicio* (cada fabricante lo esconde en un lugar distinto).
+- **1280 × 720:** es más grande que los 1024 × 600 de la vista previa del sitio. Los tamaños de la app están en dp y deberían adaptarse, pero no está verificado: lo confirmará esta prueba.
+- **Potencia de sobra:** 8 núcleos y 4 GB no son un límite para esta app.
+- **CAN bus desconectado:** hoy la radio no recibe datos del auto (kilometraje, combustible, luces). Por eso la app se apoya en el GPS para la velocidad y en Ajustes para el kilometraje. Leer el CAN bus sería una mejora futura y depende del fabricante de la radio.
+- **No toques** los botones *Configuraciones predeterminadas*, *Actualización de Android* ni *Actualización de MCU* de esa pantalla: borran ajustes o cambian el firmware.
+
 ## 1. Compilar el APK (en tu computador personal)
 
 1. Instala **Android Studio** y abre la carpeta `android/` de este repositorio. Acepta instalar el SDK 34.

@@ -94,14 +94,15 @@ class SettingsActivity : Activity() {
         speedShow = check("Mostrar mi velocidad (usa el GPS)", c.speedShow, limits.speedShow)
         speedMode = RadioGroup(this).apply {
             orientation = RadioGroup.VERTICAL
-            listOf("auto" to "Límite automático (aún no disponible)", "manual" to "Límite fijo", "off" to "Sin aviso").forEach { (id, label) ->
-                val allowed = limits.speedAlerts == null || id in limits.speedAlerts!!
+            val allowedModes = limits.speedAlerts
+            listOf("auto" to "Límite automático (aún no disponible)", "manual" to "Límite fijo", "off" to "Sin aviso").forEach { (mode, label) ->
+                val allowed = allowedModes == null || mode in allowedModes
                 addView(RadioButton(this@SettingsActivity).apply {
-                    this.id = View.generateViewId()
-                    tag = id
+                    id = View.generateViewId()
+                    tag = mode
                     text = label + if (allowed) "" else "  (requiere código)"
                     isEnabled = allowed
-                    isChecked = c.speedAlert == id
+                    isChecked = c.speedAlert == mode
                     setTextColor(if (allowed) Ui.TEXT else Ui.SUB)
                 })
             }

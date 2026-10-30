@@ -1,0 +1,8 @@
+[
+  { "id": "filtro", "name": "Filtro de aire", "every": 15000 },
+  { "id": "neumaticos", "name": "Rotación de neumáticos", "every": 10000 },
+  { "id": "bujias", "name": "Bujías", "every": 30000 },
+  { "id": "pastillas", "name": "Pastillas de freno", "every": 30000 },
+  { "id": "frenos", "name": "Líquido de frenos y refrigerante", "every": 40000 },
+  { "id": "correa", "name": "Correa de distribución", "every": 80000 }
+]

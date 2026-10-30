@@ -2,18 +2,28 @@ package cl.tablero.core
 
 /** Lo que el usuario eligió. Los ids son los mismos de public/shared/catalog.js. */
 data class LauncherConfig(
+    val name: String = "",
+    val greeting: String = "Hola",
     val theme: String = "ruta",
     val layout: String = "tarjetas",
     val scene: String = "tema",
     val season: String = "ninguna",
     val apps: List<String> = listOf("maps", "spotify"),
     val oilOn: Boolean = true,
-    val speedShow: Boolean = true,
-    val speedAlert: String = "auto",
+    val odometer: Int = 0,
+    val lastOil: Int = 0,
+    val oilEvery: Int = 5000,
     val otherMaintenance: List<String> = emptyList(),
     val docsOn: Boolean = false,
+    val rtMonth: Int = 1,
     val fuelOn: Boolean = false,
+    val tankL: Int = 45,
+    val kmPerL: Int = 12,
+    val speedShow: Boolean = true,
+    val speedAlert: String = "auto",
+    val manualLimit: Int = 60,
     val restrOn: Boolean = false,
+    val restrDays: List<String> = emptyList(),
     val voice: Boolean = false,
 )
 

@@ -40,3 +40,8 @@ test('Esencial y Completo coinciden con los planes del catálogo', () => {
   assert.equal(completo.seasons, '*');
   assert.deepEqual(C.plans.map((p) => p.id).sort(), ['completo', 'esencial']);
 });
+
+test('maintenance.json (usado por el launcher) coincide con el catálogo del sitio', () => {
+  const maintenance = require('../public/shared/maintenance.json');
+  assert.deepEqual(maintenance, C.maintenance);
+});

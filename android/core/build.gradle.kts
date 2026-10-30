@@ -26,4 +26,5 @@ tasks.test {
     useJUnitPlatform()
     // Las pruebas leen el MISMO editions.json que usan el sitio y la app.
     systemProperty("editions.path", rootProject.file("../public/shared/editions.json").absolutePath)
+    systemProperty("maintenance.path", rootProject.file("../public/shared/maintenance.json").absolutePath)
 }

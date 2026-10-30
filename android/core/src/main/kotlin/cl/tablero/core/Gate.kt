@@ -4,6 +4,8 @@ package cl.tablero.core
 data class LauncherConfig(
     val name: String = "",
     val greeting: String = "Hola",
+    val carType: String = "auto",
+    val carColor: String = "#b3261e",
     val theme: String = "ruta",
     val layout: String = "tarjetas",
     val scene: String = "tema",

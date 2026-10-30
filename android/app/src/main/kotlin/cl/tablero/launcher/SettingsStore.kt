@@ -12,6 +12,8 @@ class SettingsStore(context: Context) {
         return d.copy(
             name = p.getString("name", d.name) ?: d.name,
             greeting = p.getString("greeting", d.greeting) ?: d.greeting,
+            carType = p.getString("carType", d.carType) ?: d.carType,
+            carColor = p.getString("carColor", d.carColor) ?: d.carColor,
             apps = list("apps", d.apps),
             oilOn = p.getBoolean("oilOn", d.oilOn),
             odometer = p.getInt("odometer", d.odometer),
@@ -36,6 +38,8 @@ class SettingsStore(context: Context) {
         p.edit()
             .putString("name", c.name)
             .putString("greeting", c.greeting)
+            .putString("carType", c.carType)
+            .putString("carColor", c.carColor)
             .putString("apps", c.apps.joinToString(","))
             .putBoolean("oilOn", c.oilOn)
             .putInt("odometer", c.odometer)

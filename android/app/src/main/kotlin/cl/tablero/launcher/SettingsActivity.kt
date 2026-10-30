@@ -1,6 +1,8 @@
 package cl.tablero.launcher
 
 import android.app.Activity
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.InputType
 import android.view.View
@@ -30,6 +32,9 @@ class SettingsActivity : Activity() {
 
     private lateinit var name: EditText
     private lateinit var greeting: EditText
+    private lateinit var carTypeGroup: RadioGroup
+    private var selectedColor = Ui.CAR_COLORS.first()
+    private val colorChips = linkedMapOf<String, View>()
     private lateinit var oilOn: CheckBox
     private lateinit var odometer: EditText
     private lateinit var lastOil: EditText
@@ -69,6 +74,34 @@ class SettingsActivity : Activity() {
         section("Tu saludo")
         name = field("Tu nombre", c.name)
         greeting = field("Saludo (Hola, Buenas...)", c.greeting)
+
+        section("Tu auto")
+        carTypeGroup = RadioGroup(this).apply {
+            orientation = RadioGroup.HORIZONTAL
+            Ui.CAR_TYPES.forEach { (type, label) ->
+                addView(RadioButton(this@SettingsActivity).apply {
+                    id = View.generateViewId()
+                    tag = type
+                    text = label
+                    isChecked = c.carType == type
+                    setTextColor(Ui.TEXT)
+                })
+            }
+        }
+        form.addView(carTypeGroup)
+        selectedColor = if (c.carColor in Ui.CAR_COLORS) c.carColor else Ui.CAR_COLORS.first()
+        val swatches = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        Ui.CAR_COLORS.forEach { hex ->
+            val chip = View(this)
+            colorChips[hex] = chip
+            chip.setOnClickListener {
+                selectedColor = hex
+                paintChips()
+            }
+            swatches.addView(chip, LinearLayout.LayoutParams(dp(44), dp(44)).apply { setMargins(0, dp(8), dp(10), dp(4)) })
+        }
+        form.addView(swatches)
+        paintChips()
 
         section("Aceite")
         oilOn = check("Aviso de cambio de aceite", c.oilOn, limits.oilOn)
@@ -116,7 +149,7 @@ class SettingsActivity : Activity() {
         Ui.WEEKDAYS.forEach { (id, label) -> restrDays[id] = check(label, id in c.restrDays, limits.restrOn) }
 
         section("Apps en la barra (máximo ${limits.maxApps})")
-        Ui.KNOWN_APPS.forEach { (id, pair) -> apps[id] = check(pair.first, id in c.apps, true) }
+        Ui.KNOWN_APPS.forEach { (id, app) -> apps[id] = check(app.label, id in c.apps, true) }
 
         form.addView(Button(this).apply {
             text = "Guardar"
@@ -133,8 +166,11 @@ class SettingsActivity : Activity() {
             return
         }
         val mode = speedMode.findViewById<RadioButton>(speedMode.checkedRadioButtonId)?.tag as? String ?: old.speedAlert
+        val type = carTypeGroup.findViewById<RadioButton>(carTypeGroup.checkedRadioButtonId)?.tag as? String ?: old.carType
         settings.save(
             old.copy(
+                carType = type,
+                carColor = selectedColor,
                 name = name.text.toString().trim().take(24),
                 greeting = greeting.text.toString().trim().take(24).ifBlank { "Hola" },
                 apps = chosenApps,
@@ -158,6 +194,17 @@ class SettingsActivity : Activity() {
         )
         Toast.makeText(this, "Guardado", Toast.LENGTH_SHORT).show()
         finish()
+    }
+
+    /** Pinta cada muestra de color; la elegida lleva un borde amarillo. */
+    private fun paintChips() {
+        colorChips.forEach { (hex, chip) ->
+            chip.background = GradientDrawable().apply {
+                setColor(Color.parseColor(hex))
+                cornerRadius = dp(10).toFloat()
+                setStroke(dp(if (hex == selectedColor) 4 else 1), if (hex == selectedColor) Ui.ACCENT else Ui.LINE)
+            }
+        }
     }
 
     /* ---------- piezas del formulario ---------- */

@@ -14,7 +14,8 @@ import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.view.Gravity
 import android.view.View
-import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextClock
 import android.widget.TextView
@@ -32,8 +33,8 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * Pantalla de inicio de la radio (HOME): reloj, saludo, velocidad (GPS), avisos de mantención y
- * documentos, y atajos a apps. Todavía sin los temas visuales ni el clima/música/radio de la vista previa.
+ * Pantalla de inicio de la radio (HOME), tema Ruta: tu auto, reloj y velocidad, avisos de mantención y
+ * documentos, y accesos a tus apps. Sin clima, música ni radio FM todavía.
  */
 class MainActivity : Activity() {
     private lateinit var entitlement: EntitlementStore
@@ -42,7 +43,9 @@ class MainActivity : Activity() {
 
     private var config = LauncherConfig()
     private var speedView: TextView? = null
-    private var limitView: TextView? = null
+    private var signView: LimitSignView? = null
+    private var limitText: TextView? = null
+    private var alertView: TextView? = null
     private var tts: TextToSpeech? = null
     private var askedLocation = false
 
@@ -98,130 +101,240 @@ class MainActivity : Activity() {
         val now = Calendar.getInstance()
         val reminders = Reminders.build(config, maintenance, now.get(Calendar.MONTH) + 1, now.get(Calendar.DAY_OF_WEEK))
 
+        val frame = FrameLayout(this)
+        frame.addView(BackgroundView(this), FrameLayout.LayoutParams(MATCH, MATCH))
+
         val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Ui.BG)
-            setPadding(dp(40), dp(24), dp(40), dp(16))
-        }
-
-        val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        top.addView(leftColumn(now), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
-        top.addView(rightColumn(reminders), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
-        root.addView(top, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
-
-        root.addView(appsRow())
-        root.addView(footer(tier))
-        return root
-    }
-
-    private fun leftColumn(now: Calendar): View {
-        val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        col.addView(TextClock(this).apply {
-            format12Hour = "HH:mm"
-            format24Hour = "HH:mm"
-            textSize = 80f
-            setTextColor(Ui.TEXT)
-        })
-        col.addView(TextClock(this).apply {
-            format12Hour = "EEEE d 'de' MMMM"
-            format24Hour = "EEEE d 'de' MMMM"
-            textSize = 22f
-            setTextColor(Ui.SUB)
-        })
-        col.addView(text(Reminders.hello(config), 28f, Ui.TEXT).apply { setPadding(0, dp(18), 0, 0) })
-        col.addView(text(Reminders.greeting(now.get(Calendar.HOUR_OF_DAY)), 16f, Ui.SUB))
-
-        if (config.speedShow) {
-            val speed = text("— km/h", 56f, Ui.TEXT).apply { setPadding(0, dp(20), 0, 0) }
-            val limit = text("", 18f, Ui.SUB)
-            speedView = speed
-            limitView = limit
-            col.addView(speed)
-            col.addView(limit)
-        } else {
-            speedView = null
-            limitView = null
-        }
-        return col
-    }
-
-    private fun rightColumn(reminders: List<Reminder>): View {
-        val col = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(24), 0, 0, 0)
-        }
-        if (reminders.isEmpty()) {
-            col.addView(text("Sin avisos. Actívalos en Ajustes.", 18f, Ui.SUB))
-        }
-        reminders.take(5).forEach { col.addView(reminderCard(it), cardParams()) }
-        return col
-    }
-
-    private fun reminderCard(r: Reminder): View {
-        val color = if (r.warn) Ui.WARN else Ui.OK
-        val card = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Ui.CARD)
-            setPadding(dp(14), dp(10), dp(14), dp(10))
-        }
-        card.addView(text(r.key, 18f, Ui.TEXT).apply { setTypeface(typeface, android.graphics.Typeface.BOLD) })
-        card.addView(text(r.text, 16f, if (r.warn) Ui.WARN else Ui.SUB))
-        if (!r.noBar) {
-            val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-            val filled = r.pct.toFloat().coerceIn(0.02f, 1f)
-            bar.addView(View(this).apply { setBackgroundColor(color) }, LinearLayout.LayoutParams(0, dp(6), filled))
-            bar.addView(View(this).apply { setBackgroundColor(Color.parseColor("#2C3642")) }, LinearLayout.LayoutParams(0, dp(6), 1f - filled + 0.0001f))
-            card.addView(bar, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(6)).apply { topMargin = dp(8) })
-        }
-        return card
-    }
-
-    private fun cardParams() =
-        LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { bottomMargin = dp(10) }
-
-    private fun appsRow(): View {
-        val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
+            setPadding(dp(14), dp(14), dp(14), dp(14))
         }
-        config.apps.mapNotNull { Ui.KNOWN_APPS[it] }.forEach { (label, pkg) ->
-            row.addView(Button(this).apply {
-                text = label
-                textSize = 18f
-                setOnClickListener { open(pkg) }
-            }, LinearLayout.LayoutParams(dp(190), dp(84)).apply { setMargins(dp(10), 0, dp(10), 0) })
+        root.addView(sidebar(tier), lp(dp(84), MATCH, 0f, r = 12))
+
+        val main = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val alert = TextView(this).apply {
+            typeface = Ui.DISPLAY
+            textSize = 20f
+            setTextColor(Color.WHITE)
+            background = Ui.rounded(this@MainActivity, Ui.ALERT, 22)
+            setPadding(dp(24), dp(6), dp(24), dp(6))
+            visibility = View.INVISIBLE
+            text = " "
         }
-        return row
+        alertView = alert
+        main.addView(alert, LinearLayout.LayoutParams(WRAP, WRAP).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+            bottomMargin = dp(8)
+        })
+
+        val columns = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        columns.addView(carCard(now), lp(0, MATCH, 1.25f, r = 12))
+        columns.addView(centerColumn(now, reminders), lp(0, MATCH, 1f, r = 12))
+        columns.addView(appsColumn(), lp(0, MATCH, 0.8f))
+        main.addView(columns, LinearLayout.LayoutParams(MATCH, 0, 1f))
+
+        root.addView(main, LinearLayout.LayoutParams(0, MATCH, 1f))
+        frame.addView(root, FrameLayout.LayoutParams(MATCH, MATCH))
+        return frame
     }
 
-    private fun footer(tier: Tier): View {
-        val f = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(0, dp(8), 0, 0)
+    /** Barra lateral: Inicio, Ajustes y (en la edición gratuita) Activar código. */
+    private fun sidebar(tier: Tier): View {
+        val bar = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            background = Ui.glass(this@MainActivity)
+            setPadding(0, dp(14), 0, dp(14))
         }
-        f.addView(
+        bar.addView(navButton(R.drawable.ic_home, "Inicio", true) {}, lp(dp(56), dp(56), 0f, b = 10))
+        bar.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
+        if (tier == Tier.FREE) {
+            bar.addView(
+                navButton(R.drawable.ic_key, "Activar código", false) {
+                    startActivity(Intent(this, ActivationActivity::class.java))
+                },
+                lp(dp(56), dp(56), 0f, b = 10),
+            )
+        }
+        bar.addView(
+            navButton(R.drawable.ic_settings, "Ajustes", false) {
+                startActivity(Intent(this, SettingsActivity::class.java))
+            },
+            lp(dp(56), dp(56), 0f),
+        )
+        return bar
+    }
+
+    private fun navButton(icon: Int, description: String, selected: Boolean, onClick: () -> Unit): View =
+        ImageView(this).apply {
+            setImageResource(icon)
+            contentDescription = description
+            setPadding(dp(14), dp(14), dp(14), dp(14))
+            background = if (selected) Ui.rounded(this@MainActivity, Ui.ACCENT, 16) else null
+            setColorFilter(if (selected) Ui.ACCENT_INK else Ui.TEXT)
+            setOnClickListener { onClick() }
+        }
+
+    /** Tarjeta grande: saludo, el auto y a qué edición pertenece. */
+    private fun carCard(now: Calendar): View {
+        val card = card()
+        card.addView(text(Reminders.hello(config), 40f, Ui.TEXT).apply { typeface = Ui.DISPLAY })
+        val odometer = if (config.odometer > 0) " · ${Reminders.km(config.odometer)} km" else ""
+        card.addView(text(Reminders.greeting(now.get(Calendar.HOUR_OF_DAY)) + odometer, 17f, Ui.SUB))
+
+        val car = CarView(this).apply {
+            carType = config.carType
+            carColor = parseColor(config.carColor)
+        }
+        card.addView(car, LinearLayout.LayoutParams(MATCH, 0, 1f))
+
+        card.addView(
             text(
-                when (tier) {
+                when (entitlement.tier) {
                     Tier.FREE -> "Edición gratuita"
                     Tier.ESENCIAL -> "Plan Esencial"
                     Tier.COMPLETO -> "Plan Completo"
                 },
-                16f, Ui.SUB,
+                14f, Ui.SUB,
             ),
-            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
         )
-        f.addView(Button(this).apply {
-            text = "Ajustes"
-            setOnClickListener { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) }
+        return card
+    }
+
+    /** Columna central: reloj y velocidad arriba, avisos abajo. */
+    private fun centerColumn(now: Calendar, reminders: List<Reminder>): View {
+        val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+
+        val clock = card()
+        val top = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        val time = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        time.addView(TextClock(this).apply {
+            format12Hour = "HH:mm"
+            format24Hour = "HH:mm"
+            typeface = Ui.DISPLAY
+            textSize = 72f
+            setTextColor(Ui.TEXT)
         })
-        if (tier == Tier.FREE) {
-            f.addView(Button(this).apply {
-                text = "Activar código"
-                setOnClickListener { startActivity(Intent(this@MainActivity, ActivationActivity::class.java)) }
+        time.addView(TextClock(this).apply {
+            format12Hour = "EEEE d 'de' MMMM"
+            format24Hour = "EEEE d 'de' MMMM"
+            textSize = 16f
+            setTextColor(Ui.SUB)
+        })
+        top.addView(time, LinearLayout.LayoutParams(0, WRAP, 1f))
+
+        if (config.speedShow) {
+            val speed = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER_HORIZONTAL
+            }
+            val number = text("—", 60f, Ui.ACCENT).apply { typeface = Ui.DISPLAY }
+            speedView = number
+            speed.addView(number)
+            speed.addView(text("km/h", 14f, Ui.SUB))
+            top.addView(speed)
+        } else {
+            speedView = null
+        }
+        clock.addView(top)
+
+        if (config.speedShow) {
+            clock.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
+            val limitRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            val sign = LimitSignView(this)
+            signView = sign
+            limitRow.addView(sign, LinearLayout.LayoutParams(dp(60), dp(60)))
+            val info = text("", 16f, Ui.SUB).apply { setPadding(dp(14), 0, 0, 0) }
+            limitText = info
+            limitRow.addView(info)
+            clock.addView(limitRow)
+            showSpeed(null)
+        } else {
+            signView = null
+            limitText = null
+        }
+        col.addView(clock, LinearLayout.LayoutParams(MATCH, 0, 1f).apply { bottomMargin = dp(12) })
+
+        col.addView(remindersCard(reminders), LinearLayout.LayoutParams(MATCH, 0, 1.25f))
+        return col
+    }
+
+    private fun remindersCard(reminders: List<Reminder>): View {
+        val card = card()
+        card.addView(text("Avisos", 20f, Ui.ACCENT).apply {
+            typeface = Ui.DISPLAY
+            setPadding(0, 0, 0, dp(6))
+        })
+        if (reminders.isEmpty()) {
+            card.addView(text("Sin avisos. Actívalos en Ajustes.", 16f, Ui.SUB))
+        }
+        reminders.take(4).forEach { card.addView(reminderRow(it), lp(MATCH, WRAP, 0f, b = 8)) }
+        return card
+    }
+
+    private fun reminderRow(r: Reminder): View {
+        val color = if (r.warn) Ui.WARN else Ui.OK
+        val row = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        row.addView(text(r.key, 17f, Ui.TEXT).apply { typeface = Ui.DISPLAY })
+        row.addView(text(r.text, 15f, if (r.warn) Ui.WARN else Ui.SUB))
+        if (!r.noBar) {
+            val filled = r.pct.toFloat().coerceIn(0.03f, 1f)
+            val bar = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                background = Ui.rounded(this@MainActivity, Ui.TRACK, 3)
+            }
+            bar.addView(View(this).apply { background = Ui.rounded(this@MainActivity, color, 3) }, LinearLayout.LayoutParams(0, dp(6), filled))
+            bar.addView(View(this), LinearLayout.LayoutParams(0, dp(6), 1f - filled + 0.0001f))
+            row.addView(bar, lp(MATCH, dp(6), 0f, t = 6))
+        }
+        return row
+    }
+
+    /** Columna de la derecha: tus apps como tarjetas grandes. */
+    private fun appsColumn(): View {
+        val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val apps = config.apps.mapNotNull { Ui.KNOWN_APPS[it] }
+        apps.forEachIndexed { i, app ->
+            col.addView(appCard(app), LinearLayout.LayoutParams(MATCH, 0, 1f).apply {
+                if (i < apps.size - 1) bottomMargin = dp(10)
             })
         }
-        return f
+        if (apps.isEmpty()) {
+            col.addView(card().apply { addView(text("Elige tus apps en Ajustes.", 16f, Ui.SUB)) }, LinearLayout.LayoutParams(MATCH, MATCH))
+        }
+        return col
+    }
+
+    private fun appCard(app: AppInfo): View {
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            background = Ui.glass(this@MainActivity)
+            setPadding(dp(16), dp(10), dp(16), dp(10))
+            isClickable = true
+            setOnClickListener { open(app.pkg) }
+        }
+        card.addView(ImageView(this).apply {
+            setImageResource(app.icon)
+            setColorFilter(Ui.ACCENT)
+            setPadding(dp(11), dp(11), dp(11), dp(11))
+            background = Ui.rounded(this@MainActivity, Color.argb(36, 255, 255, 255), 26)
+        }, LinearLayout.LayoutParams(dp(52), dp(52)))
+
+        val labels = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(14), 0, 0, 0)
+        }
+        labels.addView(text(app.label, 20f, Ui.TEXT).apply { typeface = Ui.DISPLAY })
+        labels.addView(text(if (isInstalled(app.pkg)) "Abrir" else "No instalada", 14f, Ui.SUB))
+        card.addView(labels, LinearLayout.LayoutParams(0, WRAP, 1f))
+        card.addView(text("›", 30f, Ui.SUB))
+        return card
     }
 
     /* ---------- velocidad (GPS) ---------- */
@@ -252,15 +365,23 @@ class MainActivity : Activity() {
     private fun hasLocationPermission(): Boolean =
         Build.VERSION.SDK_INT < 23 || checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
-    private fun showSpeed(kmh: Int) {
+    /** `kmh` null = todavía no hay señal de GPS. */
+    private fun showSpeed(kmh: Int?) {
         // Hoy no consultamos el límite de cada calle: en modo automático no hay límite que mostrar.
         val limit = Speed.limit(config, roadLimit = null)
-        speedView?.text = "$kmh km/h"
-        speedView?.setTextColor(if (Speed.isOver(kmh, limit)) Ui.WARN else Ui.TEXT)
-        limitView?.text = when {
-            limit != null -> "Límite $limit km/h"
-            config.speedAlert == "auto" -> "Límite de la vía: aún no disponible"
-            else -> ""
+        val over = kmh != null && Speed.isOver(kmh, limit)
+
+        speedView?.text = kmh?.toString() ?: "—"
+        speedView?.setTextColor(if (over) Ui.WARN else Ui.ACCENT)
+        signView?.limit = limit
+        limitText?.text = when {
+            limit != null -> "Límite fijo de $limit km/h"
+            config.speedAlert == "auto" -> "Límite de la vía:\naún no disponible"
+            else -> "Sin aviso de velocidad"
+        }
+        alertView?.apply {
+            visibility = if (over) View.VISIBLE else View.INVISIBLE
+            if (over) text = "Baja la velocidad · $kmh km/h · límite ${limit ?: ""}"
         }
     }
 
@@ -286,16 +407,36 @@ class MainActivity : Activity() {
         else startActivity(intent)
     }
 
+    private fun isInstalled(pkg: String): Boolean = packageManager.getLaunchIntentForPackage(pkg) != null
+
+    private fun card(): LinearLayout = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        background = Ui.glass(this@MainActivity)
+        setPadding(dp(18), dp(14), dp(18), dp(14))
+    }
+
     private fun text(s: String, size: Float, color: Int) = TextView(this).apply {
         text = s
         textSize = size
         setTextColor(color)
     }
 
+    private fun parseColor(hex: String): Int = try {
+        Color.parseColor(hex)
+    } catch (e: IllegalArgumentException) {
+        Color.parseColor("#b3261e")
+    }
+
+    /** Parámetros de diseño; los márgenes (l, t, r, b) van en dp. */
+    private fun lp(w: Int, h: Int, weight: Float, l: Int = 0, t: Int = 0, r: Int = 0, b: Int = 0) =
+        LinearLayout.LayoutParams(w, h, weight).apply { setMargins(dp(l), dp(t), dp(r), dp(b)) }
+
     private fun dp(v: Int) = Ui.dp(this, v)
 
     companion object {
         private const val REQ_LOCATION = 1
+        private const val MATCH = LinearLayout.LayoutParams.MATCH_PARENT
+        private const val WRAP = LinearLayout.LayoutParams.WRAP_CONTENT
 
         // Una vez por arranque de la app (no cada vez que se vuelve a la pantalla de inicio).
         private var greeted = false

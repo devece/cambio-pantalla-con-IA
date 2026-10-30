@@ -32,7 +32,16 @@
   <main>
     <section class="hero wrap">
       <h1>Tu radio, con tu auto en la pantalla</h1>
-      <p>Elige el diseño desde el celular, míralo andar en vivo y paga solo cuando te guste. En la radio solo instalas y escribes tu código.</p>
+      <p>Tablero es una app que reemplaza la pantalla de inicio de tu radio Android: reloj, tus apps, avisos de aceite y documentos, y alerta de velocidad. Diséñala aquí, mírala andar en vivo y paga solo cuando te guste.</p>
+    </section>
+
+    <section class="how wrap" aria-labelledby="how-h">
+      <h2 id="how-h">Cómo funciona</h2>
+      <ol>
+        <li><b>Diseñas</b><span>Eliges cómo se ve y qué avisos quieres. Es gratis y no necesitas cuenta.</span></li>
+        <li><b>Pagas y recibes un código</b><span>Con el pago te llega un código de activación del tipo <code>TBL-XXXX-XXXX-XXXX</code>, por WhatsApp o correo.</span></li>
+        <li><b>Instalas y activas</b><span>Instalas la app en tu radio, escribes el código en <i>Activar código</i> y se desbloquea tu plan. El código sirve para una sola radio.</span></li>
+      </ol>
     </section>
 
     <section class="studio wrap" id="configurador" aria-label="Configurador">
@@ -201,6 +210,7 @@
         <!-- Paso 5 -->
         <section class="step" data-step="5" aria-labelledby="h5" hidden>
           <h2 id="h5">Resumen y pago</h2>
+          <p class="lead">Estás comprando el <b>desbloqueo de la app Tablero para una radio</b>, con el plan que elijas. No es un producto físico: después de pagar recibes un código para activarla.</p>
           <div class="group">
             <h3>Plan</h3>
             <div class="choices cols-1 plans" data-choices="plan" role="radiogroup" aria-label="Plan"></div>
@@ -214,6 +224,7 @@
           </div>
           <div class="group">
             <h3>¿Dónde te mandamos el código?</h3>
+            <p class="hint">Es tu código de activación (<code>TBL-XXXX-XXXX-XXXX</code>). Lo escribirás en la app, en tu radio.</p>
             <div class="choices cols-2 compact" id="contact-kind" role="radiogroup" aria-label="Medio de contacto"></div>
             <label class="field" data-show="contact.kind=whatsapp"><span>WhatsApp</span><input type="tel" inputmode="tel" autocomplete="tel" data-bind="contact.value" placeholder="+56 9 1234 5678"></label>
             <label class="field" data-show="contact.kind=email"><span>Correo</span><input type="email" inputmode="email" autocomplete="email" data-bind="contact.value" placeholder="tu@correo.cl"></label>
@@ -222,6 +233,7 @@
           <ul class="errors" id="pay-errors" role="alert" hidden></ul>
           <div class="done" id="pay-done" role="status" hidden></div>
           <button type="button" class="btn pay" id="pay">Pagar</button>
+          <p class="hint pay-hint">El pago se hace en PayPal, que cobra el equivalente en dólares (USD). El total en pesos es el que ves arriba.</p>
         </section>
 
         <div class="nav" id="nav">
@@ -235,7 +247,11 @@
       <h2>Preguntas frecuentes</h2>
       <details><summary>¿Cómo sé si mi radio es compatible?</summary><p>Si tu radio tiene pantalla grande y puedes abrir la Play Store o instalar apps como YouTube o Waze, es Android y sirve. Si es la radio que vino de fábrica y solo muestra tu celular por Android Auto o CarPlay, no sirve.</p></details>
       <details><summary>¿Qué pasa con mis apps y con Android Auto o CarPlay?</summary><p>Nada: siguen funcionando igual. El launcher solo cambia la pantalla de inicio y abre las apps que ya tienes.</p></details>
-      <details><summary>¿Cómo se instala?</summary><p>Instalas la app en la radio y escribes tu código. Cada código sirve para una sola radio.</p></details>
+      <details><summary>¿Qué estoy comprando?</summary><p>El desbloqueo de la app Tablero para una radio, con el plan que elijas (Esencial o Completo). No es un producto físico: la app se instala en tu radio y el código que recibes al pagar la activa.</p></details>
+      <details><summary>¿Qué es el código que recibo?</summary><p>Es una clave con el formato <code>TBL-XXXX-XXXX-XXXX</code>. Se escribe una vez en la app, en la opción <i>Activar código</i>, y queda ligada a esa radio. No sirve en otra radio.</p></details>
+      <details><summary>¿Hay una versión gratis?</summary><p>La app tendrá una versión gratuita con funciones básicas, como el aviso de aceite y la velocidad. El código desbloquea el resto: más diseños, documentos al día, restricción vehicular, combustible y saludo por voz.</p></details>
+      <details><summary>¿Cómo se instala?</summary><p>Instalas la app en la radio, la abres, presionas <i>Activar código</i> y escribes tu código. Cada código sirve para una sola radio.</p></details>
+      <details><summary>¿Cómo pago?</summary><p>Con PayPal. Como PayPal no cobra en pesos chilenos, se cobra el equivalente en dólares (USD). Puedes pagar con tu cuenta PayPal o con tarjeta.</p></details>
       <details><summary>¿Y si no me gusta o no funciona en mi radio?</summary><p>Si no funciona en tu radio, te devolvemos tu dinero.</p></details>
     </section>
   </main>

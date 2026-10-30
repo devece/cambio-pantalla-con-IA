@@ -54,7 +54,7 @@ function paidPage(res, orderId, code) {
     200,
     '¡Pago recibido!',
     `<p>Gracias. Este es tu código de activación para el pedido <b>${esc(orderId)}</b>:</p><code>${esc(code)}</code>
-<p>Guárdalo: lo ingresarás en el launcher de tu radio. Se liga a una sola radio.</p>`
+<p>Guárdalo. Para usarlo: instala la app Tablero en tu radio, ábrela, presiona <b>Activar código</b> y escríbelo. Sirve para una sola radio.</p>`
   );
 }
 

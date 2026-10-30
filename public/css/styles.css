@@ -162,6 +162,18 @@ input[type='color'] { width: 56px; height: 44px; padding: 2px; border: 2px solid
 .done b { font-family: var(--display); font-size: 22px; }
 
 /* Preguntas y pie */
+/* Cómo funciona */
+.how { padding: 0 0 clamp(20px, 3vw, 32px); }
+.how h2 { font: 700 30px/1 var(--display); margin-bottom: 14px; }
+.how ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; counter-reset: paso; }
+.how li { counter-increment: paso; background: var(--paper); border: 2px solid var(--borde); border-radius: 12px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.how li::before { content: counter(paso); font: 700 28px/1 var(--display); color: var(--verde); }
+.how li b { font-size: 18px; }
+.how li span { font-size: 15px; color: var(--ink2); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .92em; background: #eaf4ee; padding: 1px 5px; border-radius: 5px; }
+.pay-hint { text-align: center; }
+@media (max-width: 760px) { .how ol { grid-template-columns: 1fr; } }
+
 .faq { padding: 8px 0 56px; max-width: 820px; margin-left: max(16px, calc((100% - var(--wrap)) / 2)); }
 .faq h2 { font: 700 36px/1 var(--display); margin-bottom: 14px; }
 .faq details { border-top: 2px solid var(--borde); padding: 14px 0; }

@@ -38,7 +38,7 @@ module.exports = async function handler(req, res) {
       total: q.total,
       currency: q.currency,
       paymentUrl: null,
-      message: 'Modo demostración: el pedido no se guardó y no se cobró nada.',
+      message: 'Modo demostración: el pedido no se guardó y no se cobró nada. Con el pago real recibirías tu código de activación (TBL-XXXX-XXXX-XXXX) para escribirlo en la app, en tu radio.',
     });
   }
 

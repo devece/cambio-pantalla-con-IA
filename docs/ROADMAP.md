@@ -1,7 +1,7 @@
 # Hoja de ruta
 
 ## Antes de vender (obligatorio)
-1. **Medio de pago**: Flow, Mercado Pago o Webpay. Crear la orden en `api/checkout.js`, recibir el webhook de confirmación y recién ahí emitir la licencia (`lib/license.js`).
+1. **Medio de pago**: PayPal está implementado (`api/checkout.js` + `api/paypal-return.js`). Falta probarlo en sandbox con tus credenciales y luego pasar a `live`. Mejora pendiente: un webhook de PayPal (`PAYMENT.CAPTURE.COMPLETED`) para cubrir al cliente que paga pero cierra el navegador antes de volver al sitio.
 2. **Páginas legales**: términos, privacidad y devoluciones, revisadas por un abogado.
 3. **Correo transaccional** (por ejemplo Resend) con dominio propio para enviar el código.
 4. **Contacto real**: `supportEmail` y `whatsapp` en `public/js/site.js`; quitar la cinta de prototipo.

@@ -4,7 +4,7 @@ Configurador web para un launcher de radios Android de auto, pensado para Chile 
 
 El cliente elige radio, auto, diseño y funciones; ve su pantalla funcionando en vivo; paga; y recibe un código para activar el launcher en su radio.
 
-> **Estado: prototipo.** La vista previa, el configurador y la validación de pedidos funcionan. **Faltan** el cobro real, el launcher Android nativo y los textos legales. Ver `docs/ROADMAP.md`.
+> **Estado: prototipo.** La vista previa, el configurador y la validación de pedidos funcionan. El cobro con PayPal está implementado pero **sin probar contra PayPal real** (solo con simulaciones). **Faltan** el launcher Android nativo y los textos legales. Ver `docs/ROADMAP.md`.
 
 ## Qué incluye
 
@@ -17,7 +17,7 @@ El cliente elige radio, auto, diseño y funciones; ve su pantalla funcionando en
 ## Cómo correrlo
 
 ```bash
-npm test          # 13 pruebas de cotización y validación
+npm test          # pruebas de cotización, validación, licencias y pago con PayPal
 npm run dev       # http://localhost:3000
 ```
 
@@ -31,7 +31,18 @@ Copia `.env.example` a `.env`:
 |---|---|
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Guardar pedidos y licencias |
 | `LICENSE_PEPPER` | Secreto largo y aleatorio para vincular licencias a una radio |
-| `PAYMENT_PROVIDER` | Reservado para el medio de pago (aún no implementado) |
+| `SITE_URL` | URL pública del sitio (a donde vuelve PayPal) |
+| `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` | Credenciales de tu app en developer.paypal.com |
+| `PAYPAL_ENV` | `sandbox` (pruebas) o `live` (cobra de verdad) |
+| `PAYPAL_CLP_PER_USD` | Tipo de cambio fijo: PayPal no acepta CLP, se cobra en USD |
+
+## Pago con PayPal
+
+1. El cliente presiona **Pagar**: `api/checkout.js` guarda el pedido, crea la orden en PayPal (en USD) y redirige al cliente.
+2. El cliente aprueba en PayPal y vuelve a `api/paypal-return.js`, que captura el cobro, comprueba que el monto coincide con lo guardado, marca el pedido `paid` y muestra el código de licencia. Es idempotente: recargar no duplica nada.
+3. Si cancela, vuelve al paso de pago con su configuración intacta.
+
+Pruébalo primero en `sandbox` con una cuenta compradora de prueba (developer.paypal.com > Sandbox > Accounts). Revisa `PAYPAL_CLP_PER_USD` de vez en cuando: el cliente ve el total en CLP, pero PayPal le cobra el equivalente en USD.
 
 ## Publicar en Vercel
 

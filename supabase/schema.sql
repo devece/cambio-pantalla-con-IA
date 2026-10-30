@@ -13,10 +13,15 @@ create table if not exists public.orders (
   contact_kind   text not null check (contact_kind in ('whatsapp','email')),
   contact_value  text not null,
   config         jsonb not null,                       -- radio, auto, estilo, funciones (sin foto)
-  payment_ref    text,                                 -- id del cobro en el proveedor
+  payment_ref    text,                                 -- id del cobro en el proveedor (orden de PayPal)
+  charge_amount  numeric(10,2),                        -- monto exacto pedido al proveedor (PayPal no acepta CLP: va en USD)
+  charge_currency text,
   created_at     timestamptz not null default now(),
   paid_at        timestamptz
 );
+-- Si la tabla ya existía de antes:
+alter table public.orders add column if not exists charge_amount numeric(10,2);
+alter table public.orders add column if not exists charge_currency text;
 
 create table if not exists public.licenses (
   code             text primary key,                   -- TBL-XXXX-XXXX-XXXX
@@ -30,6 +35,7 @@ create table if not exists public.licenses (
 
 create index if not exists orders_status_idx on public.orders (status, created_at desc);
 create index if not exists licenses_order_idx on public.licenses (order_public_id);
+create unique index if not exists licenses_one_per_order_idx on public.licenses (order_public_id); -- una licencia por pedido (idempotencia)
 
 alter table public.orders   enable row level security;
 alter table public.licenses enable row level security;

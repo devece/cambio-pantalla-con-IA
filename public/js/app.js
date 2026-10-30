@@ -448,6 +448,16 @@
     TB.preview.mount($('#device'));
     wire();
     update();
+
+    // Volvió de PayPal sin pagar: su configuración sigue guardada, lo dejamos en el paso de pago.
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('pago') === 'cancelado') {
+      go(5);
+      const done = $('#pay-done');
+      done.hidden = false;
+      done.textContent = 'Cancelaste el pago en PayPal. Tu pedido sigue aquí: cuando quieras, presiona Pagar de nuevo.';
+      window.history.replaceState(null, '', window.location.pathname);
+    }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

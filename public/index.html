@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tablero · Tu auto en la pantalla de tu radio</title>
+  <meta name="description" content="Diseña la pantalla de inicio de tu radio Android de auto: elige el tema, mira cómo queda en vivo y paga solo cuando te guste.">
+  <meta name="theme-color" content="#0e6b4a">
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/preview.css">
+</head>
+<body>
+  <a class="skip" href="#configurador">Ir al configurador</a>
+
+  <div class="ribbon" id="ribbon" hidden>Prototipo: todavía no se vende y los pagos están en modo demostración.</div>
+
+  <header class="masthead">
+    <div class="wrap bar">
+      <a class="brand" href="./" aria-label="Tablero, inicio">
+        <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true"><rect x="2" y="2" width="36" height="36" rx="9" fill="none" stroke="#fff" stroke-width="3"/><path d="M9 28a11 11 0 0 1 22 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M20 28l6-9" stroke="#f5c400" stroke-width="3.4" stroke-linecap="round"/><circle cx="20" cy="28" r="2.6" fill="#f5c400"/></svg>
+        <span id="brand-name">Tablero</span>
+      </a>
+      <a class="bar-link" href="#faq">Preguntas</a>
+    </div>
+    <div class="roadline" aria-hidden="true"></div>
+  </header>
+
+  <main>
+    <section class="hero wrap">
+      <h1>Tu radio, con tu auto en la pantalla</h1>
+      <p>Elige el diseño desde el celular, míralo andar en vivo y paga solo cuando te guste. En la radio solo instalas y escribes tu código.</p>
+    </section>
+
+    <section class="studio wrap" id="configurador" aria-label="Configurador">
+      <div class="stage">
+        <div class="stage-bar">
+          <div class="tabs" role="tablist" aria-label="Pantallas de la radio" id="screen-tabs"></div>
+          <div class="daynight" role="group" aria-label="Modo de la pantalla">
+            <button type="button" id="mode-day" class="on" aria-pressed="true">Día</button>
+            <button type="button" id="mode-night" aria-pressed="false">Luces encendidas</button>
+          </div>
+        </div>
+        <div class="bezel">
+          <span class="knob knob-l" aria-hidden="true"></span>
+          <div class="device-screen" id="device" role="img" aria-label="Vista previa de la pantalla de tu radio"></div>
+          <span class="knob knob-r" aria-hidden="true"></span>
+        </div>
+        <p class="stage-note">Vista previa a 1024 × 600. El clima, la canción y la emisora son de ejemplo. Al prender las luces del auto, la radio pasa sola a modo noche.</p>
+      </div>
+
+      <div class="panel" id="panel">
+        <ol class="route" id="route" aria-label="Pasos"></ol>
+
+        <!-- Paso 1 -->
+        <section class="step" data-step="1" aria-labelledby="h1">
+          <h2 id="h1">¿Cómo es tu radio?</h2>
+          <p class="lead">Funciona en radios Android de pantalla grande.</p>
+          <div class="choices cols-1" data-choices="radio.type" role="radiogroup" aria-labelledby="h1"></div>
+          <div class="note" id="radio-note" role="status"></div>
+          <label class="field" data-show="radio.type=android">
+            <span>Marca y modelo de tu radio (opcional)</span>
+            <input type="text" maxlength="40" data-bind="radio.model" placeholder="Ej.: pantalla de 9 pulgadas, Android 10">
+          </label>
+          <details class="aside">
+            <summary>¿Y Android Auto o CarPlay?</summary>
+            <p>Si tu radio es de pantalla grande con apps y ya tiene Android Auto o CarPlay, no se toca: sigue funcionando igual y puedes ponerlo en tu barra de apps.</p>
+            <p>Si tu radio es la original del auto y solo tiene Android Auto o CarPlay, no es compatible: eso es tu celular mostrándose en la pantalla, no la radio por dentro.</p>
+          </details>
+        </section>
+
+        <!-- Paso 2 -->
+        <section class="step" data-step="2" aria-labelledby="h2" hidden>
+          <h2 id="h2">Tu auto</h2>
+          <p class="lead">Así se ve en la pantalla de inicio.</p>
+          <div class="group">
+            <h3>Tipo de vehículo</h3>
+            <div class="choices cols-3" data-choices="car.type" role="radiogroup" aria-label="Tipo de vehículo"></div>
+          </div>
+          <div class="group">
+            <h3>Color</h3>
+            <div class="swatches" id="car-colors" role="radiogroup" aria-label="Color del auto"></div>
+            <label class="field inline"><span>Otro color</span><input type="color" data-bind="car.color" aria-label="Elegir otro color"></label>
+          </div>
+          <div class="group">
+            <h3>Tu foto (opcional)</h3>
+            <p class="hint">Se queda en tu celular mientras diseñas: no se sube a ningún lado hasta que pagues. Quitar el fondo y agregar las luces llegará en una próxima versión.</p>
+            <div class="photo-row">
+              <label class="btn ghost" for="photo">Subir foto de mi auto</label>
+              <input type="file" id="photo" accept="image/*" hidden>
+              <button type="button" class="btn link" id="photo-clear" hidden>Quitar foto</button>
+            </div>
+            <p class="error" id="photo-error" role="alert" hidden></p>
+          </div>
+          <div class="group">
+            <h3>Tu saludo</h3>
+            <label class="field"><span>Tu nombre</span><input type="text" maxlength="24" data-bind="car.name" placeholder="Ej.: Daniel" autocomplete="given-name"></label>
+            <div class="choices cols-4 compact" data-choices="car.greeting" role="radiogroup" aria-label="Saludo"></div>
+          </div>
+        </section>
+
+        <!-- Paso 3 -->
+        <section class="step" data-step="3" aria-labelledby="h3" hidden>
+          <h2 id="h3">Diseño visual</h2>
+          <p class="lead">Cambia todo cuando quieras desde los ajustes de tu radio, sin internet.</p>
+          <div class="group">
+            <h3>Tema</h3>
+            <div class="choices cols-2 themes" data-choices="style.theme" role="radiogroup" aria-label="Tema visual"></div>
+          </div>
+          <div class="group">
+            <h3>Distribución</h3>
+            <div class="choices cols-2" data-choices="style.layout" role="radiogroup" aria-label="Distribución de la pantalla"></div>
+          </div>
+          <div class="group">
+            <h3>Fondo</h3>
+            <div class="choices cols-4 compact" data-choices="style.scene" role="radiogroup" aria-label="Fondo de pantalla"></div>
+          </div>
+          <div class="group">
+            <h3>Decoración de temporada</h3>
+            <div class="choices cols-2 compact" data-choices="style.season" role="radiogroup" aria-label="Decoración de temporada"></div>
+          </div>
+          <div class="group">
+            <h3>Color de acento</h3>
+            <div class="accent-row">
+              <label class="field inline"><span>Elegir color</span><input type="color" id="accent-input" aria-label="Color de acento"></label>
+              <button type="button" class="btn link" id="accent-reset">Usar el del tema</button>
+            </div>
+          </div>
+          <div class="group">
+            <h3>Apps en la barra <span class="count" id="apps-count"></span></h3>
+            <div class="choices cols-3 compact multi" data-multi="style.apps" data-max="4" role="group" aria-label="Apps en la barra"></div>
+            <p class="hint">El launcher abre las apps que ya tengas instaladas en la radio.</p>
+          </div>
+        </section>
+
+        <!-- Paso 4 -->
+        <section class="step" data-step="4" aria-labelledby="h4" hidden>
+          <h2 id="h4">Funciones</h2>
+          <p class="lead">Activa solo lo que te sirva. Los avisos son una ayuda y pueden fallar: no reemplazan las señales de tránsito ni el manual de tu auto.</p>
+
+          <fieldset class="feature">
+            <label class="check"><input type="checkbox" data-bind="features.oilOn"><span>Aviso de cambio de aceite</span></label>
+            <div class="sub" data-show="features.oilOn">
+              <label class="field"><span>Kilometraje actual</span><input type="number" inputmode="numeric" min="0" max="999999" data-bind="features.odometer"></label>
+              <label class="field"><span>Último cambio de aceite a los (km)</span><input type="number" inputmode="numeric" min="0" max="999999" data-bind="features.lastOil"></label>
+              <label class="field"><span>Cambio cada</span>
+                <select data-bind="features.oilEvery" data-number><option value="3000">3.000 km</option><option value="5000">5.000 km</option><option value="7500">7.500 km</option><option value="10000">10.000 km</option></select>
+              </label>
+              <p class="hint" id="oil-hint"></p>
+            </div>
+          </fieldset>
+
+          <fieldset class="feature">
+            <legend>Otros mantenimientos</legend>
+            <div class="choices cols-2 compact multi" data-multi="features.others" role="group" aria-label="Otros mantenimientos"></div>
+            <p class="hint">Los intervalos son referenciales: revisa el manual de tu auto.</p>
+          </fieldset>
+
+          <fieldset class="feature">
+            <label class="check"><input type="checkbox" data-bind="features.docsOn"><span>Documentos al día (revisión técnica, permiso de circulación y SOAP)</span></label>
+            <div class="sub" data-show="features.docsOn">
+              <label class="field"><span>Mes de vencimiento de tu revisión técnica</span>
+                <select data-bind="features.rtMonth" data-number id="rt-month"></select>
+              </label>
+              <p class="hint">El permiso de circulación se paga en marzo y agosto, y el SOAP vence el 31 de marzo.</p>
+            </div>
+          </fieldset>
+
+          <fieldset class="feature">
+            <label class="check"><input type="checkbox" data-bind="features.fuelOn"><span>Calcular cuántos km me quedan de bencina (aproximado)</span></label>
+            <div class="sub" data-show="features.fuelOn">
+              <label class="field"><span>Tanque (litros)</span><input type="number" inputmode="numeric" min="10" max="150" data-bind="features.tankL"></label>
+              <label class="field"><span>Rendimiento (km por litro)</span><input type="number" inputmode="decimal" min="3" max="40" data-bind="features.kmPerL"></label>
+              <p class="hint" id="fuel-hint"></p>
+            </div>
+          </fieldset>
+
+          <fieldset class="feature">
+            <legend>Al manejar</legend>
+            <label class="check"><input type="checkbox" data-bind="features.speedShow"><span>Mostrar mi velocidad</span></label>
+            <div class="choices cols-3 compact" data-choices="features.speedAlert" role="radiogroup" aria-label="Aviso de velocidad"></div>
+            <div class="sub" data-show="features.speedAlert=manual">
+              <label class="field"><span>Límite (km/h)</span><input type="number" inputmode="numeric" min="20" max="140" data-bind="features.manualLimit"></label>
+            </div>
+            <p class="hint" data-show="features.speedAlert=auto">Lee el límite de cada calle en los mapas (OpenStreetMap). Donde el mapa no lo tiene, usa referencias generales: 50 en ciudad, 100 en ruta y 120 en autopista.</p>
+            <label class="check"><input type="checkbox" data-bind="features.voice"><span>Saludarme por voz al encender el auto</span></label>
+          </fieldset>
+
+          <fieldset class="feature">
+            <label class="check"><input type="checkbox" data-bind="features.restrOn"><span>Recordar mi día de restricción vehicular</span></label>
+            <div class="sub" data-show="features.restrOn">
+              <div class="choices cols-3 compact multi" data-multi="features.restrDays" role="group" aria-label="Días de restricción"></div>
+              <p class="hint">Marca tú los días que te corresponden: la tabla oficial cambia según el año y el tipo de vehículo. Revisa el calendario de tu región.</p>
+            </div>
+          </fieldset>
+        </section>
+
+        <!-- Paso 5 -->
+        <section class="step" data-step="5" aria-labelledby="h5" hidden>
+          <h2 id="h5">Resumen y pago</h2>
+          <div class="group">
+            <h3>Plan</h3>
+            <div class="choices cols-1 plans" data-choices="plan" role="radiogroup" aria-label="Plan"></div>
+            <p class="note" id="plan-note" role="status" hidden></p>
+          </div>
+          <div class="group" id="addons"></div>
+          <div class="group">
+            <h3>Tu pedido</h3>
+            <dl class="summary" id="summary"></dl>
+            <p class="total"><span>Total</span><b id="total">$0</b></p>
+          </div>
+          <div class="group">
+            <h3>¿Dónde te mandamos el código?</h3>
+            <div class="choices cols-2 compact" id="contact-kind" role="radiogroup" aria-label="Medio de contacto"></div>
+            <label class="field" data-show="contact.kind=whatsapp"><span>WhatsApp</span><input type="tel" inputmode="tel" autocomplete="tel" data-bind="contact.value" placeholder="+56 9 1234 5678"></label>
+            <label class="field" data-show="contact.kind=email"><span>Correo</span><input type="email" inputmode="email" autocomplete="email" data-bind="contact.value" placeholder="tu@correo.cl"></label>
+          </div>
+          <label class="check terms"><input type="checkbox" data-bind="terms"><span>Acepto los términos y la política de devoluciones.</span></label>
+          <ul class="errors" id="pay-errors" role="alert" hidden></ul>
+          <div class="done" id="pay-done" role="status" hidden></div>
+          <button type="button" class="btn pay" id="pay">Pagar</button>
+        </section>
+
+        <div class="nav" id="nav">
+          <button type="button" class="btn ghost" id="back">Atrás</button>
+          <button type="button" class="btn primary" id="next">Continuar</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq wrap" id="faq">
+      <h2>Preguntas frecuentes</h2>
+      <details><summary>¿Cómo sé si mi radio es compatible?</summary><p>Si tu radio tiene pantalla grande y puedes abrir la Play Store o instalar apps como YouTube o Waze, es Android y sirve. Si es la radio que vino de fábrica y solo muestra tu celular por Android Auto o CarPlay, no sirve.</p></details>
+      <details><summary>¿Qué pasa con mis apps y con Android Auto o CarPlay?</summary><p>Nada: siguen funcionando igual. El launcher solo cambia la pantalla de inicio y abre las apps que ya tienes.</p></details>
+      <details><summary>¿Cómo se instala?</summary><p>Instalas la app en la radio y escribes tu código. Cada código sirve para una sola radio.</p></details>
+      <details><summary>¿Y si no me gusta o no funciona en mi radio?</summary><p>Si no funciona en tu radio, te devolvemos tu dinero.</p></details>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <p>© <span id="year"></span> <span id="foot-name">Tablero</span>. Las marcas de autos y de radios que puedan aparecer pertenecen a sus dueños.</p>
+      <p id="foot-contact"></p>
+    </div>
+  </footer>
+
+  <script src="shared/catalog.js"></script>
+  <script src="shared/order.js"></script>
+  <script src="js/site.js"></script>
+  <script src="js/art.js"></script>
+  <script src="js/themes.js"></script>
+  <script src="js/preview.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

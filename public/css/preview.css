@@ -1,0 +1,179 @@
+/* Pantalla de la radio: lienzo fijo de 1024 x 600 que se escala con transform (ver preview.js). */
+.scr {
+  --bg1: #12694a; --bg2: #08301f; --ink: #f5f7f2; --ink2: #b9d3c3; --card: rgba(255,255,255,.1);
+  --line: rgba(255,255,255,.2); --accent: #f5c400; --accent-ink: #231c00; --scene-rgb: 255,255,255;
+  --radius: 22px; --blur: 0px; --shadow: 0 10px 26px rgba(0,0,0,.28);
+  position: absolute; left: 0; top: 0; width: 1024px; height: 600px; transform-origin: 0 0; overflow: hidden;
+  background: linear-gradient(165deg, var(--bg1), var(--bg2)); color: var(--ink);
+  font-family: 'Barlow', 'Segoe UI', system-ui, sans-serif; font-size: 18px; line-height: 1.2;
+  transition: background .5s;
+}
+.scr *, .scr *::before, .scr *::after { box-sizing: border-box; }
+.scr b, .scr h2 { font-weight: 700; }
+.scr .scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+.scr .decor { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
+.scr .snow { animation: drift 9s ease-in-out infinite alternate; }
+@keyframes drift { from { transform: translateY(-8px); } to { transform: translateY(16px); } }
+
+.scr .status { position: absolute; left: 0; right: 0; top: 0; height: 44px; z-index: 5; display: flex; justify-content: space-between; align-items: center; padding: 0 22px; }
+.scr .status b { font-size: 21px; font-weight: 600; font-variant-numeric: tabular-nums; padding: 1px 12px; border-radius: 99px; background: var(--card); border: 1px solid var(--line); }
+
+.scr .home { position: absolute; left: 0; right: 0; top: 44px; bottom: 92px; padding: 14px 20px; display: grid; gap: 14px; z-index: 2; }
+.scr .home.has-maint { padding-bottom: 68px; }
+.scr .home[class*='screen-'] { display: block; }
+
+.scr .card {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(var(--blur)); backdrop-filter: blur(var(--blur)); padding: 16px 20px; position: relative; overflow: hidden; min-width: 0;
+}
+.scr small { color: var(--ink2); font-size: 15px; font-weight: 400; }
+.scr h2 { margin: 0; font: 700 40px/1 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: .01em; }
+.scr .greet-txt p { margin: 6px 0 0; font-size: 18px; color: var(--ink2); }
+
+/* Botones redondos */
+.scr button { all: unset; box-sizing: border-box; cursor: pointer; color: inherit; font: inherit; }
+.scr button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.scr .rbtn { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: rgba(127,127,127,.2); }
+.scr .rbtn.play { width: 64px; height: 64px; background: var(--accent); color: var(--accent-ink); }
+
+/* Auto */
+.scr .car-svg { display: block; width: 100%; height: auto; }
+.scr .car-photo { display: block; width: 100%; height: 150px; object-fit: contain; border-radius: 12px; }
+
+/* ---- Diseño: Tarjetas ---- */
+.scr .l-tarjetas { grid-template-columns: 1.1fr .95fr 1fr; grid-template-rows: 1fr 1fr; grid-template-areas: 'greet clock music' 'greet radio music'; }
+.scr .greet { grid-area: greet; display: grid; grid-template-rows: auto 1fr auto; gap: 6px; }
+.scr .greet .car { align-self: center; padding: 6px 0; }
+.scr .clock { grid-area: clock; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.scr .radio { grid-area: radio; display: grid; align-items: center; }
+.scr .music-card { grid-area: music; display: grid; align-items: center; }
+.scr .clk b { display: block; font: 700 66px/1 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; }
+.scr .clk span { display: block; margin-top: 4px; color: var(--ink2); font-size: 17px; }
+.scr .spd { text-align: right; }
+.scr .spd b { display: block; font: 700 66px/1 'Barlow Condensed', sans-serif; color: var(--accent); font-variant-numeric: tabular-nums; }
+.scr .spd span { color: var(--ink2); font-size: 15px; }
+.scr .weather { display: flex; align-items: center; gap: 12px; }
+.scr .weather b { font: 700 54px/1 'Barlow Condensed', sans-serif; }
+.scr .wx { color: var(--accent); display: grid; }
+.scr .wd { display: grid; font-size: 20px; }
+.scr .radio-mini { display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; }
+.scr .radio-mini > div { text-align: center; min-width: 0; }
+.scr .radio-mini small { display: block; }
+.scr .radio-mini b { font: 700 58px/1 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; }
+.scr .radio-mini i { display: block; font-style: normal; color: var(--ink2); font-size: 15px; margin-top: 2px; }
+.scr .radio-mini .rbtn { width: 44px; height: 44px; flex: none; }
+.scr .music { display: grid; justify-items: center; gap: 6px; text-align: center; }
+.scr .music .src { font-size: 14px; padding: 2px 12px; border-radius: 99px; background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.scr .music .disc { width: 112px; height: 112px; border-radius: 50%; margin: 4px 0;
+  background: radial-gradient(circle, var(--bg2) 0 17%, transparent 18%), conic-gradient(from 30deg, var(--accent), transparent 38%, var(--ink2) 70%, var(--accent)); box-shadow: 0 0 0 6px rgba(127,127,127,.14); }
+.scr .music b { font-size: 24px; }
+.scr .music > span:not(.src) { color: var(--ink2); font-size: 17px; }
+.scr .music .ctl { display: flex; gap: 14px; align-items: center; margin-top: 6px; }
+
+/* ---- Diseño: Auto al centro ---- */
+.scr .l-centro { grid-template-columns: 1fr 1.55fr 1fr; grid-template-rows: 1fr 1fr; grid-template-areas: 'clock hero radio' 'wx hero music'; }
+.scr .hero { grid-area: hero; display: grid; align-content: center; text-align: center; gap: 12px; border-radius: var(--radius);
+  background: radial-gradient(ellipse at 50% 78%, rgba(var(--scene-rgb), .2), transparent 66%); }
+.scr .hero .car { padding: 0 6px; }
+.scr .hero .car-photo { height: 190px; }
+.scr .l-centro .clock { flex-direction: column; align-items: flex-start; justify-content: center; }
+.scr .l-centro .spd { text-align: left; }
+.scr .wx-card { grid-area: wx; display: grid; align-items: center; }
+/* En "Auto al centro" la tarjeta de música es baja: versión compacta en horizontal */
+.scr .l-centro .music { grid-template-columns: 76px 1fr; grid-template-areas: 'disc t' 'disc a'; align-items: center; justify-items: start; gap: 2px 14px; text-align: left; }
+.scr .l-centro .music .src, .scr .l-centro .music .ctl { display: none; }
+.scr .l-centro .music .disc { grid-area: disc; width: 76px; height: 76px; margin: 0; }
+.scr .l-centro .music b { grid-area: t; align-self: end; font-size: 22px; }
+.scr .l-centro .music > span:not(.src) { grid-area: a; align-self: start; }
+
+/* ---- Diseño: Modo manejo ---- */
+.scr .l-manejo { grid-template-columns: 1.4fr 1fr; grid-template-rows: 1.15fr .85fr .7fr; grid-template-areas: 'speed limit' 'speed nav' 'speed radio'; }
+.scr .speedbig { grid-area: speed; display: grid; align-content: center; justify-items: start; padding-left: 14px; }
+.scr .speedbig b { font: 700 232px/.82 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.scr .speedbig > span { font-size: 30px; color: var(--ink2); margin-top: 8px; }
+.scr .mini-car { width: 250px; margin-top: 14px; }
+.scr .mini-car .car-photo { height: 110px; }
+.scr .limit { grid-area: limit; display: grid; justify-items: center; align-content: center; gap: 6px; }
+.scr .sign { width: 132px; height: 132px; border-radius: 50%; background: #fff; border: 13px solid #d2352b; display: grid; place-items: center; color: #111; box-shadow: var(--shadow); }
+.scr .sign b { font: 700 56px/1 'Barlow Condensed', sans-serif; }
+.scr .nav { grid-area: nav; display: flex; align-items: center; gap: 16px; }
+.scr .nav .turn { color: var(--accent); display: grid; }
+.scr .nav b { display: block; font-size: 23px; line-height: 1.15; }
+.scr .l-manejo .radio { padding: 8px 16px; }
+.scr .l-manejo .radio-mini b { font-size: 44px; }
+
+/* ---- Diseño: Minimalista ---- */
+.scr .l-minimal { grid-template-rows: 1fr auto; align-content: stretch; justify-items: center; }
+.scr .bigclock { text-align: center; align-self: center; }
+.scr .bigclock b { display: block; font: 700 196px/.9 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; }
+.scr .bigclock span { display: block; font-size: 26px; color: var(--ink2); margin-top: 8px; }
+.scr .bigclock p { margin: 10px 0 0; font-size: 28px; }
+.scr .pills { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
+.scr .pill { padding: 10px 20px; display: grid; align-items: center; }
+.scr .pill .radio-mini b { font-size: 46px; }
+
+/* ---- Mantenimiento (pastilla en el inicio) ---- */
+.scr .maint { position: absolute; left: 20px; right: 20px; bottom: 10px; height: 46px; z-index: 3; border-radius: 99px; display: flex; align-items: center; gap: 12px; padding: 0 22px; font-size: 19px;
+  background: var(--card); border: 1px solid var(--line); -webkit-backdrop-filter: blur(var(--blur)); backdrop-filter: blur(var(--blur)); }
+.scr .maint b { color: var(--accent); }
+.scr .maint.warn { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.scr .maint.warn b { color: inherit; }
+
+/* ---- Aviso de velocidad (dentro de la barra superior) ---- */
+.scr .alert { position: absolute; left: 50%; top: 5px; transform: translateX(-50%); z-index: 6; background: #d2352b; color: #fff; font-weight: 700; font-size: 20px;
+  padding: 4px 24px; border-radius: 99px; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+.scr .alert[hidden] { display: none; }
+
+/* ---- Dock ---- */
+.scr .dock { position: absolute; left: 0; right: 0; bottom: 0; height: 92px; z-index: 5; display: flex; justify-content: space-around; align-items: center; padding: 0 14px;
+  background: var(--card); border-top: 1px solid var(--line); -webkit-backdrop-filter: blur(var(--blur)); backdrop-filter: blur(var(--blur)); }
+.scr .dk { display: grid; justify-items: center; gap: 6px; min-width: 72px; }
+.scr .dk .ic { width: 56px; height: 56px; border-radius: calc(var(--radius) * .7); background: rgba(127,127,127,.18); display: grid; place-items: center; }
+.scr .dk small { font-size: 14px; white-space: nowrap; color: var(--ink); opacity: .82; }
+.scr .dk.on .ic { background: var(--accent); color: var(--accent-ink); }
+
+/* ---- Otras pantallas ---- */
+.scr .pane { height: 100%; }
+.scr .radio-pane { display: grid; align-content: center; justify-items: center; gap: 22px; }
+.scr .r-main { text-align: center; }
+.scr .r-main b { font: 700 190px/.9 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; }
+.scr .r-main small, .scr .r-main span { font-size: 28px; color: var(--ink2); margin: 0 10px; }
+.scr .dial { position: relative; width: 88%; height: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
+.scr .dial u { width: 2px; height: 16px; background: var(--ink2); opacity: .7; }
+.scr .dial u.big { height: 30px; opacity: 1; background: var(--ink); }
+.scr .dial i { position: absolute; top: -8px; width: 5px; height: 56px; background: var(--accent); border-radius: 3px; transform: translateX(-50%); transition: left .3s; }
+.scr .presets { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; width: 100%; }
+.scr .preset { padding: 14px 0; text-align: center; font: 700 30px 'Barlow Condensed', sans-serif; }
+.scr .preset.on { background: var(--accent); color: var(--accent-ink); }
+
+.scr .bt-pane { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.scr .phone { display: grid; place-content: center; justify-items: center; gap: 8px; text-align: center; }
+.scr .phone b { font-size: 30px; }
+.scr .phone .ph-ic { color: var(--accent); }
+.scr .phone .ok { color: var(--accent); font-weight: 600; font-size: 20px; }
+.scr .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 14px; }
+.scr .keypad button { display: grid; place-items: center; border-radius: calc(var(--radius) / 2); background: rgba(127,127,127,.18); font: 600 36px 'Barlow Condensed', sans-serif; }
+
+.scr .eq-pane { display: grid; grid-template-rows: 1fr auto; gap: 16px; }
+.scr .eq { display: flex; justify-content: space-around; align-items: stretch; padding: 8px 20px 0; min-height: 0; }
+.scr .band { display: grid; grid-template-rows: 1fr auto; justify-items: center; gap: 8px; }
+.scr .track { width: 46px; border-radius: 99px; background: var(--card); border: 1px solid var(--line); position: relative; overflow: hidden; }
+.scr .track i { position: absolute; left: 0; right: 0; bottom: 0; background: var(--accent); }
+.scr .chips { display: flex; gap: 12px; justify-content: center; }
+.scr .chip { padding: 8px 22px; border-radius: 99px; border: 1px solid var(--line); background: var(--card); font-size: 19px; }
+.scr .chip.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+
+.scr .mt-pane { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start; }
+.scr .mrow { display: grid; gap: 4px; padding: 12px 18px; }
+.scr .mrow b { font-size: 22px; }
+.scr .mrow > span { color: var(--ink2); font-size: 17px; }
+.scr .mrow .bar { height: 8px; border-radius: 99px; background: rgba(127,127,127,.28); overflow: hidden; margin-top: 4px; }
+.scr .mrow .bar i { display: block; height: 100%; background: var(--accent); }
+.scr .mrow.warn { border-color: var(--accent); }
+.scr .empty { display: grid; gap: 6px; place-content: center; text-align: center; height: 100%; }
+.scr .empty b { font-size: 28px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scr, .scr .dial i { transition: none; }
+  .scr .snow { animation: none; }
+}

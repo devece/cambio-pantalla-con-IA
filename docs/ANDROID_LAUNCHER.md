@@ -3,6 +3,7 @@
 El proyecto está en `android/`. Arranca como pantalla de inicio de la radio y ya hace lo siguiente:
 
 - Muestra reloj, fecha y saludo según la hora.
+- **Tu auto en 3D** (auto, SUV o camioneta) en el color que elijas, visto en perspectiva con luces y sombras, y con un balanceo suave. Está dibujado por código (`core/Car3D.kt`), sin imágenes.
 - **Avisos de aceite y otras mantenciones, revisión técnica, permiso, SOAP, combustible y restricción vehicular**, con las mismas cuentas que la vista previa del sitio (probadas en `core`).
 - **Velocidad en vivo con el GPS** y alerta contra un límite fijo.
 - **Saludo por voz** al abrir la app.
@@ -42,12 +43,13 @@ Sin `-PtableroApiBase` la app usa `https://TU-DOMINIO.vercel.app`, que es un mar
 
 ## Qué está verificado y qué no
 
-- **Verificado:** el módulo `core` compila y sus 26 pruebas pasan (candado de cada nivel, formato del código, respuestas del servidor y todos los avisos), leyendo los `editions.json` y `maintenance.json` reales.
+- **Verificado:** el módulo `core` compila y sus 37 pruebas pasan (candado de cada nivel, formato del código, respuestas del servidor, avisos y el auto 3D), leyendo los `editions.json` y `maintenance.json` reales.
 - **NO verificado:** el módulo `app`. Se escribió en un entorno sin Android SDK, así que **nunca se ha compilado ni ejecutado**. Es posible que Android Studio muestre errores de compilación que haya que corregir. Los números de versión (Android Gradle Plugin 8.7.3, Kotlin 2.0.21, SDK 34) tampoco se probaron juntos.
 - **NO verificado:** nada se ha probado en una radio real. Cada marca y chip se comporta distinto (permisos, arranque, rotación, identificador del equipo).
 
 ## Lo que falta
 
+- La foto real del cliente con el fondo recortado (hoy el auto es un modelo 3D simple, no una foto).
 - Los 8 temas, 4 distribuciones y 5 pantallas de `public/js/themes.js` y `public/js/preview.js` (hoy hay un único diseño oscuro).
 - Clima, música y radio FM: en el sitio son datos de ejemplo. En la radio real requieren integración propia (API de clima, permiso de notificaciones para la música, y la API de cada fabricante para la radio FM).
 - Límite automático de velocidad por calle (consulta a OpenStreetMap). Hoy solo funciona el límite fijo.

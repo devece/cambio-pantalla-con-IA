@@ -3,20 +3,21 @@ package cl.tablero.launcher
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.RectF
-import android.graphics.Shader
+import android.os.SystemClock
 import android.view.View
-import cl.tablero.core.CarShapes
-import cl.tablero.core.PathData
+import cl.tablero.core.Car3D
+import kotlin.math.PI
+import kotlin.math.min
+import kotlin.math.sin
 
-/** Dibuja el auto de perfil (las mismas formas del sitio) en el tipo y color elegidos. */
+/** Dibuja el auto en 3D (auto, SUV o camioneta) en el color elegido, balanceándose despacio para dar profundidad. */
 class CarView(context: Context) : View(context) {
-    var carType: String = "auto"
+    var carType: String = "suv"
         set(value) {
             field = value
+            bounds = null
             invalidate()
         }
     var carColor: Int = Color.parseColor("#b3261e")
@@ -25,77 +26,68 @@ class CarView(context: Context) : View(context) {
             invalidate()
         }
 
+    /** false = el auto queda quieto (por ejemplo, si la radio va justa de rendimiento). */
+    var animate: Boolean = true
+
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val bounds = RectF()
-    private val cache = HashMap<String, Path>()
+    private val path = Path()
+    private var bounds: FloatArray? = null
+
+    private val tick = object : Runnable {
+        override fun run() {
+            invalidate()
+            postDelayed(this, FRAME_MS)
+        }
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        if (animate) postDelayed(tick, FRAME_MS)
+    }
+
+    override fun onDetachedFromWindow() {
+        removeCallbacks(tick)
+        super.onDetachedFromWindow()
+    }
 
     override fun onDraw(canvas: Canvas) {
-        val shape = CarShapes.of(carType)
-        val scale = minOf(width / CarShapes.WIDTH, height / CarShapes.HEIGHT)
+        if (width == 0 || height == 0) return
+        val rgb = carColor and 0xFFFFFF
+        val seconds = SystemClock.uptimeMillis() / 1000.0
+        val phi = if (animate) BASE_PHI + SWAY * sin(seconds * 2 * PI / PERIOD_S) else BASE_PHI
+
+        // El encuadre se calcula una vez (con todo el vaivén) para que el auto no "salte" al balancearse.
+        val b = bounds ?: Car3D.bounds(carType, rgb, BASE_PHI - SWAY, BASE_PHI + SWAY).also { bounds = it }
+        val w = b[2] - b[0]
+        val h = b[3] - b[1]
+        val scale = min(width * 0.97f / w, height * 0.97f / h)
+
         canvas.save()
-        canvas.translate((width - CarShapes.WIDTH * scale) / 2f, (height - CarShapes.HEIGHT * scale) / 2f)
+        canvas.translate((width - w * scale) / 2f - b[0] * scale, (height - h * scale) / 2f - b[1] * scale)
         canvas.scale(scale, scale)
+        paint.strokeJoin = Paint.Join.ROUND
+        paint.strokeWidth = 1.2f / scale
 
-        // Sombra en el piso
-        paint.style = Paint.Style.FILL
-        paint.shader = null
-        paint.color = Color.argb(97, 0, 0, 0)
-        canvas.drawOval(RectF(10f, 109f, 390f, 127f), paint)
-
-        // Carrocería con brillo arriba y sombra abajo
-        val body = path(shape.body)
-        paint.color = carColor
-        canvas.drawPath(body, paint)
-        body.computeBounds(bounds, true)
-        paint.shader = LinearGradient(
-            0f, bounds.top, 0f, bounds.bottom,
-            intArrayOf(Color.argb(82, 255, 255, 255), Color.argb(0, 255, 255, 255), Color.argb(87, 0, 0, 0)),
-            floatArrayOf(0f, 0.45f, 1f),
-            Shader.TileMode.CLAMP,
-        )
-        canvas.drawPath(body, paint)
-        paint.shader = null
-
-        shape.extraRect?.let { r ->
-            paint.color = Color.argb(71, 0, 0, 0)
-            canvas.drawRoundRect(RectF(r[0], r[1], r[0] + r[2], r[1] + r[3]), r[4], r[4], paint)
+        for (p in Car3D.build(carType, rgb, phi).polys) {
+            path.reset()
+            var i = 0
+            while (i < p.pts.size) {
+                if (i == 0) path.moveTo(p.pts[0], p.pts[1]) else path.lineTo(p.pts[i], p.pts[i + 1])
+                i += 2
+            }
+            path.close()
+            paint.color = Color.argb((p.alpha * 255).toInt(), p.r, p.g, p.b)
+            // El borde del mismo color tapa las costuras finas entre polígonos vecinos.
+            paint.style = if (p.alpha >= 1f) Paint.Style.FILL_AND_STROKE else Paint.Style.FILL
+            canvas.drawPath(path, paint)
         }
-
-        paint.color = Color.parseColor("#d4e8f4")
-        shape.glass.forEach { canvas.drawPath(path(it), paint) }
-
-        shape.wheels.forEach { cx ->
-            val x = cx.toFloat()
-            paint.color = Color.argb(140, 0, 0, 0)
-            canvas.drawCircle(x, 108f, 29f, paint)
-            paint.color = Color.parseColor("#101214")
-            canvas.drawCircle(x, 108f, 25f, paint)
-            paint.color = Color.parseColor("#a3acb3")
-            canvas.drawCircle(x, 108f, 13f, paint)
-            paint.color = Color.parseColor("#3a4047")
-            canvas.drawCircle(x, 108f, 5f, paint)
-        }
-
-        // Faro y luz trasera
-        paint.color = Color.parseColor("#e6edf0")
-        canvas.drawPath(path("M368 88 L384 90 L384 98 L366 96 Z"), paint)
-        paint.color = Color.parseColor("#9c2a24")
-        canvas.drawRoundRect(RectF(14f, 88f, 20f, 98f), 1.5f, 1.5f, paint)
-
         canvas.restore()
     }
 
-    private fun path(d: String): Path = cache.getOrPut(d) {
-        Path().apply {
-            PathData.parse(d).forEach { c ->
-                val a = c.args
-                when (c.op) {
-                    'M' -> moveTo(a[0], a[1])
-                    'L' -> lineTo(a[0], a[1])
-                    'Q' -> quadTo(a[0], a[1], a[2], a[3])
-                    'Z' -> close()
-                }
-            }
-        }
+    private companion object {
+        const val BASE_PHI = Car3D.DEFAULT_PHI
+        const val SWAY = 7.0
+        const val PERIOD_S = 9.0
+        const val FRAME_MS = 33L
     }
 }

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "_nota": "Qué incluye la edición GRATIS del launcher. Todo lo que no esté aquí requiere un código de licencia (planes Esencial/Completo de catalog.js). El launcher Android y el sitio leen este mismo archivo.",
+  "free": {
+    "themes": ["ruta"],
+    "layouts": ["tarjetas", "minimal"],
+    "scenes": ["tema", "color"],
+    "seasons": ["ninguna"],
+    "maxApps": 2,
+    "features": {
+      "oilOn": true,
+      "speedShow": true,
+      "speedAlerts": ["auto", "off"],
+      "othersMaintenance": false,
+      "docsOn": false,
+      "fuelOn": false,
+      "restrOn": false,
+      "voice": false
+    }
+  }
+}

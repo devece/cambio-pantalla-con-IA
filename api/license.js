@@ -4,6 +4,7 @@
  * El launcher en la radio llama aquí para activar su código.
  * Regla: un código se liga a UNA radio. Si ya está ligado a otra, se rechaza.
  * Solo se guarda un hash (HMAC) del identificador de la radio.
+ * Respuesta correcta: { ok: true, status: 'active', plan: 'esencial' | 'completo' }.
  *
  * Requiere SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY y LICENSE_PEPPER.
  */
@@ -44,7 +45,11 @@ module.exports = async function handler(req, res) {
       });
       if (!updated || !updated.length) return res.status(409).json({ ok: false, error: 'Este código ya fue activado.' });
     }
-    return res.status(200).json({ ok: true, status: 'active' });
+    // El launcher necesita saber qué plan compró para decidir qué desbloquear.
+    const orders = await db.rest(`orders?public_id=eq.${encodeURIComponent(lic.order_public_id)}&select=plan&limit=1`);
+    const plan = orders && orders[0] && orders[0].plan;
+    if (!plan) throw new Error('Licencia sin pedido asociado');
+    return res.status(200).json({ ok: true, status: 'active', plan });
   } catch (err) {
     console.error('license: error', err.status, err.detail);
     return res.status(502).json({ ok: false, error: 'No pudimos verificar el código. Intenta de nuevo.' });

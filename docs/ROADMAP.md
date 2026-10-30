@@ -3,7 +3,7 @@
 ## Primero: edición gratuita
 Antes de cobrar se publica una versión gratis con funciones limitadas (ver `FREE_EDITION.md`).
 1. **Licencia del repositorio** (hoy `UNLICENSED`): elegirla antes de hacerlo público.
-2. **Launcher Android** en modo gratis, que lea `public/shared/editions.json`.
+2. **Launcher Android** en modo gratis, que lea `public/shared/editions.json`. El esqueleto ya está en `android/` (ver `ANDROID_LAUNCHER.md`): falta compilarlo en Android Studio, los temas y las funciones.
 3. **APK en GitHub Releases** y guía de instalación para el usuario.
 4. Modo gratis en el launcher: pantalla de activación opcional y estado guardado sin internet.
 

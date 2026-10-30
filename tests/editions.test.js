@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const C = require('../public/shared/catalog.js');
-const { free } = require('../public/shared/editions.json');
+const { free, esencial, completo } = require('../public/shared/editions.json');
 
 const subset = (list, all) => list.every((x) => all.includes(x));
 
@@ -30,4 +30,13 @@ test('las funciones de pago quedan bloqueadas y las gratis activas', () => {
   const f = free.features;
   ['othersMaintenance', 'docsOn', 'fuelOn', 'restrOn', 'voice'].forEach((k) => assert.equal(f[k], false, k));
   ['oilOn', 'speedShow'].forEach((k) => assert.equal(f[k], true, k));
+});
+
+test('Esencial y Completo coinciden con los planes del catálogo', () => {
+  const base = Object.keys(C.themeTiers).filter((t) => C.themeTiers[t] === 'base');
+  assert.deepEqual([...esencial.themes].sort(), [...base].sort(), 'Esencial = temas base');
+  assert.deepEqual(esencial.seasons, ['ninguna'], 'Esencial no incluye temporadas');
+  assert.equal(completo.themes, '*');
+  assert.equal(completo.seasons, '*');
+  assert.deepEqual(C.plans.map((p) => p.id).sort(), ['completo', 'esencial']);
 });

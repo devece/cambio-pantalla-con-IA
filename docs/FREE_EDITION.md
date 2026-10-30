@@ -39,4 +39,5 @@ Criterio del corte: lo gratis da una pantalla útil y bonita para probar (el ace
 ## Estado
 
 - Hecho: el corte gratis/pago definido y verificado por pruebas.
-- Falta: **el launcher Android** (`ANDROID_LAUNCHER.md`), que debe leer `editions.json`, funcionar sin código en modo gratis y desbloquear con licencia. En el entorno donde se escribió esto no hay Android SDK, así que nada de eso se ha compilado ni probado en una radio.
+- Hecho: el esqueleto del launcher en `android/`. Las reglas (`android/core`) están probadas; la app (`android/app`) está escrita pero **sin compilar** (no había Android SDK).
+- Falta: compilar y corregir la app en Android Studio, los temas y las funciones, y probar en radios reales. Ver `ANDROID_LAUNCHER.md`.

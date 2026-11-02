@@ -243,3 +243,5 @@
 .scr .zone-alert.warn { background: #ffd166; }
 .scr .zone-alert[hidden] { display: none; }
 @keyframes zin { from { opacity: 0; transform: translate(-50%, -12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.scr .pickup.flip .pickup-img { transform: scaleX(-1); }
+.scr .pickup.flip .pickup-beam { right: auto; left: 60%; top: 40%; width: 46%; height: 28%; }

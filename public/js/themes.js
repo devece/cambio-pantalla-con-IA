@@ -172,7 +172,7 @@
   ];
 
   TB.vehicles = [
-    { id: 'auto', name: 'Auto', desc: 'Sedán o hatchback.' },
+    { id: 'auto', name: 'Auto', desc: 'Deportivo de dos puertas.' },
     { id: 'suv', name: 'SUV', desc: 'Más alto, con baúl largo.' },
     { id: 'camioneta', name: 'Camioneta', desc: 'Cabina y tolva.' },
     { id: '4x4', name: 'Camioneta 4x4', desc: 'Todoterreno: barro, rocas, nieve.' },

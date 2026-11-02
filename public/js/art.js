@@ -98,9 +98,14 @@
   }
 
   /* ---------- Camioneta con imagen real, repintada al color elegido ---------- */
-  const PICKUP_SRC = 'img/camioneta.png';
+  /* Autos con imagen real. `lamp`: zona (fracciones del ancho/alto) que no se repinta, como la luz trasera. */
+  const CAR_IMAGES = {
+    camioneta: { src: 'img/camioneta.png', lamp: [0, 0.056, 0.33, 0.57] },
+    '4x4': { src: 'img/camioneta.png', lamp: [0, 0.056, 0.33, 0.57] },
+    auto: { src: 'img/auto.png', lamp: null, flip: true },
+  };
   const tinted = {};
-  let pickupImg = null;
+  const carImgs = {};
   function hsl(r, g, b) {
     r /= 255; g /= 255; b /= 255;
     const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
@@ -118,7 +123,7 @@
     return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
   }
   /** Cambia solo la pintura roja de la foto al color elegido; vidrios, llantas y faros no se tocan. */
-  function tintPickup(img, color) {
+  function tintPickup(img, color, lamp) {
     const cv = document.createElement('canvas');
     cv.width = img.naturalWidth; cv.height = img.naturalHeight;
     const cx = cv.getContext('2d', { willReadFrequently: true });
@@ -128,11 +133,11 @@
     const m = /^#?([0-9a-f]{6})$/i.exec(color || '');
     const n = parseInt(m ? m[1] : 'b3261e', 16);
     const [th, ts, tl] = hsl((n >> 16) & 255, (n >> 8) & 255, n & 255);
-    const lampX = cv.width * 0.056, lampY0 = cv.height * 0.33, lampY1 = cv.height * 0.57; // luz trasera: se queda roja
+    const lampX = lamp ? cv.width * lamp[1] : 0, lampY0 = lamp ? cv.height * lamp[2] : 0, lampY1 = lamp ? cv.height * lamp[3] : 0;
     for (let i = 0; i < px.length; i += 4) {
       if (px[i + 3] < 8) continue;
       const x = (i / 4) % cv.width, y = Math.floor(i / 4 / cv.width);
-      if (x < lampX && y > lampY0 && y < lampY1) continue;
+      if (lamp && x < lampX && y > lampY0 && y < lampY1) continue;
       const [h, s, l] = hsl(px[i], px[i + 1], px[i + 2]);
       if (s < 0.12 || l < 0.015 || l > 0.9 || !(h >= 335 || h <= 42)) continue;
       const ns = Math.min(1, s * (ts / 0.6));
@@ -143,25 +148,29 @@
     cx.putImageData(data, 0, 0);
     return cv.toDataURL('image/png');
   }
-  /** Repinta las camionetas ya dibujadas dentro de `root` (se llama después de cada render). */
+  /** Repinta los autos con imagen ya dibujados dentro de `root` (se llama después de cada render). */
   TB.tintCars = function (root) {
-    const imgs = root.querySelectorAll('img[data-pickup]');
-    if (!imgs.length) return;
-    const apply = () => imgs.forEach((el) => {
-      const c = el.dataset.pickup;
-      if (!tinted[c]) { try { tinted[c] = tintPickup(pickupImg, c); } catch (e) { tinted[c] = PICKUP_SRC; } }
-      el.src = tinted[c];
+    root.querySelectorAll('img[data-car]').forEach((el) => {
+      const info = CAR_IMAGES[el.dataset.car];
+      const color = el.dataset.color;
+      const key = info.src + '|' + color;
+      const apply = () => {
+        if (!tinted[key]) { try { tinted[key] = tintPickup(carImgs[info.src], color, info.lamp); } catch (e) { tinted[key] = info.src; } }
+        el.src = tinted[key];
+      };
+      let img = carImgs[info.src];
+      if (img && img.complete && img.naturalWidth) return apply();
+      if (!img) { img = new Image(); img.src = info.src; carImgs[info.src] = img; }
+      img.addEventListener('load', apply, { once: true });
     });
-    if (pickupImg && pickupImg.complete && pickupImg.naturalWidth) return apply();
-    if (!pickupImg) { pickupImg = new Image(); pickupImg.src = PICKUP_SRC; }
-    pickupImg.addEventListener('load', apply, { once: true });
   };
 
   /** Auto en SVG. `uid` evita choques de ids cuando hay más de un auto en pantalla. */
   TB.carSVG = function (type, color, night, uid) {
-    if (type === 'camioneta' || type === '4x4') {
+    const real = CAR_IMAGES[type];
+    if (real) {
       const lights = night ? '<div class="pickup-beam"></div>' : '';
-      return `<div class="pickup${type === '4x4' ? ' lift' : ''}">${lights}<img class="pickup-img" data-pickup="${color}" src="${tinted[color] || PICKUP_SRC}" alt="" aria-hidden="true"></div>`;
+      return `<div class="pickup${type === '4x4' ? ' lift' : ''}${real.flip ? ' flip' : ''}">${lights}<img class="pickup-img" data-car="${type}" data-color="${color}" src="${tinted[real.src + '|' + color] || real.src}" alt="" aria-hidden="true"></div>`;
     }
     const c = CARS[type] || CARS.auto;
     const id = 'c' + (uid || '0');

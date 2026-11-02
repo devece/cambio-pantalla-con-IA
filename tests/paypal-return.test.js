@@ -21,7 +21,8 @@ function setup({ captureStatus = 'COMPLETED', captureValue = '10.52' } = {}) {
   global.fetch = async (url, init = {}) => {
     const u = new URL(url);
     if (u.host === 'db.test') {
-      const table = u.pathname.split('/').pop();
+      // En la base las tablas llevan el prefijo `tablero_`; aquí se guardan como `orders` y `licenses`.
+      const table = u.pathname.split('/').pop().replace(/^tablero_/, '');
       const rows = db[table];
       const q = u.searchParams;
       const match = (r) => [...q.entries()].every(([k, v]) => !v.startsWith('eq.') || String(r[k]) === v.slice(3));

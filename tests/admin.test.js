@@ -105,3 +105,12 @@ test('revocar y liberar un código', async () => {
   assert.equal(d.licenses[0].status, 'revoked');
   assert.equal((await call({ action: 'revoke', code: 'TBL-AAAA' })).code, 400);
 });
+
+test('las tablas de Tablero llevan el prefijo tablero_ en la base de datos', () => {
+  const { tablePath } = require('../lib/supabase.js');
+  assert.equal(tablePath('orders?public_id=eq.TB-1'), 'tablero_orders?public_id=eq.TB-1');
+  assert.equal(tablePath('licenses'), 'tablero_licenses');
+  assert.equal(tablePath('orders'), 'tablero_orders');
+  assert.equal(tablePath('otra_tabla'), 'otra_tabla');
+  assert.equal(tablePath('ordersX'), 'ordersX');
+});

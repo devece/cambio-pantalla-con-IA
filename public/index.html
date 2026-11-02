@@ -168,6 +168,17 @@
             <p class="hint">“Automática” cambia sola con la hora del día.</p>
           </div>
           <div class="group">
+            <h3>O usa tu propia imagen</h3>
+            <p class="hint">Una carretera, tu ciudad o tu familia, o el logo de tu negocio. Se queda en tu celular: no se sube a ningún lado.</p>
+            <div class="photo-row">
+              <label class="btn ghost" for="bg-file">Subir foto o logo</label>
+              <input type="file" id="bg-file" accept="image/*" hidden>
+              <button type="button" class="btn link" id="bg-clear" hidden>Quitar</button>
+            </div>
+            <p class="error" id="bg-error" role="alert" hidden></p>
+            <div class="choices cols-3 compact" id="bg-mode" data-choices="style.bgMode" role="radiogroup" aria-label="Cómo usar la imagen" hidden></div>
+          </div>
+          <div class="group">
             <h3>Color de acento</h3>
             <div class="accent-row">
               <div class="swatches" id="accent-swatches" role="radiogroup" aria-label="Colores de acento"></div>
@@ -255,6 +266,17 @@
           </div>
           <div class="group" id="addons"></div>
           <div class="group">
+            <h3>Qué recibes</h3>
+            <ul class="gets">
+              <li><b>Tu auto en la pantalla</b><span>Con tu foto sin fondo o el vehículo que elegiste, y tu diseño, color y fondo.</span></li>
+              <li><b>Cambios cuando quieras</b><span>Otro color, otro diseño u otra foto desde los ajustes de la radio, sin internet.</span></li>
+              <li><b>Todo lo que elegiste</b><span>Aviso de aceite, documentos, velocidad, restricción y saludo por voz.</span></li>
+              <li><b>Nada se pierde</b><span>Android Auto, CarPlay y las apps de tu radio siguen igual.</span></li>
+              <li><b>Garantía</b><span>Si no funciona en tu radio, te devolvemos el dinero. Si cambias de radio, traspasas tu licencia una vez gratis.</span></li>
+              <li><b>Ayuda por WhatsApp</b><span>Si te trabas instalando, te guiamos paso a paso.</span></li>
+            </ul>
+          </div>
+          <div class="group">
             <h3>Tu pedido</h3>
             <dl class="summary" id="summary"></dl>
             <p class="total"><span>Total</span><b id="total">$0</b></p>
@@ -266,7 +288,7 @@
             <label class="field" data-show="contact.kind=whatsapp"><span>WhatsApp</span><input type="tel" inputmode="tel" autocomplete="tel" data-bind="contact.value" placeholder="+56 9 1234 5678"></label>
             <label class="field" data-show="contact.kind=email"><span>Correo</span><input type="email" inputmode="email" autocomplete="email" data-bind="contact.value" placeholder="tu@correo.cl"></label>
           </div>
-          <label class="check terms"><input type="checkbox" data-bind="terms"><span>Acepto los términos y la política de devoluciones.</span></label>
+          <label class="check terms"><input type="checkbox" data-bind="terms"><span>Acepto los <a href="terminos.html" target="_blank" rel="noopener">términos</a> y la <a href="devoluciones.html" target="_blank" rel="noopener">política de devoluciones</a>.</span></label>
           <ul class="errors" id="pay-errors" role="alert" hidden></ul>
           <div class="done" id="pay-done" role="status" hidden></div>
           <p class="hint pay-install">¿Ya tienes tu código? <a href="listo.html">Mira cómo instalarlo en tu radio</a>.</p>

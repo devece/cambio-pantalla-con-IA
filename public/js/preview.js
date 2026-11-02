@@ -236,11 +236,15 @@
     } else {
       body = `<main class="home screen-${ui.screen}">${SCREENS[ui.screen](state)}</main>`;
     }
-    const customBg = state.style.scene === 'color' ? '' : TB.scene(sceneId);
+    const bg = state.style.bg;
+    const mode = state.style.bgMode;
+    let customBg = state.style.scene === 'color' || (bg && mode === 'photo') ? '' : TB.scene(sceneId);
+    if (bg && mode === 'photo') customBg = `<image href="${bg}" x="0" y="0" width="1024" height="600" preserveAspectRatio="xMidYMid slice"/><rect width="1024" height="600" fill="rgba(0,0,0,.38)"/>`;
+    else if (bg && mode === 'logo') customBg += `<image href="${bg}" x="262" y="110" width="500" height="380" preserveAspectRatio="xMidYMid meet" opacity=".14"/>`;
     scr.innerHTML =
       `<svg class="scene" viewBox="0 0 1024 600" preserveAspectRatio="none" aria-hidden="true">${customBg}</svg>` +
       `<div class="tint tint-${sceneTime(state)}"></div>` +
-      `<header class="status"><span></span><b data-clock>${new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false })}</b></header>` +
+      `<header class="status">${bg && mode === 'badge' ? `<img class="badge-logo" src="${bg}" alt="">` : '<span></span>'}<b data-clock>${new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false })}</b></header>` +
       body +
       `<svg class="decor" viewBox="0 0 1024 600" aria-hidden="true">${TB.decor(season, ui.night)}</svg>` +
       dock(state, ui) +

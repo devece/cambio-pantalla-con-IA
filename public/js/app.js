@@ -16,7 +16,7 @@
   const defaults = () => ({
     radio: { type: null, model: '', screen: null, analysis: null },
     car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', phrase: '', plate: '', photo: null, photoCut: false },
-    style: { theme: 'ruta', layout: 'tarjetas', scene: 'tema', sceneTime: 'auto', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
+    style: { theme: 'ruta', layout: 'tarjetas', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
       oilOn: true, odometer: 45000, lastOil: 42000, oilEvery: 5000,
       others: ['neumaticos'], docsOn: true, rtMonth: 6,
@@ -51,11 +51,13 @@
     } catch (_) { /* sin almacenamiento: seguimos con los valores por defecto */ }
     state.car.photo = null;
     state.car.photoCut = false;
+    state.style.bg = null;
   }
   function save() {
     try {
       const copy = JSON.parse(JSON.stringify(state));
       copy.car.photo = null; // la foto no se guarda
+      copy.style.bg = null;
       delete copy.contact; // no guardamos datos de contacto en el navegador
       delete copy.terms;
       localStorage.setItem(STORE, JSON.stringify(copy));
@@ -82,6 +84,11 @@
     'style.layout': () => TB.layouts.map((l) => ({ id: l.id, name: l.name, desc: l.desc, thumb: TB.layoutThumbs[l.id], tag4x4: l.only4x4 })),
     'style.scene': () => TB.scenes,
     'style.sceneTime': () => TB.sceneTimes,
+    'style.bgMode': () => [
+      { id: 'photo', name: 'Foto completa', desc: 'Llena la pantalla' },
+      { id: 'logo', name: 'Logo de fondo', desc: 'Centrado y suave' },
+      { id: 'badge', name: 'Logo pequeño', desc: 'En la barra de arriba' },
+    ],
     'style.season': () => TB.seasons.map((s) => ({ id: s.id, name: s.name, desc: s.desc, tier: s.id === 'ninguna' ? 'base' : 'plus' })),
     'features.speedAlert': () => [
       { id: 'auto', name: 'Automático' },
@@ -274,6 +281,8 @@
       ['Radio', radio + (state.radio.model ? ` · ${esc(state.radio.model)}` : '')],
       ['Vehículo', `${veh.name}${state.car.name ? ' de ' + esc(state.car.name) : ''}${state.car.photo ? ' · con tu foto' : ''}`],
       ['Diseño', `${th.name} · ${lay.name}${season.id !== 'ninguna' ? ' · ' + season.name : ''}`],
+      ['Fondo', state.style.bg ? { photo: 'Tu foto', logo: 'Tu logo de fondo', badge: 'Tu logo en la barra' }[state.style.bgMode] : `${(TB.scenes.find((s) => s.id === state.style.scene) || {}).name || 'Del diseño'} · ${(TB.sceneTimes.find((s) => s.id === state.style.sceneTime) || {}).name || 'Automática'}`],
+      ['Saludo', `${state.features.voice ? 'Por voz' : 'Solo en pantalla'} · “${esc(state.car.greeting)}, ${esc(state.car.name || 'amigo')}”${state.car.phrase ? ' · “' + esc(state.car.phrase) + '”' : ''}`],
       ['Apps', apps.length ? esc(apps.join(', ')) : 'Sin apps en la barra'],
       ['Funciones', feats.length ? feats.join(', ') : 'Ninguna activada'],
     ];
@@ -303,6 +312,8 @@
     $('#mode-day').setAttribute('aria-pressed', String(!ui.night));
     $('#mode-night').setAttribute('aria-pressed', String(ui.night));
     $('#photo-clear').hidden = !state.car.photo;
+    $('#bg-clear').hidden = !state.style.bg;
+    $('#bg-mode').hidden = !state.style.bg;
   }
 
   function update() {
@@ -396,6 +407,8 @@
 
     $('#photo').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadPhoto(f); e.target.value = ''; });
     $('#photo-clear').addEventListener('click', clearPhoto);
+    $('#bg-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadBg(f); e.target.value = ''; });
+    $('#bg-clear').addEventListener('click', () => { if (state.style.bg) URL.revokeObjectURL(state.style.bg); state.style.bg = null; update(); });
     $('#photo-mode').addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) showPhoto(b.dataset.mode); });
     $('#pay').addEventListener('click', pay);
     $('#nose-test').addEventListener('click', (e) => { const b = e.target.closest('[data-test]'); if (!b) return; state.radio.type = b.dataset.test; update(); });
@@ -564,10 +577,39 @@
     }
   }
 
+  /* ---------- imagen de fondo propia (queda en el navegador) ---------- */
+  async function loadBg(file) {
+    const err = $('#bg-error');
+    err.hidden = true;
+    const fail = (m) => { err.textContent = m; err.hidden = false; };
+    if (!file.type.startsWith('image/')) return fail('Elige un archivo de imagen.');
+    if (file.size > 15 * 1024 * 1024) return fail('La imagen pesa más de 15 MB. Elige una más liviana.');
+    try {
+      const bmp = await createImageBitmap(file);
+      const k = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(bmp.width * k);
+      c.height = Math.round(bmp.height * k);
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      // PNG si tiene transparencia (logos); si no, JPG liviano.
+      const px = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+      let alpha = false;
+      for (let i = 3; i < px.length; i += 4 * 97) if (px[i] < 250) { alpha = true; break; }
+      const blob = await new Promise((r) => c.toBlob(r, alpha ? 'image/png' : 'image/jpeg', 0.85));
+      if (state.style.bg) URL.revokeObjectURL(state.style.bg);
+      state.style.bg = URL.createObjectURL(blob);
+      if (alpha && state.style.bgMode === 'photo') state.style.bgMode = 'logo';
+      update();
+    } catch (_) {
+      fail('No pudimos leer esa imagen. Prueba con otra.');
+    }
+  }
+
   /* ---------- pago ---------- */
   function payload() {
     const copy = JSON.parse(JSON.stringify(state));
     delete copy.car.photo; // la foto nunca viaja en el pedido
+    delete copy.style.bg;
     return copy;
   }
 

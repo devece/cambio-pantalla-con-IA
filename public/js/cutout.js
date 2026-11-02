@@ -1,5 +1,5 @@
 /*
- * Recorte del auto: quita el fondo de la foto y la mejora, todo dentro del navegador (la foto no se sube).
+ * Recorte del auto: quita el fondo de la foto (sin retocar sus colores), todo dentro del navegador (la foto no se sube).
  * Usa U²-Net (versión pequeña, licencia Apache-2.0) con onnxruntime-web (licencia MIT).
  * Si el modelo no carga (sin internet, navegador antiguo), usa un recorte simple por color de fondo.
  */
@@ -168,7 +168,7 @@
   }
 
   /**
-   * src: canvas o bitmap con la foto. Devuelve { canvas, method } con el auto sin fondo y mejorado,
+   * src: canvas o bitmap con la foto. Devuelve { canvas, method } con el auto sin fondo (colores intactos),
    * o null si no se pudo separar el auto del fondo.
    */
   async function cutout(src) {
@@ -189,10 +189,8 @@
     car.width = w;
     car.height = h;
     const cx = car.getContext('2d');
-    // Mejora: un poco de contraste, color y luz, solo sobre el auto.
-    cx.filter = 'contrast(1.08) saturate(1.14) brightness(1.03)';
+    // Solo se quita el fondo: los colores de la foto no se tocan.
     cx.drawImage(src, 0, 0, w, h);
-    cx.filter = 'none';
     cx.globalCompositeOperation = 'destination-in';
     cx.drawImage(alpha, 0, 0);
     // Recorta al contorno del auto con un pequeño margen.

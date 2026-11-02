@@ -342,6 +342,9 @@
     $('#mode-day').setAttribute('aria-pressed', String(!ui.night));
     $('#mode-night').setAttribute('aria-pressed', String(ui.night));
     $('#photo-clear').hidden = !state.car.photo;
+    // El color es solo del auto de ejemplo: con la foto del cliente no se usa.
+    $('#car-color-group').hidden = !!state.car.photo;
+    $('#photo-sample').hidden = !!state.car.photo;
     $('#bg-clear').hidden = !state.style.bg;
     $('#bg-mode').hidden = !state.style.bg;
   }
@@ -603,7 +606,7 @@
     Object.keys(photoUrls).forEach((k) => { if (photoUrls[k]) URL.revokeObjectURL(photoUrls[k]); photoUrls[k] = null; });
     photoUrls.orig = await toUrl(c, 'image/jpeg', 0.85);
     showPhoto('orig');
-    status.textContent = 'Quitando el fondo y mejorando tu foto… la primera vez puede tardar unos segundos.';
+    status.textContent = 'Quitando el fondo de tu foto… la primera vez puede tardar unos segundos.';
     status.hidden = false;
     $('#photo-mode').hidden = true;
     let res = null;
@@ -612,7 +615,7 @@
       photoUrls.cut = await toUrl(res.canvas, 'image/png');
       showPhoto('cut');
       status.textContent = res.method === 'ia'
-        ? 'Listo: le quitamos el fondo y mejoramos la foto. Si no se ve bien, elige “Foto original”.'
+        ? 'Listo: le quitamos el fondo a tu foto. Si no se ve bien, elige “Foto original”.'
         : 'Le quitamos el fondo con un método simple (sin conexión). Si no se ve bien, elige “Foto original”.';
       $('#photo-mode').hidden = false;
     } else {

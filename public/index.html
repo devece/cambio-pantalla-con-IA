@@ -108,33 +108,35 @@
 
         <!-- Paso 2 -->
         <section class="step" data-step="2" aria-labelledby="h2" hidden>
-          <h2 id="h2">Tu auto</h2>
-          <p class="lead">Así se ve en la pantalla de inicio.</p>
+          <h2 id="h2">Tu auto, tal cual</h2>
+          <p class="lead">Sube <b>una foto de tu auto</b>: es la que verás en la pantalla de la radio. Nosotros solo le quitamos el fondo.</p>
           <div class="group">
-            <h3>Tipo de vehículo</h3>
-            <div class="choices cols-2" data-choices="car.type" role="radiogroup" aria-label="Tipo de vehículo"></div>
-            <p class="hint" id="vt-hint" role="status" hidden></p>
-          </div>
-          <div class="group">
-            <h3>Color</h3>
-            <div class="swatches" id="car-colors" role="radiogroup" aria-label="Color del auto"></div>
-            <label class="field inline"><span>Otro color</span><input type="color" data-bind="car.color" aria-label="Elegir otro color"></label>
-          </div>
-          <div class="group">
-            <h3>Tu foto (opcional)</h3>
-            <p class="hint">Sube una sola foto, como la tengas. Le quitamos el fondo y la mejoramos aquí mismo, en tu celular: la foto no se sube a ningún lado.</p>
+            <h3>Tu foto</h3>
             <div class="photo-row">
-              <label class="btn ghost" for="photo">Subir foto de mi auto</label>
+              <label class="btn primary" for="photo">Subir foto de mi auto</label>
               <input type="file" id="photo" accept="image/*" hidden>
               <button type="button" class="btn link" id="photo-clear" hidden>Quitar foto</button>
             </div>
-            <div class="shot-tips" id="photo-tips"><span>De día</span><span>El auto completo</span><span>En diagonal o de lado</span><span>Sin gente delante</span></div>
+            <div class="shot-tips" id="photo-tips"><span>El auto completo</span><span>De lado o en diagonal</span><span>De día</span><span>Sin gente delante</span></div>
+            <p class="hint">No importa el fondo: la calle, tu garaje o el estacionamiento sirven. El fondo se quita aquí mismo, en tu celular: tu foto no se sube a ningún lado.</p>
             <p class="hint" id="photo-status" role="status" aria-live="polite" hidden></p>
             <div class="seg2" id="photo-mode" role="radiogroup" aria-label="Cómo mostrar tu foto" hidden>
-              <button type="button" class="choice compact" role="radio" aria-checked="true" data-mode="cut"><b>Sin fondo y mejorada</b></button>
+              <button type="button" class="choice compact" role="radio" aria-checked="true" data-mode="cut"><b>Sin fondo</b></button>
               <button type="button" class="choice compact" role="radio" aria-checked="false" data-mode="orig"><b>Foto original</b></button>
             </div>
             <p class="error" id="photo-error" role="alert" hidden></p>
+            <p class="hint" id="photo-sample">Mientras no subas tu foto, mostramos un auto de ejemplo.</p>
+          </div>
+          <div class="group">
+            <h3>Tipo de vehículo</h3>
+            <p class="hint">Sirve para sugerirte fondos y diseños (por ejemplo, los de camioneta 4x4). Tu foto no cambia.</p>
+            <div class="choices cols-2" data-choices="car.type" role="radiogroup" aria-label="Tipo de vehículo"></div>
+            <p class="hint" id="vt-hint" role="status" hidden></p>
+          </div>
+          <div class="group" id="car-color-group">
+            <h3>Color del auto de ejemplo</h3>
+            <div class="swatches" id="car-colors" role="radiogroup" aria-label="Color del auto"></div>
+            <label class="field inline"><span>Otro color</span><input type="color" data-bind="car.color" aria-label="Elegir otro color"></label>
           </div>
           <div class="group">
             <h3>Tu saludo</h3>

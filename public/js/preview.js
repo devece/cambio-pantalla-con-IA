@@ -93,6 +93,8 @@
     const time = now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
     const rawDate = now.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
     const date = rawDate.charAt(0).toUpperCase() + rawDate.slice(1);
+    const rawShort = now.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '');
+    const dateShort = rawShort.charAt(0).toUpperCase() + rawShort.slice(1);
     const season = seasonOf(state);
     const carHtml = car.photo
       ? `<img class="car-photo" src="${car.photo}" alt="Tu auto">`
@@ -105,6 +107,7 @@
       car: carHtml,
       time,
       date,
+      dateShort,
       speed: f.speedShow ? `<div class="spd"><b data-speed>${Math.round(live.speed)}</b><span>km/h</span></div>` : '',
       weather: `<div class="weather"><span class="wx">${icon('lluvia', 44)}</span><b>14°</b><span class="wd">Lluvioso<small>Sensación 13° · 82%</small></span></div>`,
       radio: `<div class="radio-mini"><button class="rbtn" data-go="radio" aria-label="Anterior">${icon('prev', 22)}</button><div><small>FM</small><b>${live.freq.toFixed(1)}</b><i>MHz</i></div><button class="rbtn" data-go="radio" aria-label="Siguiente">${icon('next', 22)}</button></div>`,
@@ -118,11 +121,11 @@
   const LAYOUTS = {
     tarjetas: (p) => `
       <section class="card greet"><div class="greet-txt"><h2>${p.hello}</h2><p>${esc(p.sub)}</p></div><div class="car">${p.car}</div>${p.weather}</section>
-      <section class="card clock"><div class="clk"><b data-clock>${p.time}</b><span>${esc(p.date)}</span></div>${p.speed}</section>
+      <section class="card clock"><div class="clk"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div>${p.speed}</section>
       <section class="card radio">${p.radio}</section>
       <section class="card music-card">${p.music}</section>`,
     centro: (p) => `
-      <section class="card clock"><div class="clk"><b data-clock>${p.time}</b><span>${esc(p.date)}</span></div>${p.speed}</section>
+      <section class="card clock"><div class="clk"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div>${p.speed}</section>
       <section class="hero"><div class="greet-txt"><h2>${p.hello}</h2><p>${esc(p.sub)}</p></div><div class="car">${p.car}</div></section>
       <section class="card radio">${p.radio}</section>
       <section class="card wx-card">${p.weather}</section>

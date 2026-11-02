@@ -48,7 +48,9 @@
 .scr .radio { grid-area: radio; display: grid; align-items: center; }
 .scr .music-card { grid-area: music; display: grid; align-items: center; }
 .scr .clk b { display: block; font: 700 66px/1 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; }
-.scr .clk span { display: block; margin-top: 4px; color: var(--ink2); font-size: 17px; }
+.scr .clk { min-width: 0; }
+.scr .clk span { display: block; margin-top: 4px; color: var(--ink2); font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.scr .spd { flex: none; }
 .scr .spd { text-align: right; }
 .scr .spd b { display: block; font: 700 66px/1 'Barlow Condensed', sans-serif; color: var(--accent); font-variant-numeric: tabular-nums; }
 .scr .spd span { color: var(--ink2); font-size: 15px; }

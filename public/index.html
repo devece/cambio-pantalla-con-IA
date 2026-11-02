@@ -125,6 +125,17 @@
               <button type="button" class="choice compact" role="radio" aria-checked="false" data-mode="orig"><b>Foto original</b></button>
             </div>
             <p class="error" id="photo-error" role="alert" hidden></p>
+            <div class="lights" id="lights-box" hidden>
+              <h3>Luces encendidas</h3>
+              <p class="hint">Cuando prendes las luces del auto, la radio pasa sola a modo noche y muestra tu foto con los faros encendidos. <b>Toca cada faro</b> (y los neblineros, si tiene) en la foto de abajo.</p>
+              <div class="lights-stage" id="lights-stage"><canvas id="lights-cv" aria-label="Tu auto de noche: toca los faros para encenderlos"></canvas><div id="lights-marks"></div></div>
+              <div class="photo-row">
+                <button type="button" class="btn ghost" id="lights-auto">Detectar los faros con IA</button>
+                <button type="button" class="btn link" id="lights-undo">Deshacer</button>
+                <button type="button" class="btn link" id="lights-clear">Borrar luces</button>
+              </div>
+              <p class="hint" id="lights-status" role="status" aria-live="polite"></p>
+            </div>
             <p class="hint" id="photo-sample">Mientras no subas tu foto, mostramos un auto de ejemplo.</p>
           </div>
           <div class="group">
@@ -357,6 +368,7 @@
   <script src="js/fx.js"></script>
   <script src="js/preview.js"></script>
   <script src="js/cutout.js"></script>
+  <script src="js/lights.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

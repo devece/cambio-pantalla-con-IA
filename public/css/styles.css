@@ -312,3 +312,13 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .gets b { font-size: 15.5px; }
 .gets span { color: var(--ink2); font-size: 14px; }
 .choices[hidden], .group [hidden] { display: none !important; }
+
+/* Luces encendidas */
+.lights { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--borde); }
+.lights h3 { margin-bottom: 4px; }
+.lights-stage { position: relative; margin: 10px 0; padding: 14px; border-radius: 14px; background: linear-gradient(#0b1030, #20245a); cursor: crosshair; touch-action: manipulation; }
+.lights-stage canvas { display: block; width: 100%; height: auto; }
+#lights-marks { position: absolute; inset: 14px; pointer-events: none; }
+.mark { position: absolute; width: 24px; height: 24px; margin: -12px 0 0 -12px; border: 2px solid #ffd166; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.4); }
+.mark.rear { border-color: #ff6b6b; }
+.lights .btn:disabled { opacity: .5; }

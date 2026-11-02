@@ -15,7 +15,7 @@
   /* ---------- estado ---------- */
   const defaults = () => ({
     radio: { type: null, model: '', screen: null, analysis: null },
-    car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', phrase: '', plate: '', photo: null, photoCut: false },
+    car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', phrase: '', plate: '', photo: null, photoCut: false, photoNight: null },
     style: { theme: 'ruta', layout: 'tarjetas', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
       oilOn: true, odometer: 45000, lastOil: 42000, oilEvery: 5000,
@@ -51,12 +51,14 @@
     } catch (_) { /* sin almacenamiento: seguimos con los valores por defecto */ }
     state.car.photo = null;
     state.car.photoCut = false;
+    state.car.photoNight = null;
     state.style.bg = null;
   }
   function save() {
     try {
       const copy = JSON.parse(JSON.stringify(state));
       copy.car.photo = null; // la foto no se guarda
+      copy.car.photoNight = null;
       copy.style.bg = null;
       delete copy.contact; // no guardamos datos de contacto en el navegador
       delete copy.terms;
@@ -453,6 +455,19 @@
 
     $('#photo').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadPhoto(f); e.target.value = ''; });
     $('#photo-clear').addEventListener('click', clearPhoto);
+    $('#lights-stage').addEventListener('click', (e) => {
+      if (!cutCanvas || lightPts.length >= MAX_LIGHTS) return;
+      const r = $('#lights-cv').getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width;
+      const y = (e.clientY - r.top) / r.height;
+      if (x < 0 || x > 1 || y < 0 || y > 1) return;
+      lightPts.push({ kind: 'faro', x: Math.round(x * 1000) / 1000, y: Math.round(y * 1000) / 1000, size: 1 });
+      $('#lights-status').textContent = `${lightPts.length} ${lightPts.length > 1 ? 'luces marcadas' : 'luz marcada'}. Mira cómo queda de noche con el botón “Luces encendidas” de la pantalla.`;
+      drawLights();
+    });
+    $('#lights-undo').addEventListener('click', () => { lightPts.pop(); drawLights(); });
+    $('#lights-clear').addEventListener('click', () => { lightPts = []; $('#lights-status').textContent = 'Luces borradas.'; drawLights(); });
+    $('#lights-auto').addEventListener('click', detectLights);
     $('#bg-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadBg(f); e.target.value = ''; });
     $('#bg-clear').addEventListener('click', () => { if (state.style.bg) URL.revokeObjectURL(state.style.bg); state.style.bg = null; update(); });
     $('#photo-mode').addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) showPhoto(b.dataset.mode); });
@@ -568,6 +583,71 @@
   }
 
   /* ---------- foto (queda en el navegador) ---------- */
+  /* ---------- luces encendidas (versión nocturna de la foto) ---------- */
+  let cutCanvas = null; // el auto recortado, para dibujar su versión de noche
+  let lightPts = []; // [{ kind, x, y, size }] con x e y entre 0 y 1
+  let nightUrl = null;
+  const MAX_LIGHTS = 8;
+
+  function drawLights() {
+    const box = $('#lights-box');
+    box.hidden = !cutCanvas;
+    if (!cutCanvas) return;
+    const night = TB.lights.night(cutCanvas, lightPts);
+    const cv = $('#lights-cv');
+    cv.width = night.width;
+    cv.height = night.height;
+    cv.getContext('2d').drawImage(night, 0, 0);
+    $('#lights-marks').innerHTML = lightPts.map((p) => `<i class="mark ${p.kind === 'luz_trasera' ? 'rear' : ''}" style="left:${p.x * 100}%;top:${p.y * 100}%"></i>`).join('');
+    $('#lights-undo').disabled = !lightPts.length;
+    $('#lights-clear').disabled = !lightPts.length;
+    night.toBlob((b) => {
+      if (!b) return;
+      if (nightUrl) URL.revokeObjectURL(nightUrl);
+      nightUrl = URL.createObjectURL(b);
+      state.car.photoNight = nightUrl;
+      update();
+    }, 'image/png');
+  }
+
+  function setCut(canvas) {
+    cutCanvas = canvas;
+    lightPts = [];
+    $('#lights-status').textContent = canvas ? 'Aún no marcaste ningún faro: de noche tu auto se verá apagado.' : '';
+    if (!canvas && nightUrl) { URL.revokeObjectURL(nightUrl); nightUrl = null; state.car.photoNight = null; }
+    drawLights();
+  }
+
+  async function detectLights() {
+    if (!cutCanvas) return;
+    const status = $('#lights-status');
+    const btn = $('#lights-auto');
+    btn.disabled = true;
+    status.textContent = 'Buscando los faros de tu auto…';
+    try {
+      const k = Math.min(1, 800 / Math.max(cutCanvas.width, cutCanvas.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(cutCanvas.width * k);
+      c.height = Math.round(cutCanvas.height * k);
+      const x = c.getContext('2d');
+      x.fillStyle = '#808080';
+      x.fillRect(0, 0, c.width, c.height);
+      x.drawImage(cutCanvas, 0, 0, c.width, c.height);
+      const r = await fetch('/api/detect-lights', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: c.toDataURL('image/jpeg', 0.85) }) });
+      const data = await r.json().catch(() => ({}));
+      if (r.ok && data.ok) {
+        lightPts = data.lights.slice(0, MAX_LIGHTS);
+        status.textContent = lightPts.length ? `Encontramos ${lightPts.length} ${lightPts.length > 1 ? 'luces' : 'luz'}. Si falta alguna, tócala en la foto; si sobra, usa “Deshacer”.` : 'No vimos faros claros en esta foto. Tócalos tú en la imagen.';
+      } else {
+        status.textContent = (data && data.error) || 'No pudimos detectar los faros. Tócalos tú en la foto.';
+      }
+    } catch (_) {
+      status.textContent = 'No hay conexión para detectar los faros. Tócalos tú en la foto.';
+    }
+    btn.disabled = false;
+    drawLights();
+  }
+
   const photoUrls = { cut: null, orig: null };
   function showPhoto(mode) {
     const url = mode === 'cut' && photoUrls.cut ? photoUrls.cut : photoUrls.orig;
@@ -582,6 +662,7 @@
     state.car.photoCut = false;
     $('#photo-mode').hidden = true;
     $('#photo-status').hidden = true;
+    setCut(null);
     update();
   }
   async function loadPhoto(file) {
@@ -609,11 +690,13 @@
     status.textContent = 'Quitando el fondo de tu foto… la primera vez puede tardar unos segundos.';
     status.hidden = false;
     $('#photo-mode').hidden = true;
+    setCut(null);
     let res = null;
     try { res = TB.cutout ? await TB.cutout(c) : null; } catch (_) { res = null; }
     if (res) {
       photoUrls.cut = await toUrl(res.canvas, 'image/png');
       showPhoto('cut');
+      setCut(res.canvas);
       status.textContent = res.method === 'ia'
         ? 'Listo: le quitamos el fondo a tu foto. Si no se ve bien, elige “Foto original”.'
         : 'Le quitamos el fondo con un método simple (sin conexión). Si no se ve bien, elige “Foto original”.';
@@ -655,6 +738,7 @@
   function payload() {
     const copy = JSON.parse(JSON.stringify(state));
     delete copy.car.photo; // la foto nunca viaja en el pedido
+    delete copy.car.photoNight;
     delete copy.style.bg;
     return copy;
   }

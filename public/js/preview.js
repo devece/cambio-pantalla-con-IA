@@ -256,7 +256,9 @@
     }
     const bg = state.style.bg;
     const mode = state.style.bgMode;
-    let customBg = state.style.scene === 'color' || (bg && mode === 'photo') ? '' : TB.scene(sceneId);
+    // Los temas de vidrio llevan manchas de luz difusas debajo del fondo, para que el desenfoque tenga qué mostrar.
+    const orbs = t.orb1 && sceneId !== 'aurora' && state.style.scene !== 'color' && !(bg && mode === 'photo') ? TB.scene('aurora') : '';
+    let customBg = state.style.scene === 'color' || (bg && mode === 'photo') ? '' : orbs + TB.scene(sceneId);
     if (bg && mode === 'photo') customBg = `<image href="${bg}" x="0" y="0" width="1024" height="600" preserveAspectRatio="xMidYMid slice"/><rect width="1024" height="600" fill="rgba(0,0,0,.38)"/>`;
     else if (bg && mode === 'logo') customBg += `<image href="${bg}" x="262" y="110" width="500" height="380" preserveAspectRatio="xMidYMid meet" opacity=".14"/>`;
     scr.innerHTML =

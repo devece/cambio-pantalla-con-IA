@@ -112,7 +112,8 @@
           <p class="lead">Así se ve en la pantalla de inicio.</p>
           <div class="group">
             <h3>Tipo de vehículo</h3>
-            <div class="choices cols-3" data-choices="car.type" role="radiogroup" aria-label="Tipo de vehículo"></div>
+            <div class="choices cols-2" data-choices="car.type" role="radiogroup" aria-label="Tipo de vehículo"></div>
+            <p class="hint" id="vt-hint" role="status" hidden></p>
           </div>
           <div class="group">
             <h3>Color</h3>
@@ -139,6 +140,10 @@
             <h3>Tu saludo</h3>
             <label class="field"><span>Tu nombre</span><input type="text" maxlength="24" data-bind="car.name" placeholder="Ej.: Daniel" autocomplete="given-name"></label>
             <div class="choices cols-4 compact" data-choices="car.greeting" role="radiogroup" aria-label="Saludo"></div>
+            <label class="field"><span>Frase de abajo, en lugar de “Buenas tardes” (opcional)</span><input type="text" maxlength="28" data-bind="car.phrase" placeholder="Ej.: Dios te bendiga"></label>
+            <div class="slots" id="phrase-slots"></div>
+            <label class="field"><span>Placa (opcional)</span><input type="text" maxlength="10" data-bind="car.plate" placeholder="ABCD-12" style="text-transform:uppercase" autocomplete="off"></label>
+            <p class="hint">Si la escribes, aparece en el diseño “Tablero”.</p>
           </div>
         </section>
 
@@ -152,16 +157,21 @@
           </div>
           <div class="group">
             <h3>Distribución</h3>
-            <div class="choices cols-2" data-choices="style.layout" role="radiogroup" aria-label="Distribución de la pantalla"></div>
+            <div class="choices cols-2 with-thumb" data-choices="style.layout" role="radiogroup" aria-label="Distribución de la pantalla"></div>
           </div>
           <div class="group">
             <h3>Fondo</h3>
             <div class="choices cols-4 compact" data-choices="style.scene" role="radiogroup" aria-label="Fondo de pantalla"></div>
+            <p class="hint" id="scene-hint" hidden></p>
+            <h3 class="sub-h">Hora del día</h3>
+            <div class="choices cols-3 compact" data-choices="style.sceneTime" role="radiogroup" aria-label="Hora del día"></div>
+            <p class="hint">“Automática” cambia sola con la hora del día.</p>
           </div>
           <div class="group">
             <h3>Color de acento</h3>
             <div class="accent-row">
-              <label class="field inline"><span>Elegir color</span><input type="color" id="accent-input" aria-label="Color de acento"></label>
+              <div class="swatches" id="accent-swatches" role="radiogroup" aria-label="Colores de acento"></div>
+              <label class="field inline"><span>Otro color</span><input type="color" id="accent-input" aria-label="Color de acento"></label>
               <button type="button" class="btn link" id="accent-reset">Usar el del tema</button>
             </div>
           </div>

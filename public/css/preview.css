@@ -184,3 +184,54 @@
   .scr, .scr .dial i { transition: none; }
   .scr .snow { animation: none; }
 }
+
+/* ---- Hora del día sobre el fondo ---- */
+.scr .tint { position: absolute; inset: 0; pointer-events: none; z-index: 1; transition: background .6s; }
+.scr .tint-amanecer { background: linear-gradient(180deg, rgba(255,160,120,.26), rgba(255,210,150,.08) 60%, transparent); }
+.scr .tint-atardecer { background: linear-gradient(180deg, rgba(255,110,80,.28), rgba(150,60,140,.18) 70%, transparent); }
+.scr .tint-noche { background: linear-gradient(180deg, rgba(4,8,30,.5), rgba(4,8,30,.34)); }
+
+/* ---- Diseño: Tablero ---- */
+.scr .l-tablero { grid-template-columns: 1.25fr 1fr; grid-template-rows: .8fr 1.2fr; grid-template-areas: 'left route' 'left map'; }
+.scr .t-left { grid-area: left; display: grid; grid-template-rows: auto 1fr auto; align-items: center; }
+.scr .t-speed b { font: 500 112px/.95 'Rubik', sans-serif; color: var(--accent); font-variant-numeric: tabular-nums; }
+.scr .t-speed span { margin-left: 8px; color: var(--ink2); font-size: 22px; }
+.scr .t-left .car { position: relative; }
+.scr .plate { position: absolute; left: 50%; bottom: -4px; transform: translateX(-50%); background: #f4f4f0; color: #222; border: 2px solid #333; border-radius: 6px; font: 600 14px/1 'Rubik', sans-serif; letter-spacing: .1em; padding: 3px 10px; }
+.scr .t-clock b { font: 500 40px/1 'Rubik', sans-serif; font-variant-numeric: tabular-nums; }
+.scr .t-clock span { margin-left: 10px; color: var(--ink2); font-size: 17px; }
+.scr .t-route { grid-area: route; display: grid; align-items: center; }
+.scr .route-card { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
+.scr .route-card small { display: block; color: var(--ink2); font-size: 14px; }
+.scr .route-card b { font: 500 32px/1.1 'Rubik', sans-serif; }
+.scr .compass { color: var(--ink); display: grid; place-items: center; }
+.scr .t-map { grid-area: map; padding: 0; display: grid; }
+.scr .t-map .mapsvg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.scr .map-info { position: absolute; left: 14px; bottom: 12px; background: rgba(0,0,0,.35); border-radius: 12px; padding: 6px 12px; }
+.scr .map-info b { display: block; font-size: 19px; }
+.scr .map-info small { color: #ffffffcc; font-size: 14px; }
+
+/* ---- Diseño: Menú lateral ---- */
+.scr .l-lateral { grid-template-columns: 148px 1fr 1fr; grid-template-rows: 1fr 1fr; grid-template-areas: 'menu clock music' 'menu wx music'; }
+.scr .side-menu { grid-area: menu; display: grid; grid-template-rows: repeat(4, 1fr); gap: 6px; padding: 10px; }
+.scr .sm { display: grid; justify-items: center; align-content: center; gap: 4px; border-radius: 16px; font-size: 14px; color: var(--ink2); }
+.scr .sm.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.scr .l-lateral .clock { grid-area: clock; }
+.scr .l-lateral .wx-card { grid-area: wx; display: grid; align-items: center; }
+.scr .l-lateral .music-card { grid-area: music; }
+.scr .swipe { display: block; text-align: center; margin-top: 8px; font-size: 13px; color: var(--ink2); }
+
+/* ---- Diseño: Todoterreno ---- */
+.scr .l-todoterreno { grid-template-rows: auto minmax(0, 1fr) 70px; grid-template-columns: 1fr; gap: 6px; }
+.scr .tt-top { display: flex; justify-content: space-between; align-items: flex-end; padding: 0 8px; }
+.scr .tt-speed b { font: 600 132px/.9 'Rubik', sans-serif; letter-spacing: -.02em; font-variant-numeric: tabular-nums; text-shadow: 0 4px 0 rgba(0,0,0,.25); }
+.scr .tt-speed span { font: 600 26px 'Rubik', sans-serif; color: var(--accent); margin-left: 8px; text-transform: uppercase; }
+.scr .tt-clock { text-align: right; }
+.scr .tt-clock b { display: block; font: 600 58px/1 'Rubik', sans-serif; font-variant-numeric: tabular-nums; }
+.scr .tt-clock span { color: var(--ink2); font-size: 18px; text-transform: uppercase; letter-spacing: .08em; }
+.scr .tt-car { display: grid; align-items: end; justify-items: center; }
+.scr .tt-car { min-height: 0; overflow: hidden; }
+.scr .tt-car .car { width: 58%; }
+.scr .tt-info { padding: 6px 24px; min-height: 0; display: grid; align-items: center; }
+.scr .tt-info .route-card b { font-size: 26px; }
+.scr .pickup.lift .pickup-img { transform: translateY(-4px) scale(1.04); }

@@ -47,9 +47,10 @@
 
   const seasons = ['ninguna', 'auto', 'patrias', 'halloween', 'navidad', 'anonuevo'];
   const plusSeasons = ['auto', 'patrias', 'halloween', 'navidad', 'anonuevo'];
-  const layouts = ['tarjetas', 'centro', 'manejo', 'minimal'];
-  const scenes = ['tema', 'cordillera', 'costa', 'desierto', 'bosque', 'ciudad', 'carretera', 'color'];
-  const vehicles = ['auto', 'suv', 'camioneta'];
+  const layouts = ['tarjetas', 'centro', 'manejo', 'minimal', 'tablero', 'lateral', 'todoterreno'];
+  const scenes = ['tema', 'cordillera', 'costa', 'desierto', 'bosque', 'ciudad', 'carretera', 'montana', 'nieve', 'rocas', 'barro', 'color'];
+  const sceneTimes = ['auto', 'amanecer', 'dia', 'atardecer', 'noche'];
+  const vehicles = ['auto', 'suv', 'camioneta', '4x4'];
   const apps = ['maps', 'waze', 'spotify', 'ytmusic', 'youtube', 'whatsapp', 'camara', 'usb', 'telefono'];
   const radioTypes = ['android', 'original', 'nose'];
   const speedAlerts = ['auto', 'manual', 'off'];
@@ -75,6 +76,7 @@
     plusSeasons,
     layouts,
     scenes,
+    sceneTimes,
     vehicles,
     apps,
     radioTypes,

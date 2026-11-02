@@ -44,6 +44,20 @@
       '<svg viewBox="0 0 120 72" aria-hidden="true"><rect width="120" height="72" rx="8" fill="#23253a"/><text x="60" y="55" text-anchor="middle" font-family="Rubik, sans-serif" font-size="52" font-weight="700" fill="#8c90b8">?</text></svg>',
   };
 
+  /* ---------- Miniaturas de los diseños (esquemas) ---------- */
+  const mini = (body) => `<svg viewBox="0 0 120 72" aria-hidden="true"><rect width="120" height="72" rx="8" fill="#24264a"/>${body}</svg>`;
+  const blk = (x, y, w, h, o) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="#fff" opacity="${o || 0.22}"/>`;
+  const dockMini = blk(8, 62, 104, 5, 0.3);
+  TB.layoutThumbs = {
+    tarjetas: mini(blk(8, 8, 44, 48) + blk(56, 8, 24, 22) + blk(56, 34, 24, 22) + blk(84, 8, 28, 48) + dockMini),
+    centro: mini(blk(8, 8, 26, 22) + blk(8, 34, 26, 22) + blk(38, 8, 44, 48, 0.12) + blk(86, 8, 26, 22) + blk(86, 34, 26, 22) + '<rect x="44" y="30" width="32" height="12" rx="5" fill="#ffd166" opacity=".85"/>' + dockMini),
+    manejo: mini('<rect x="10" y="12" width="52" height="40" rx="6" fill="#ffd166" opacity=".8"/>' + blk(68, 8, 44, 20) + blk(68, 32, 44, 12) + blk(68, 48, 44, 10) + dockMini),
+    minimal: mini('<rect x="26" y="12" width="68" height="22" rx="6" fill="#fff" opacity=".7"/>' + blk(26, 40, 32, 16) + blk(62, 40, 32, 16) + dockMini),
+    tablero: mini(blk(8, 8, 56, 48, 0.16) + '<rect x="14" y="14" width="24" height="12" rx="3" fill="#ffd166" opacity=".85"/>' + blk(68, 8, 44, 14) + blk(68, 26, 44, 30, 0.14) + '<path d="M70 50 L84 40 L92 44 L108 32" stroke="#ffd166" stroke-width="3" fill="none" stroke-linecap="round"/>' + dockMini),
+    lateral: mini(blk(8, 8, 18, 48, 0.28) + blk(30, 8, 38, 22) + blk(30, 34, 38, 22) + blk(72, 8, 40, 48) + dockMini),
+    todoterreno: mini('<rect x="10" y="8" width="44" height="18" rx="4" fill="#ffd166" opacity=".85"/>' + blk(80, 8, 30, 14) + '<path d="M10 52 L20 38 L36 36 L44 28 L82 28 L92 38 L108 42 L108 52Z" fill="#fff" opacity=".4"/>' + blk(8, 54, 104, 8, 0.2)),
+  };
+
   /* ---------- Autos (vista lateral, de frente a la derecha) ---------- */
   const CARS = {
     auto: {
@@ -145,9 +159,9 @@
 
   /** Auto en SVG. `uid` evita choques de ids cuando hay más de un auto en pantalla. */
   TB.carSVG = function (type, color, night, uid) {
-    if (type === 'camioneta') {
+    if (type === 'camioneta' || type === '4x4') {
       const lights = night ? '<div class="pickup-beam"></div>' : '';
-      return `<div class="pickup">${lights}<img class="pickup-img" data-pickup="${color}" src="${tinted[color] || PICKUP_SRC}" alt="" aria-hidden="true"></div>`;
+      return `<div class="pickup${type === '4x4' ? ' lift' : ''}">${lights}<img class="pickup-img" data-pickup="${color}" src="${tinted[color] || PICKUP_SRC}" alt="" aria-hidden="true"></div>`;
     }
     const c = CARS[type] || CARS.auto;
     const id = 'c' + (uid || '0');
@@ -291,6 +305,43 @@
         }
         return layer(b, 0.08) + '<g style="fill:var(--accent);opacity:.2">' + w + '</g>';
       }
+      case 'montana':
+        return (
+          layer(`<polygon points="${ridge(5, 330, 220, 9)}"/>`, 0.1) +
+          layer(`<polygon points="${ridge(17, 400, 200, 11)}"/>`, 0.17) +
+          layer(`<polygon points="${ridge(29, 470, 130, 13)}"/>`, 0.26) +
+          '<polygon points="0,600 0,545 220,520 480,552 760,512 1024,548 1024,600" style="fill:rgba(0,0,0,.2)"/>'
+        );
+      case 'nieve': {
+        let flakes = '';
+        const q = rng(41);
+        for (let i = 0; i < 46; i++) flakes += `<circle cx="${Math.round(q() * 1024)}" cy="${Math.round(60 + q() * 440)}" r="${(1.2 + q() * 2.6).toFixed(1)}"/>`;
+        return (
+          layer(`<polygon points="${ridge(8, 340, 230, 9)}"/>`, 0.14) +
+          layer(`<polygon points="${ridge(21, 420, 170, 12)}"/>`, 0.22) +
+          '<polygon points="0,600 0,520 260,500 560,530 820,498 1024,520 1024,600" style="fill:rgba(255,255,255,.26)"/>' +
+          '<g style="fill:#fff;opacity:.5">' + flakes + '</g>'
+        );
+      }
+      case 'rocas': {
+        const q = rng(13);
+        let rocks = '';
+        for (let i = 0; i < 9; i++) {
+          const x = Math.round(q() * 960);
+          const w = 70 + Math.round(q() * 120);
+          const h = 36 + Math.round(q() * 70);
+          const y = 600 - h - Math.round(q() * 30);
+          rocks += `<polygon points="${x},${y + h} ${x + w * 0.18},${y + h * 0.3} ${x + w * 0.5},${y} ${x + w * 0.85},${y + h * 0.38} ${x + w},${y + h}"/>`;
+        }
+        return layer(`<polygon points="${ridge(6, 400, 150, 10)}"/>`, 0.12) + layer(rocks, 0.2) + '<polygon points="0,600 0,560 1024,556 1024,600" style="fill:rgba(0,0,0,.22)"/>';
+      }
+      case 'barro':
+        return (
+          layer(`<polygon points="${ridge(9, 430, 90, 9)}"/>`, 0.1) +
+          '<path d="M0 600 V500 Q 200 470 420 505 T 820 490 T 1024 510 V600Z" style="fill:rgba(60,35,15,.42)"/>' +
+          '<g style="fill:none;stroke:rgba(0,0,0,.28);stroke-width:7;stroke-linecap:round"><path d="M300 600 Q 380 540 520 520"/><path d="M360 600 Q 450 548 560 528"/><path d="M640 600 Q 700 560 820 536"/></g>' +
+          '<ellipse cx="760" cy="566" rx="90" ry="12" style="fill:rgba(var(--scene-rgb),.16)"/><ellipse cx="180" cy="580" rx="70" ry="9" style="fill:rgba(var(--scene-rgb),.12)"/>'
+        );
       case 'carretera': {
         let dashes = '';
         for (let k = 0; k < 6; k++) {

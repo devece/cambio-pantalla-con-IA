@@ -117,7 +117,10 @@
     { id: 'tarjetas', name: 'Tarjetas', desc: 'Clima, radio y música a la vista.' },
     { id: 'centro', name: 'Auto al centro', desc: 'Tu auto como protagonista.' },
     { id: 'manejo', name: 'Modo manejo', desc: 'Velocidad grande y límite de la vía.' },
-    { id: 'minimal', name: 'Minimalista', desc: 'Reloj grande y tus apps.' },
+    { id: 'minimal', name: 'Minimalista', desc: 'Reloj grande y tus apps, sin distracciones.' },
+    { id: 'tablero', name: 'Tablero', desc: 'Velocidad y auto a la izquierda; tu ruta y el mapa a la derecha.' },
+    { id: 'lateral', name: 'Menú lateral', desc: 'Un menú a la izquierda y las tarjetas al lado.' },
+    { id: 'todoterreno', name: 'Todoterreno', desc: 'Letras fuertes, tu camioneta grande, altitud y brújula.', only4x4: true },
   ];
 
   TB.scenes = [
@@ -128,6 +131,10 @@
     { id: 'bosque', name: 'Bosque' },
     { id: 'ciudad', name: 'Ciudad' },
     { id: 'carretera', name: 'Carretera' },
+    { id: 'montana', name: 'Montaña', level: 1 },
+    { id: 'nieve', name: 'Nieve', level: 2 },
+    { id: 'rocas', name: 'Rocas', level: 2 },
+    { id: 'barro', name: 'Barro', level: 2 },
     { id: 'color', name: 'Solo color' },
   ];
 
@@ -168,10 +175,22 @@
     { id: 'auto', name: 'Auto', desc: 'Sedán o hatchback.' },
     { id: 'suv', name: 'SUV', desc: 'Más alto, con baúl largo.' },
     { id: 'camioneta', name: 'Camioneta', desc: 'Cabina y tolva.' },
+    { id: '4x4', name: 'Camioneta 4x4', desc: 'Todoterreno: barro, rocas, nieve.' },
   ];
+  /** Nivel del vehículo: desbloquea fondos y diseños (0 ciudad, 1 SUV/camioneta, 2 4x4). */
+  TB.vehicleLevel = { auto: 0, suv: 1, camioneta: 1, '4x4': 2 };
+  TB.sceneTimes = [
+    { id: 'auto', name: 'Automática', desc: 'Cambia sola con la hora.' },
+    { id: 'amanecer', name: 'Amanecer' },
+    { id: 'dia', name: 'Día' },
+    { id: 'atardecer', name: 'Atardecer' },
+    { id: 'noche', name: 'Noche' },
+  ];
+  TB.accents = ['#ffd166', '#ff6b6b', '#4cc9f0', '#06d6a0', '#a78bfa', '#ff9f68', '#f472b6', '#ffffff'];
 
   TB.carColors = ['#b3261e', '#1f5fa8', '#1f1f23', '#e8e8e4', '#7c8591', '#2e7d4f', '#e08a00', '#6a3fa0'];
   TB.greetings = ['Hola', 'Buen día', 'Wena', 'Bienvenido'];
+  TB.phrases = ['Dios te bendiga', 'Buen viaje', 'Maneja con cuidado', 'Vamos con calma', 'A disfrutar el camino'];
   TB.weekdays = [
     { id: 'lun', name: 'Lunes' },
     { id: 'mar', name: 'Martes' },

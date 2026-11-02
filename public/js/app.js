@@ -15,8 +15,8 @@
   /* ---------- estado ---------- */
   const defaults = () => ({
     radio: { type: null, model: '', screen: null, analysis: null },
-    car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', photo: null, photoCut: false },
-    style: { theme: 'ruta', layout: 'tarjetas', scene: 'tema', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
+    car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', phrase: '', plate: '', photo: null, photoCut: false },
+    style: { theme: 'ruta', layout: 'tarjetas', scene: 'tema', sceneTime: 'auto', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
       oilOn: true, odometer: 45000, lastOil: 42000, oilEvery: 5000,
       others: ['neumaticos'], docsOn: true, rtMonth: 6,
@@ -79,8 +79,9 @@
     'car.type': () => TB.vehicles,
     'car.greeting': () => TB.greetings.map((g) => ({ id: g, name: g })),
     'style.theme': () => TB.themes.map((t) => ({ id: t.id, name: t.name, desc: t.desc, tier: t.tier, swatch: t.swatch })),
-    'style.layout': () => TB.layouts,
+    'style.layout': () => TB.layouts.map((l) => ({ id: l.id, name: l.name, desc: l.desc, thumb: TB.layoutThumbs[l.id], tag4x4: l.only4x4 })),
     'style.scene': () => TB.scenes,
+    'style.sceneTime': () => TB.sceneTimes,
     'style.season': () => TB.seasons.map((s) => ({ id: s.id, name: s.name, desc: s.desc, tier: s.id === 'ninguna' ? 'base' : 'plus' })),
     'features.speedAlert': () => [
       { id: 'auto', name: 'Automático' },
@@ -111,7 +112,7 @@
   function choiceHtml(it, role, extra) {
     const th = it.thumb ? `<span class="thumb">${it.thumb}</span>` : '';
     const sw = it.swatch ? `<span class="sw" style="background:linear-gradient(135deg,${it.swatch[0]} 0 55%,${it.swatch[1]} 55%)"></span>` : '';
-    const tag = it.tier === 'plus' ? '<span class="tag">Completo</span>' : '';
+    const tag = it.tier === 'plus' ? '<span class="tag">Completo</span>' : it.tag4x4 ? '<span class="tag">4x4</span>' : '';
     const price = it.price ? `<span class="price">${O.money(it.price)}</span>` : '';
     const attr = role === 'radio' ? 'role="radio" aria-checked="false"' : 'role="checkbox" aria-pressed="false"';
     return `<button type="button" class="choice" ${attr} data-id="${esc(it.id)}"${extra || ''}>${th}${sw}<b>${esc(it.name)}${tag}</b>${it.desc ? `<small>${esc(it.desc)}</small>` : ''}${price}</button>`;
@@ -125,6 +126,8 @@
     $$('[data-multi]').forEach((el) => {
       el.innerHTML = MULTI[el.dataset.multi]().map((it) => choiceHtml(it, 'checkbox')).join('');
     });
+    $('#accent-swatches').innerHTML = TB.accents.map((c) => `<button type="button" class="swatch" role="radio" aria-checked="false" data-accent="${c}" style="background:${c}" aria-label="Acento ${c}"></button>`).join('');
+    $('#phrase-slots').innerHTML = TB.phrases.map((p) => `<button type="button" class="slot" data-phrase="${esc(p)}">${esc(p)}</button>`).join('');
     $('#car-colors').innerHTML = TB.carColors
       .map((c) => `<button type="button" class="swatch" role="radio" aria-checked="false" data-color="${c}" style="background:${c}" aria-label="Color ${c}"></button>`)
       .join('');
@@ -153,6 +156,29 @@
     }
   }
 
+  const vehicleLevel = () => TB.vehicleLevel[state.car.type] || 0;
+  const VEHICLE_HINT = {
+    '4x4': 'Te armamos un estilo 4x4: diseño Todoterreno y escena de barro. Puedes cambiar todo abajo.',
+    suv: 'Te pusimos la escena de montaña. Puedes cambiarla abajo.',
+    camioneta: 'Con camioneta se desbloquea la escena de montaña.',
+  };
+  function applyVehicle() {
+    const lv = vehicleLevel();
+    const t = state.car.type;
+    if (t === '4x4') { state.style.layout = 'todoterreno'; state.style.scene = 'barro'; }
+    else if (t === 'suv' || t === 'camioneta') {
+      if (state.style.layout === 'todoterreno') state.style.layout = 'tarjetas';
+      state.style.scene = 'montana';
+    } else {
+      if (state.style.layout === 'todoterreno') state.style.layout = 'tarjetas';
+      const sc = TB.scenes.find((s) => s.id === state.style.scene);
+      if (sc && sc.level > lv) state.style.scene = 'tema';
+    }
+    const hint = $('#vt-hint');
+    hint.textContent = VEHICLE_HINT[t] || '';
+    hint.hidden = !VEHICLE_HINT[t];
+  }
+
   function syncChoices() {
     const need = O.requiredPlan(state.style);
     $$('[data-choices]').forEach((el) => {
@@ -161,6 +187,8 @@
       $$('.choice', el).forEach((b) => {
         b.setAttribute('aria-checked', String(cur === b.dataset.id));
         if (path === 'plan' && b.dataset.id === 'esencial') b.disabled = need === 'completo';
+        if (path === 'style.layout' && b.dataset.id === 'todoterreno') b.disabled = vehicleLevel() < 2;
+        if (path === 'style.scene') { const sc = TB.scenes.find((s) => s.id === b.dataset.id); b.disabled = !!(sc && sc.level && sc.level > vehicleLevel()); }
       });
     });
     $$('[data-multi]').forEach((el) => {
@@ -168,6 +196,8 @@
       const cur = get(state, path) || [];
       $$('.choice', el).forEach((b) => b.setAttribute('aria-pressed', String(cur.includes(b.dataset.id))));
     });
+    $$('#accent-swatches .swatch').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.accent === state.style.accent)));
+    $$('.slot').forEach((b) => b.classList.toggle('on', b.dataset.phrase === state.car.phrase));
     $$('#car-colors .swatch').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.color === state.car.color)));
     $('#apps-count').textContent = `${state.style.apps.length} de 4`;
   }
@@ -321,6 +351,7 @@
           if (path === 'plan') flags.autoPlan = false;
           if (path === 'contact.kind') state.contact.value = '';
           if (path === 'style.theme') state.style.accent = null; // cada tema trae su acento
+          if (path === 'car.type') applyVehicle();
         } else if (multi) {
           const path = multi.dataset.multi;
           const max = Number(multi.dataset.max) || Infinity;
@@ -354,6 +385,8 @@
     });
 
     $('#accent-input').addEventListener('input', (e) => { state.style.accent = e.target.value; update(); });
+    $('#accent-swatches').addEventListener('click', (e) => { const b = e.target.closest('[data-accent]'); if (b) { state.style.accent = b.dataset.accent; update(); } });
+    $('#phrase-slots').addEventListener('click', (e) => { const b = e.target.closest('[data-phrase]'); if (b) { state.car.phrase = b.dataset.phrase; update(); } });
     $('#accent-reset').addEventListener('click', () => { state.style.accent = null; update(); });
     $('#next').addEventListener('click', () => go(ui.step + 1));
     $('#back').addEventListener('click', () => go(ui.step - 1));

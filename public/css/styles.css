@@ -279,3 +279,9 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .shot-tips span { font-size: 12.5px; background: #fafafc; border: 1px solid var(--borde); border-radius: 999px; padding: 3px 10px; color: var(--ink2); }
 .seg2 { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .seg2 .choice { flex: 1 1 140px; }
+.sub-h { font: 600 16px/1.2 var(--display); margin: 14px 0 8px; }
+.slots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.slot { appearance: none; border: 1px solid var(--borde); background: #fff; border-radius: 999px; padding: 6px 12px; font: 500 13.5px var(--font); color: var(--ink2); cursor: pointer; }
+.slot.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+.with-thumb.cols-2 .choice { padding: 8px; }
+.with-thumb.cols-2 .choice small { font-size: 12px; }

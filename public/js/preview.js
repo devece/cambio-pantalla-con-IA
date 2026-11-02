@@ -7,6 +7,12 @@
   const fmt = (n) => new Intl.NumberFormat('es-CL').format(Math.round(n));
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+  const MI = 0.621371;
+  const GAL = 3.78541;
+  const imp = (state) => !!(state && state.features && state.features.miles);
+  const dist = (km, state) => (imp(state) ? Math.round(km * MI) : Math.round(km));
+  const du = (state) => (imp(state) ? 'mi' : 'km');
+  const su = (state) => (imp(state) ? 'mph' : 'km/h');
   const icon = (id, size) =>
     `<svg viewBox="0 0 24 24" width="${size || 28}" height="${size || 28}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TB.icons[id] || ''}</svg>`;
 
@@ -58,13 +64,13 @@
       const left = f.lastOil + f.oilEvery - f.odometer;
       out.push({
         key: 'Aceite',
-        text: left >= 0 ? `faltan ${fmt(left)} km` : `pasado por ${fmt(-left)} km`,
+        text: left >= 0 ? `faltan ${fmt(dist(left, state))} ${du(state)}` : `pasado por ${fmt(dist(-left, state))} ${du(state)}`,
         pct: clamp(1 - left / f.oilEvery, 0, 1),
         warn: left <= 500,
       });
     }
     TBCatalog.maintenance.forEach((m) => {
-      if (f.others.includes(m.id)) out.push({ key: m.name, text: `faltan ${fmt(m.every)} km`, pct: 0.02, warn: false });
+      if (f.others.includes(m.id)) out.push({ key: m.name, text: `faltan ${fmt(dist(m.every, state))} ${du(state)}`, pct: 0.02, warn: false });
     });
     if (f.docsOn) {
       const now = new Date().getMonth() + 1;
@@ -74,7 +80,7 @@
       out.push({ key: 'Permiso de circulación', text: `próximo pago en ${nextPermiso}`, pct: 0.3, warn: false });
       out.push({ key: 'Seguro obligatorio (SOAP)', text: 'vence el 31 de marzo', pct: 0.3, warn: false });
     }
-    if (f.fuelOn) out.push({ key: 'Combustible', text: `~${fmt(f.tankL * f.kmPerL)} km con el tanque lleno`, pct: 1, warn: false });
+    if (f.fuelOn) out.push({ key: 'Combustible', text: `~${fmt(dist(f.tankL * f.kmPerL, state))} ${du(state)} con el tanque lleno${f.gallons ? ` (${(f.tankL / GAL).toFixed(1).replace('.', ',')} gal)` : ''}`, pct: 1, warn: false });
     if (f.restrOn && f.restrDays.length) {
       const names = TB.weekdays.filter((d) => f.restrDays.includes(d.id)).map((d) => d.name.toLowerCase());
       out.push({ key: 'Restricción vehicular', text: names.join(', '), pct: 0, warn: false, noBar: true });
@@ -100,25 +106,28 @@
       ? `<img class="car-photo${car.photoCut ? ' cut' : ''}" src="${car.photo}" alt="Tu auto">`
       : TB.carSVG(car.type, car.color, night, ++uid);
     const limit = limitFor(state);
+    const spd = dist(live.speed, state);
     const items = maintItems(state);
     return {
       hello: `${esc(car.greeting)}, ${car.name ? esc(car.name) : 'amigo'}`,
-      sub: (car.phrase ? car.phrase : TB.seasonLabel[season] || tod) + (f.odometer ? ` · ${fmt(f.odometer)} km` : ''),
+      sub: (car.phrase ? car.phrase : TB.seasonLabel[season] || tod) + (f.odometer ? ` · ${fmt(dist(f.odometer, state))} ${du(state)}` : ''),
       car: carHtml,
       time,
       date,
       dateShort,
-      speed: f.speedShow ? `<div class="spd"><b data-speed>${Math.round(live.speed)}</b><span>km/h</span></div>` : '',
+      speed: f.speedShow ? `<div class="spd"><b data-speed>${spd}</b><span>${su(state)}</span></div>` : '',
       weather: `<div class="weather"><span class="wx">${icon('lluvia', 44)}</span><b>14°</b><span class="wd">Lluvioso<small>Sensación 13° · 82%</small></span></div>`,
       radio: `<div class="radio-mini"><button class="rbtn" data-go="radio" aria-label="Anterior">${icon('prev', 22)}</button><div><small>FM</small><b>${live.freq.toFixed(1)}</b><i>MHz</i></div><button class="rbtn" data-go="radio" aria-label="Siguiente">${icon('next', 22)}</button></div>`,
       music: `<div class="music"><span class="src">Bluetooth</span><div class="disc"></div><b>Camino a casa</b><span>Artista de ejemplo</span><div class="ctl"><button class="rbtn" aria-label="Anterior">${icon('prev', 24)}</button><button class="rbtn play" aria-label="Reproducir">${icon('play', 26)}</button><button class="rbtn" aria-label="Siguiente">${icon('next', 24)}</button></div></div>`,
-      limitSign: `<div class="limit"><div class="sign"><b data-limit>${limit}</b></div><small>${f.speedAlert === 'manual' ? 'Límite fijo' : 'Límite de la vía'}</small></div>`,
+      limitSign: `<div class="limit"><div class="sign"><b data-limit>${dist(limit, state)}</b></div><small>${f.speedAlert === 'manual' ? 'Límite fijo' : 'Límite de la vía'}</small></div>`,
       routeCard: `<div class="route-card"><div><small>Altitud</small><b>2.850 m</b></div><div class="compass" aria-hidden="true"><svg viewBox="0 0 60 60" width="64" height="64"><circle cx="30" cy="30" r="27" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/><text x="30" y="11" text-anchor="middle" font-size="9" fill="currentColor">N</text><path d="M30 12 L36 32 L30 28 L24 32Z" fill="var(--accent)" transform="rotate(42 30 30)"/><path d="M30 48 L24 32 L30 36 L36 32Z" fill="currentColor" opacity=".45" transform="rotate(42 30 30)"/></svg></div><div><small>Rumbo</small><b>NE 42°</b></div></div>`,
-      mapCard: `<svg class="mapsvg" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="160" fill="rgba(255,255,255,.06)"/><g fill="none" stroke="rgba(255,255,255,.22)" stroke-width="6" stroke-linecap="round"><path d="M-10 120 L120 110 L170 60 L310 70"/><path d="M60 -10 L80 90 L70 170"/><path d="M200 -10 L190 70 L230 170"/></g><path d="M-10 120 L120 110 L170 60 L260 66" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round"/><circle cx="170" cy="60" r="9" fill="var(--accent)"/><circle cx="170" cy="60" r="3.5" fill="var(--accent-ink)"/></svg><div class="map-info"><b>Ruta a casa</b><small>18 min · 12,4 km</small></div>`,
+      mapCard: `<svg class="mapsvg" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="160" fill="rgba(255,255,255,.06)"/><g fill="none" stroke="rgba(255,255,255,.22)" stroke-width="6" stroke-linecap="round"><path d="M-10 120 L120 110 L170 60 L310 70"/><path d="M60 -10 L80 90 L70 170"/><path d="M200 -10 L190 70 L230 170"/></g><path d="M-10 120 L120 110 L170 60 L260 66" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round"/><circle cx="170" cy="60" r="9" fill="var(--accent)"/><circle cx="170" cy="60" r="3.5" fill="var(--accent-ink)"/></svg><div class="map-info"><b>Ruta a casa</b><small>18 min · ${imp(state) ? '7,7 mi' : '12,4 km'}</small></div>`,
       menu: `<nav class="side-menu card">${[['inicio', 'casa', 'Inicio'], ['radio', 'radio', 'Radio'], ['bluetooth', 'bluetooth', 'Bluetooth'], ['mantenimiento', 'check', 'Mantención']].map(([go, ic, t], i) => `<button class="sm${i === 0 ? ' on' : ''}" data-go="${go}">${icon(ic, 28)}<span>${t}</span></button>`).join('')}</nav>`,
       plate: car.plate ? `<span class="plate">${esc(car.plate)}</span>` : '',
       maint: items.length ? `<div class="maint${items[0].warn ? ' warn' : ''}" data-maint><b>${esc(items[0].key)}</b><span>${esc(items[0].text)}</span></div>` : '',
       hasMaint: items.length > 0,
+      spd,
+      su: su(state),
     };
   }
 
@@ -135,12 +144,12 @@
       <section class="card wx-card">${p.weather}</section>
       <section class="card music-card">${p.music}</section>`,
     manejo: (p) => `
-      <section class="speedbig"><b data-speed>${Math.round(live.speed)}</b><span>km/h</span><div class="car mini-car">${p.car}</div></section>
+      <section class="speedbig"><b data-speed>${p.spd}</b><span>${p.su}</span><div class="car mini-car">${p.car}</div></section>
       ${p.limitSign}
       <section class="card nav"><span class="turn">${icon('giro', 46)}</span><div><b>En 300 m, gira a la derecha</b><small>Av. Costanera · ejemplo de indicación</small></div></section>
       <section class="card radio">${p.radio}</section>`,
     tablero: (p) => `
-      <section class="card t-left"><div class="t-speed"><b data-speed>${Math.round(live.speed)}</b><span>km/h</span></div><div class="car">${p.car}${p.plate}</div><div class="t-clock"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div></section>
+      <section class="card t-left"><div class="t-speed"><b data-speed>${p.spd}</b><span>${p.su}</span></div><div class="car">${p.car}${p.plate}</div><div class="t-clock"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div></section>
       <section class="card t-route">${p.routeCard}</section>
       <section class="card t-map">${p.mapCard}</section>`,
     lateral: (p) => `
@@ -149,7 +158,7 @@
       <section class="card wx-card">${p.weather}</section>
       <section class="card music-card">${p.music}<small class="swipe">‹ desliza para cambiar de canción ›</small></section>`,
     todoterreno: (p) => `
-      <section class="tt-top"><div class="tt-speed"><b data-speed>${Math.round(live.speed)}</b><span>km/h</span></div><div class="tt-clock"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div></section>
+      <section class="tt-top"><div class="tt-speed"><b data-speed>${p.spd}</b><span>${p.su}</span></div><div class="tt-clock"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div></section>
       <section class="tt-car"><div class="car">${p.car}</div></section>
       <section class="tt-info card">${p.routeCard}</section>`,
     minimal: (p) => `
@@ -247,9 +256,11 @@
       `<header class="status">${bg && mode === 'badge' ? `<img class="badge-logo" src="${bg}" alt="">` : '<span></span>'}<b data-clock>${new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false })}</b></header>` +
       body +
       `<svg class="decor" viewBox="0 0 1024 600" aria-hidden="true">${TB.decor(season, ui.night)}</svg>` +
+      `<canvas class="fx" width="1024" height="600" aria-hidden="true"></canvas>` +
       dock(state, ui) +
       `<div class="alert" hidden></div>`;
     TB.tintCars(scr);
+    if (TB.fx) TB.fx.attach(scr.querySelector('.fx'), season, ui.night);
     tick();
   }
 
@@ -264,8 +275,8 @@
     live.speed += (target - live.speed) * 0.4;
     const v = Math.max(0, Math.round(live.speed));
 
-    scr.querySelectorAll('[data-speed]').forEach((el) => (el.textContent = v));
-    scr.querySelectorAll('[data-limit]').forEach((el) => (el.textContent = limit));
+    scr.querySelectorAll('[data-speed]').forEach((el) => (el.textContent = dist(v, state)));
+    scr.querySelectorAll('[data-limit]').forEach((el) => (el.textContent = dist(limit, state)));
     const time = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
     scr.querySelectorAll('[data-clock]').forEach((el) => (el.textContent = time));
 
@@ -273,7 +284,7 @@
     if (alert) {
       const show = state.features.speedAlert !== 'off' && v > limit;
       alert.hidden = !show;
-      if (show) alert.textContent = `Baja la velocidad · ${v} km/h · límite ${limit}`;
+      if (show) alert.textContent = `Baja la velocidad · ${dist(v, state)} ${su(state)} · límite ${dist(limit, state)}`;
     }
 
     if (!reduced && live.n % 4 === 0) {

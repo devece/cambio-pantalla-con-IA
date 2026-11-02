@@ -237,6 +237,9 @@
 
           <fieldset class="feature">
             <legend>Al manejar</legend>
+            <label class="check"><input type="checkbox" data-bind="features.miles"><span>Mostrar millas y mph (en vez de km y km/h)</span></label>
+            <label class="check"><input type="checkbox" data-bind="features.gallons"><span>Mostrar el combustible en galones (en vez de litros)</span></label>
+            <p class="hint">Escribe tus datos en km y litros, como siempre: la radio los muestra en las unidades que marques aquí.</p>
             <label class="check"><input type="checkbox" data-bind="features.speedShow"><span>Mostrar mi velocidad</span></label>
             <div class="choices cols-3 compact" data-choices="features.speedAlert" role="radiogroup" aria-label="Aviso de velocidad"></div>
             <div class="sub" data-show="features.speedAlert=manual">
@@ -342,6 +345,7 @@
   <script src="js/site.js"></script>
   <script src="js/art.js"></script>
   <script src="js/themes.js"></script>
+  <script src="js/fx.js"></script>
   <script src="js/preview.js"></script>
   <script src="js/cutout.js"></script>
   <script src="js/app.js"></script>

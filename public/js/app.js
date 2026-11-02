@@ -21,7 +21,7 @@
       oilOn: true, odometer: 45000, lastOil: 42000, oilEvery: 5000,
       others: ['neumaticos'], docsOn: true, rtMonth: 6,
       fuelOn: false, tankL: 45, kmPerL: 12,
-      speedShow: true, speedAlert: 'auto', manualLimit: 60, restrOn: false, restrDays: [], voice: true,
+      speedShow: true, speedAlert: 'auto', manualLimit: 60, restrOn: false, restrDays: [], voice: true, miles: false, gallons: false,
     },
     plan: 'esencial',
     addons: {},

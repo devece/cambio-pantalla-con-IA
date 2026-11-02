@@ -129,6 +129,8 @@
         restrOn: !!f.restrOn,
         restrDays: Array.isArray(f.restrDays) ? [...new Set(f.restrDays.filter((d) => C.weekdays.includes(d)))] : [],
         voice: f.voice !== false,
+        miles: !!f.miles,
+        gallons: !!f.gallons,
       },
       plan: pick(o.plan, C.plans.map((p) => p.id), null),
       addons: {},

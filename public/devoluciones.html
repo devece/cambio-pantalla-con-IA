@@ -9,16 +9,15 @@
   <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <header class="masthead">
+  <header class="topbar">
     <div class="wrap bar">
       <a class="brand" href="./">Tablero</a>
-      <a class="bar-link" href="./">Volver al inicio</a>
+      <a href="./">Volver al inicio</a>
     </div>
-    <div class="roadline" aria-hidden="true"></div>
   </header>
   <main class="wrap legal">
     <h1>Devoluciones y reembolsos</h1>
@@ -40,8 +39,10 @@
   </main>
   <footer class="foot">
     <div class="wrap">
-      <p><a href="terminos.html">Términos</a> · <a href="privacidad.html">Privacidad</a> · <a href="devoluciones.html">Devoluciones</a></p>
-      <p>© <span id="year"></span> Tablero. Las marcas de autos y de radios que puedan aparecer pertenecen a sus dueños.</p>
+      <span>© <span id="year"></span> Tablero</span>
+      <a href="terminos.html">Términos</a>
+      <a href="privacidad.html">Privacidad</a>
+      <a href="devoluciones.html">Devoluciones</a>
     </div>
   </footer>
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>

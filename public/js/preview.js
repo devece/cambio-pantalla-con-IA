@@ -197,6 +197,7 @@
     const vars = {
       '--bg1': t.bg1, '--bg2': t.bg2, '--ink': t.ink, '--ink2': t.ink2, '--card': t.card, '--line': t.line,
       '--accent': t.accent, '--accent-ink': t.accentInk, '--scene-rgb': t.sceneRgb,
+      '--orb1': t.orb1 || t.accent, '--orb2': t.orb2 || t.bg1, '--orb3': t.orb3 || t.bg1,
       '--radius': th.radius + 'px', '--blur': th.blur + 'px', '--shadow': th.shadow,
     };
     Object.keys(vars).forEach((k) => scr.style.setProperty(k, vars[k]));

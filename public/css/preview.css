@@ -5,7 +5,7 @@
   --radius: 22px; --blur: 0px; --shadow: 0 10px 26px rgba(0,0,0,.28);
   position: absolute; left: 0; top: 0; width: 1024px; height: 600px; transform-origin: 0 0; overflow: hidden;
   background: linear-gradient(165deg, var(--bg1), var(--bg2)); color: var(--ink);
-  font-family: 'Barlow', 'Segoe UI', system-ui, sans-serif; font-size: 18px; line-height: 1.2;
+  font-family: 'Rubik', 'Segoe UI', system-ui, sans-serif; font-size: 18px; line-height: 1.2;
   transition: background .5s;
 }
 .scr *, .scr *::before, .scr *::after { box-sizing: border-box; }
@@ -24,10 +24,10 @@
 
 .scr .card {
   background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
-  -webkit-backdrop-filter: blur(var(--blur)); backdrop-filter: blur(var(--blur)); padding: 16px 20px; position: relative; overflow: hidden; min-width: 0;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(1.5); backdrop-filter: blur(var(--blur)) saturate(1.5); padding: 16px 20px; position: relative; overflow: hidden; min-width: 0;
 }
 .scr small { color: var(--ink2); font-size: 15px; font-weight: 400; }
-.scr h2 { margin: 0; font: 700 40px/1 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: .01em; }
+.scr h2 { margin: 0; font: 500 36px/1.05 'Rubik', 'Segoe UI', system-ui, sans-serif; letter-spacing: .01em; }
 .scr .greet-txt p { margin: 6px 0 0; font-size: 18px; color: var(--ink2); }
 
 /* Botones redondos */
@@ -47,21 +47,21 @@
 .scr .clock { grid-area: clock; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .scr .radio { grid-area: radio; display: grid; align-items: center; }
 .scr .music-card { grid-area: music; display: grid; align-items: center; }
-.scr .clk b { display: block; font: 700 66px/1 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; }
+.scr .clk b { display: block; font: 500 60px/1 'Rubik', 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; }
 .scr .clk { min-width: 0; }
 .scr .clk span { display: block; margin-top: 4px; color: var(--ink2); font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .scr .spd { flex: none; }
 .scr .spd { text-align: right; }
-.scr .spd b { display: block; font: 700 66px/1 'Barlow Condensed', sans-serif; color: var(--accent); font-variant-numeric: tabular-nums; }
+.scr .spd b { display: block; font: 500 60px/1 'Rubik', 'Segoe UI', sans-serif; color: var(--accent); font-variant-numeric: tabular-nums; }
 .scr .spd span { color: var(--ink2); font-size: 15px; }
 .scr .weather { display: flex; align-items: center; gap: 12px; }
-.scr .weather b { font: 700 54px/1 'Barlow Condensed', sans-serif; }
+.scr .weather b { font: 500 48px/1 'Rubik', 'Segoe UI', sans-serif; }
 .scr .wx { color: var(--accent); display: grid; }
 .scr .wd { display: grid; font-size: 20px; }
 .scr .radio-mini { display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; }
 .scr .radio-mini > div { text-align: center; min-width: 0; }
 .scr .radio-mini small { display: block; }
-.scr .radio-mini b { font: 700 58px/1 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; }
+.scr .radio-mini b { font: 500 52px/1 'Rubik', 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; }
 .scr .radio-mini i { display: block; font-style: normal; color: var(--ink2); font-size: 15px; margin-top: 2px; }
 .scr .radio-mini .rbtn { width: 44px; height: 44px; flex: none; }
 .scr .music { display: grid; justify-items: center; gap: 6px; text-align: center; }
@@ -91,13 +91,13 @@
 /* ---- Diseño: Modo manejo ---- */
 .scr .l-manejo { grid-template-columns: 1.4fr 1fr; grid-template-rows: 1.15fr .85fr .7fr; grid-template-areas: 'speed limit' 'speed nav' 'speed radio'; }
 .scr .speedbig { grid-area: speed; display: grid; align-content: center; justify-items: start; padding-left: 14px; }
-.scr .speedbig b { font: 700 232px/.82 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.scr .speedbig b { font: 500 190px/.9 'Rubik', 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
 .scr .speedbig > span { font-size: 30px; color: var(--ink2); margin-top: 8px; }
 .scr .mini-car { width: 250px; margin-top: 14px; }
 .scr .mini-car .car-photo { height: 110px; }
 .scr .limit { grid-area: limit; display: grid; justify-items: center; align-content: center; gap: 6px; }
 .scr .sign { width: 132px; height: 132px; border-radius: 50%; background: #fff; border: 13px solid #d2352b; display: grid; place-items: center; color: #111; box-shadow: var(--shadow); }
-.scr .sign b { font: 700 56px/1 'Barlow Condensed', sans-serif; }
+.scr .sign b { font: 700 56px/1 'Rubik', 'Segoe UI', sans-serif; }
 .scr .nav { grid-area: nav; display: flex; align-items: center; gap: 16px; }
 .scr .nav .turn { color: var(--accent); display: grid; }
 .scr .nav b { display: block; font-size: 23px; line-height: 1.15; }
@@ -107,7 +107,7 @@
 /* ---- Diseño: Minimalista ---- */
 .scr .l-minimal { grid-template-rows: 1fr auto; align-content: stretch; justify-items: center; }
 .scr .bigclock { text-align: center; align-self: center; }
-.scr .bigclock b { display: block; font: 700 196px/.9 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; }
+.scr .bigclock b { display: block; font: 400 168px/.95 'Rubik', 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; }
 .scr .bigclock span { display: block; font-size: 26px; color: var(--ink2); margin-top: 8px; }
 .scr .bigclock p { margin: 10px 0 0; font-size: 28px; }
 .scr .pills { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
@@ -116,7 +116,7 @@
 
 /* ---- Mantenimiento (pastilla en el inicio) ---- */
 .scr .maint { position: absolute; left: 20px; right: 20px; bottom: 10px; height: 46px; z-index: 3; border-radius: 99px; display: flex; align-items: center; gap: 12px; padding: 0 22px; font-size: 19px;
-  background: var(--card); border: 1px solid var(--line); -webkit-backdrop-filter: blur(var(--blur)); backdrop-filter: blur(var(--blur)); }
+  background: var(--card); border: 1px solid var(--line); -webkit-backdrop-filter: blur(var(--blur)) saturate(1.5); backdrop-filter: blur(var(--blur)) saturate(1.5); }
 .scr .maint b { color: var(--accent); }
 .scr .maint.warn { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
 .scr .maint.warn b { color: inherit; }
@@ -128,7 +128,7 @@
 
 /* ---- Dock ---- */
 .scr .dock { position: absolute; left: 0; right: 0; bottom: 0; height: 92px; z-index: 5; display: flex; justify-content: space-around; align-items: center; padding: 0 14px;
-  background: var(--card); border-top: 1px solid var(--line); -webkit-backdrop-filter: blur(var(--blur)); backdrop-filter: blur(var(--blur)); }
+  background: var(--card); border-top: 1px solid var(--line); -webkit-backdrop-filter: blur(var(--blur)) saturate(1.5); backdrop-filter: blur(var(--blur)) saturate(1.5); }
 .scr .dk { display: grid; justify-items: center; gap: 6px; min-width: 72px; }
 .scr .dk .ic { width: 56px; height: 56px; border-radius: calc(var(--radius) * .7); background: rgba(127,127,127,.18); display: grid; place-items: center; }
 .scr .dk small { font-size: 14px; white-space: nowrap; color: var(--ink); opacity: .82; }
@@ -138,14 +138,14 @@
 .scr .pane { height: 100%; }
 .scr .radio-pane { display: grid; align-content: center; justify-items: center; gap: 22px; }
 .scr .r-main { text-align: center; }
-.scr .r-main b { font: 700 190px/.9 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; }
+.scr .r-main b { font: 700 190px/.9 'Rubik', 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; }
 .scr .r-main small, .scr .r-main span { font-size: 28px; color: var(--ink2); margin: 0 10px; }
 .scr .dial { position: relative; width: 88%; height: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
 .scr .dial u { width: 2px; height: 16px; background: var(--ink2); opacity: .7; }
 .scr .dial u.big { height: 30px; opacity: 1; background: var(--ink); }
 .scr .dial i { position: absolute; top: -8px; width: 5px; height: 56px; background: var(--accent); border-radius: 3px; transform: translateX(-50%); transition: left .3s; }
 .scr .presets { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; width: 100%; }
-.scr .preset { padding: 14px 0; text-align: center; font: 700 30px 'Barlow Condensed', sans-serif; }
+.scr .preset { padding: 14px 0; text-align: center; font: 700 30px 'Rubik', 'Segoe UI', sans-serif; }
 .scr .preset.on { background: var(--accent); color: var(--accent-ink); }
 
 .scr .bt-pane { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -154,7 +154,7 @@
 .scr .phone .ph-ic { color: var(--accent); }
 .scr .phone .ok { color: var(--accent); font-weight: 600; font-size: 20px; }
 .scr .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 14px; }
-.scr .keypad button { display: grid; place-items: center; border-radius: calc(var(--radius) / 2); background: rgba(127,127,127,.18); font: 600 36px 'Barlow Condensed', sans-serif; }
+.scr .keypad button { display: grid; place-items: center; border-radius: calc(var(--radius) / 2); background: rgba(127,127,127,.18); font: 600 36px 'Rubik', 'Segoe UI', sans-serif; }
 
 .scr .eq-pane { display: grid; grid-template-rows: 1fr auto; gap: 16px; }
 .scr .eq { display: flex; justify-content: space-around; align-items: stretch; padding: 8px 20px 0; min-height: 0; }

@@ -100,6 +100,17 @@
 
   TB.scene = function (id) {
     switch (id) {
+      case 'aurora':
+        // Manchas de luz difusas: dan profundidad al degradado y algo que el vidrio pueda desenfocar.
+        return (
+          '<defs><filter id="aur-b" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="70"/></filter></defs>' +
+          '<g filter="url(#aur-b)">' +
+          '<circle cx="150" cy="120" r="190" style="fill:var(--orb1);opacity:.85"/>' +
+          '<circle cx="880" cy="90" r="170" style="fill:var(--orb2);opacity:.8"/>' +
+          '<circle cx="760" cy="520" r="230" style="fill:var(--orb3);opacity:.75"/>' +
+          '<circle cx="220" cy="560" r="170" style="fill:var(--orb2);opacity:.55"/>' +
+          '</g>'
+        );
       case 'cordillera':
         return (
           layer(`<polygon points="${ridge(11, 400, 190, 12)}"/>`, 0.1) +

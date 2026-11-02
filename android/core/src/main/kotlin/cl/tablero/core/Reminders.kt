@@ -48,6 +48,12 @@ object Reminders {
     /** Texto del saludo ("Hola, Daniel"). */
     fun hello(c: LauncherConfig): String = "${c.greeting}, ${c.name.ifBlank { "amigo" }}"
 
+    /** Texto de abajo del saludo: la frase del usuario o, si no puso ninguna, el saludo del momento del día. */
+    fun below(c: LauncherConfig, hour: Int): String = c.phrase.trim().ifBlank { greeting(hour) }
+
+    /** Lo que dice la radio al encender (por voz): "Hola, Daniel. Dios te bendiga". */
+    fun voiceLine(c: LauncherConfig, hour: Int): String = "${hello(c)}. ${below(c, hour)}"
+
     /** Kilómetros con el tanque lleno (aproximado). */
     fun fuelRange(c: LauncherConfig): Int = c.tankL * c.kmPerL
 

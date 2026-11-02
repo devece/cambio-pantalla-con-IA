@@ -148,7 +148,7 @@
         type: pick(car.type, C.vehicles, 'auto'),
         color: HEX.test(car.color) ? car.color.toLowerCase() : '#b3261e',
         name: str(car.name, 24),
-        greeting: str(car.greeting, 24) || 'Hola',
+        greeting: str(car.greeting, 16) || 'Hola',
         phrase: str(car.phrase, 28),
         plate: str(car.plate, 10).toUpperCase(),
       },

@@ -204,3 +204,15 @@ test('el aviso al entrar a Santiago solo sale cuando corresponde', () => {
   assert.doesNotMatch(b.text, /Hoy tienes restricción/, 'miércoles no le toca el dígito, pero sí el anillo');
   assert.match(b.text, /anillo Américo Vespucio/);
 });
+
+test('el saludo y la frase se recortan y el saludo vacío vuelve a "Hola"', () => {
+  const o = base();
+  o.car.greeting = '   Hola de nuevo, querido amigo mío   ';
+  o.car.phrase = '<b>Dios</b> te bendiga' + 'x'.repeat(40);
+  const r = validateOrder(o);
+  assert.equal(r.ok, true, r.errors.join('|'));
+  assert.ok(r.clean.car.greeting.length <= 16 && r.clean.car.greeting.startsWith('Hola de nuevo'));
+  assert.ok(r.clean.car.phrase.length <= 28);
+  o.car.greeting = '   ';
+  assert.equal(validateOrder(o).clean.car.greeting, 'Hola');
+});

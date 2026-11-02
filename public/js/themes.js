@@ -189,8 +189,8 @@
   TB.accents = ['#ffd166', '#ff6b6b', '#4cc9f0', '#06d6a0', '#a78bfa', '#ff9f68', '#f472b6', '#ffffff'];
 
   TB.carColors = ['#b3261e', '#1f5fa8', '#1f1f23', '#e8e8e4', '#7c8591', '#2e7d4f', '#e08a00', '#6a3fa0'];
-  TB.greetings = ['Hola', 'Buen día', 'Wena', 'Bienvenido'];
-  TB.phrases = ['Dios te bendiga', 'Buen viaje', 'Maneja con cuidado', 'Vamos con calma', 'A disfrutar el camino'];
+  TB.greetings = ['Hola', 'Buenas', 'Wena', 'Buen día', 'Bienvenido', 'Qué tal', 'Hola de nuevo', 'Saludos'];
+  TB.phrases = ['Dios te bendiga', 'Buen viaje', 'Maneja con cuidado', 'Vamos con calma', 'A disfrutar el camino', 'Que tengas un gran día', 'Bienvenido a bordo', 'Abróchate el cinturón', 'Un abrazo'];
   TB.weekdays = [
     { id: 'lun', name: 'Lunes' },
     { id: 'mar', name: 'Martes' },

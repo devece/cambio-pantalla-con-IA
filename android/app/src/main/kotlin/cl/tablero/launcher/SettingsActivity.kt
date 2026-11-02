@@ -34,6 +34,7 @@ class SettingsActivity : Activity() {
 
     private lateinit var name: EditText
     private lateinit var greeting: EditText
+    private lateinit var phrase: EditText
     private lateinit var carTypeGroup: RadioGroup
     private var selectedColor = Ui.CAR_COLORS.first()
     private val colorChips = linkedMapOf<String, View>()
@@ -78,7 +79,8 @@ class SettingsActivity : Activity() {
 
         section("Tu saludo")
         name = field("Tu nombre", c.name)
-        greeting = field("Saludo (Hola, Buenas...)", c.greeting)
+        greeting = field("Saludo antes de tu nombre (Hola, Wena...)", c.greeting)
+        phrase = field("Frase de abajo, en lugar de \"Buenas tardes\" (opcional)", c.phrase)
 
         section("Tu auto")
         carTypeGroup = RadioGroup(this).apply {
@@ -197,7 +199,8 @@ class SettingsActivity : Activity() {
                 carType = type,
                 carColor = selectedColor,
                 name = name.text.toString().trim().take(24),
-                greeting = greeting.text.toString().trim().take(24).ifBlank { "Hola" },
+                greeting = greeting.text.toString().trim().take(16).ifBlank { "Hola" },
+                phrase = phrase.text.toString().trim().take(28),
                 apps = chosenApps,
                 oilOn = oilOn.isChecked,
                 odometer = int(odometer, old.odometer, 0..999_999),

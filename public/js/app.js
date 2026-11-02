@@ -81,7 +81,6 @@
       { id: 'nose', thumb: TB.radioThumbs.nose, name: 'No sé', desc: 'Te mostramos cómo saberlo en 10 segundos.' },
     ],
     'car.type': () => TB.vehicles,
-    'car.greeting': () => TB.greetings.map((g) => ({ id: g, name: g })),
     'style.theme': () => TB.themes.map((t) => ({ id: t.id, name: t.name, desc: t.desc, tier: t.tier, swatch: t.swatch })),
     'style.layout': () => TB.layouts.map((l) => ({ id: l.id, name: l.name, desc: l.desc, thumb: TB.layoutThumbs[l.id], tag4x4: l.only4x4 })),
     'style.scene': () => TB.scenes,
@@ -136,6 +135,7 @@
       el.innerHTML = MULTI[el.dataset.multi]().map((it) => choiceHtml(it, 'checkbox')).join('');
     });
     $('#accent-swatches').innerHTML = TB.accents.map((c) => `<button type="button" class="swatch" role="radio" aria-checked="false" data-accent="${c}" style="background:${c}" aria-label="Acento ${c}"></button>`).join('');
+    $('#greet-slots').innerHTML = TB.greetings.map((g) => `<button type="button" class="slot" data-greet="${esc(g)}">${esc(g)}</button>`).join('');
     $('#phrase-slots').innerHTML = TB.phrases.map((p) => `<button type="button" class="slot" data-phrase="${esc(p)}">${esc(p)}</button>`).join('');
     $('#car-colors').innerHTML = TB.carColors
       .map((c) => `<button type="button" class="swatch" role="radio" aria-checked="false" data-color="${c}" style="background:${c}" aria-label="Color ${c}"></button>`)
@@ -206,7 +206,8 @@
       $$('.choice', el).forEach((b) => b.setAttribute('aria-pressed', String(cur.includes(b.dataset.id))));
     });
     $$('#accent-swatches .swatch').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.accent === state.style.accent)));
-    $$('.slot').forEach((b) => b.classList.toggle('on', b.dataset.phrase === state.car.phrase));
+    $$('.slot[data-phrase]').forEach((b) => b.classList.toggle('on', b.dataset.phrase === state.car.phrase));
+    $$('.slot[data-greet]').forEach((b) => b.classList.toggle('on', b.dataset.greet === state.car.greeting));
     $$('#car-colors .swatch').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.color === state.car.color)));
     $('#apps-count').textContent = `${state.style.apps.length} de 4`;
   }
@@ -385,6 +386,24 @@
     }
   }
 
+  /** Lo que diría la radio al encender: saludo, nombre y la frase (o el saludo del momento del día). */
+  function greetingLine() {
+    const c = state.car;
+    const h = new Date().getHours();
+    const tod = h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
+    return `${(c.greeting || 'Hola').trim()}, ${(c.name || 'amigo').trim()}. ${(c.phrase || tod).trim()}`;
+  }
+  function listenGreeting() {
+    const synth = window.speechSynthesis;
+    if (!synth || typeof SpeechSynthesisUtterance === 'undefined') { $('#greet-listen').hidden = true; return; }
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(greetingLine());
+    u.lang = 'es-CL';
+    const voice = synth.getVoices().find((v) => /^es[-_](CL|MX|419|US|AR|CO)/i.test(v.lang)) || synth.getVoices().find((v) => /^es/i.test(v.lang));
+    if (voice) u.voice = voice;
+    synth.speak(u);
+  }
+
   /* ---------- eventos ---------- */
   function wire() {
     document.addEventListener('click', (e) => {
@@ -445,6 +464,8 @@
     });
     $('#accent-input').addEventListener('input', (e) => { state.style.accent = e.target.value; update(); });
     $('#accent-swatches').addEventListener('click', (e) => { const b = e.target.closest('[data-accent]'); if (b) { state.style.accent = b.dataset.accent; update(); } });
+    $('#greet-slots').addEventListener('click', (e) => { const b = e.target.closest('[data-greet]'); if (b) { state.car.greeting = b.dataset.greet; update(); } });
+    $('#greet-listen').addEventListener('click', listenGreeting);
     $('#phrase-slots').addEventListener('click', (e) => { const b = e.target.closest('[data-phrase]'); if (b) { state.car.phrase = b.dataset.phrase; update(); } });
     $('#accent-reset').addEventListener('click', () => { state.style.accent = null; update(); });
     $('#next').addEventListener('click', () => go(ui.step + 1));

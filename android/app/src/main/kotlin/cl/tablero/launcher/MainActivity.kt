@@ -205,7 +205,7 @@ class MainActivity : Activity() {
         val card = card()
         card.addView(text(Reminders.hello(config), 40f, Ui.TEXT).apply { typeface = Ui.DISPLAY })
         val odometer = if (config.odometer > 0) " · ${Reminders.km(config.odometer)} km" else ""
-        card.addView(text(Reminders.greeting(now.get(Calendar.HOUR_OF_DAY)) + odometer, 17f, Ui.SUB))
+        card.addView(text(Reminders.below(config, now.get(Calendar.HOUR_OF_DAY)) + odometer, 17f, Ui.SUB))
 
         val car = CarView(this).apply {
             carType = config.carType
@@ -456,7 +456,7 @@ class MainActivity : Activity() {
     private fun greetOnce() {
         if (!config.voice || greeted) return
         greeted = true
-        val phrase = "${Reminders.greeting(Calendar.getInstance().get(Calendar.HOUR_OF_DAY))}, ${config.name.ifBlank { "amigo" }}"
+        val phrase = Reminders.voiceLine(config, Calendar.getInstance().get(Calendar.HOUR_OF_DAY))
         tts = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 tts?.language = Locale("es", "CL")

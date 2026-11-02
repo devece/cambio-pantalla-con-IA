@@ -152,9 +152,12 @@
           <div class="group">
             <h3>Tu saludo</h3>
             <label class="field"><span>Tu nombre</span><input type="text" maxlength="24" data-bind="car.name" placeholder="Ej.: Daniel" autocomplete="given-name"></label>
-            <div class="choices cols-4 compact" data-choices="car.greeting" role="radiogroup" aria-label="Saludo"></div>
+            <label class="field"><span>Saludo antes de tu nombre</span><input type="text" maxlength="16" data-bind="car.greeting" placeholder="Hola" autocomplete="off"></label>
+            <div class="slots" id="greet-slots"></div>
             <label class="field"><span>Frase de abajo, en lugar de “Buenas tardes” (opcional)</span><input type="text" maxlength="28" data-bind="car.phrase" placeholder="Ej.: Dios te bendiga"></label>
             <div class="slots" id="phrase-slots"></div>
+            <p class="hint">La frase reemplaza al “Buenas tardes” en la pantalla y en el saludo por voz. Déjala vacía para el saludo normal.</p>
+            <div class="photo-row"><button type="button" class="btn ghost" id="greet-listen">▶ Escuchar cómo suena</button></div>
             <label class="field"><span>Placa (opcional)</span><input type="text" maxlength="10" data-bind="car.plate" placeholder="ABCD-12" style="text-transform:uppercase" autocomplete="off"></label>
             <p class="hint">Si la escribes, aparece en el diseño “Tablero”.</p>
           </div>

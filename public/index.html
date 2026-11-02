@@ -77,6 +77,24 @@
           <p class="lead">Funciona en radios Android de pantalla grande.</p>
           <div class="choices cols-3 with-thumb" data-choices="radio.type" role="radiogroup" aria-labelledby="h1"></div>
           <div class="note" id="radio-note" role="status"></div>
+          <div class="note warn" id="nose-test" hidden>
+            <b>Haz esta prueba en tu radio</b>
+            <p>Toca el botón de <b>inicio</b> (la casita). ¿Ves íconos de apps como <b>Play Store</b>, <b>Chrome</b> o <b>YouTube</b>?</p>
+            <div class="photo-row"><button type="button" class="btn primary" data-test="android">Sí, veo apps</button><button type="button" class="btn ghost" data-test="original">No, solo radio y música</button></div>
+          </div>
+          <div class="shot" id="shot" hidden>
+            <h3>Siguiente paso: una captura de tu radio</h3>
+            <p class="hint">Busca en los ajustes de la radio la pantalla con la versión. Según la marca se llama:</p>
+            <div class="paths"><span>Ajustes → Sistema → Acerca del dispositivo</span><span>Ajustes → Información</span><span>Ajustes del coche → Versión</span></div>
+            <p class="hint">Si no puedes hacer captura, tómale una foto con el celular. Es opcional, pero la analizamos para evitar sorpresas. No guardamos la imagen.</p>
+            <div class="photo-row">
+              <label class="btn ghost" for="shot-file">Subir captura de mi radio</label>
+              <input type="file" id="shot-file" accept="image/png,image/jpeg,image/webp" hidden>
+              <button type="button" class="btn link" id="shot-clear" hidden>Quitar</button>
+            </div>
+            <p class="error" id="shot-error" role="alert" hidden></p>
+            <div class="shot-result" id="shot-result" role="status" aria-live="polite" hidden></div>
+          </div>
           <label class="field" data-show="radio.type=android">
             <span>Marca y modelo de tu radio (opcional)</span>
             <input type="text" maxlength="40" data-bind="radio.model" placeholder="Ej.: pantalla de 9 pulgadas, Android 10">

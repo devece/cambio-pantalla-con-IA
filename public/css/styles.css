@@ -255,3 +255,23 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
   .choices.season-pills::-webkit-scrollbar { display: none; }
   .season-pills .choice { flex: none; padding: 7px 12px; }
 }
+
+/* Captura de la radio */
+.shot { margin-top: 18px; padding: 14px 16px; border: 1.5px dashed var(--borde); border-radius: 14px; background: #fafafc; }
+.shot h3 { font: 600 17px/1.2 var(--display); margin-bottom: 4px; }
+.shot .photo-row { margin-top: 10px; }
+.shot label[aria-disabled='true'] { opacity: .7; pointer-events: none; }
+.shot-result { margin-top: 12px; display: grid; gap: 8px; font-size: 14.5px; }
+.shot-result p { margin: 0; }
+.shot-result ul { margin: 0; padding-left: 20px; color: var(--ink2); }
+.shot-result .verdict { padding: 10px 12px; border-radius: 10px; background: #eaf7ee; border-left: 5px solid #2e9e57; }
+.shot-result .verdict.warn { background: #fff6d6; border-left-color: #d9a400; }
+.shot-result .verdict.bad { background: #fdeceb; border-left-color: var(--rojo); }
+.shot-result .rec { color: var(--ink); }
+.shot-result .btn { justify-self: start; }
+.paths { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.paths span { font-size: 12.5px; background: #fff; border: 1px solid var(--borde); border-radius: 8px; padding: 4px 8px; color: var(--ink2); }
+.specs { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; font-size: 14px; }
+.specs dt { color: var(--ink2); font-weight: 500; }
+.specs dd { margin: 0; font-weight: 600; }
+#nose-test p { margin: 6px 0 10px; }

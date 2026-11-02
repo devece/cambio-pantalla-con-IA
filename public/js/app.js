@@ -14,7 +14,7 @@
 
   /* ---------- estado ---------- */
   const defaults = () => ({
-    radio: { type: null, model: '' },
+    radio: { type: null, model: '', screen: null, analysis: null },
     car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', photo: null },
     style: { theme: 'ruta', layout: 'tarjetas', scene: 'tema', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
@@ -206,6 +206,9 @@
     n.className = 'note' + (r && r[0] ? ' ' + r[0] : '');
     n.textContent = r ? r[1] : '';
 
+    $('#nose-test').hidden = state.radio.type !== 'nose';
+    $('#shot').hidden = state.radio.type !== 'android' && !state.radio.screen && !state.radio.analysis;
+
     const f = state.features;
     const left = f.lastOil + f.oilEvery - f.odometer;
     $('#oil-hint').textContent = left >= 0 ? `Faltan ${fmt(left)} km para el próximo cambio. Cuando falten 500 km o menos, la radio muestra un aviso grande.` : `Tu cambio de aceite está pasado por ${fmt(-left)} km.`;
@@ -364,6 +367,114 @@
       update();
     });
     $('#pay').addEventListener('click', pay);
+    $('#nose-test').addEventListener('click', (e) => { const b = e.target.closest('[data-test]'); if (!b) return; state.radio.type = b.dataset.test; update(); });
+    $('#shot-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadShot(f); e.target.value = ''; });
+    $('#shot-clear').addEventListener('click', () => { state.radio.screen = null; state.radio.analysis = null; $('#shot-error').hidden = true; renderShot(); update(); });
+    $('#shot-result').addEventListener('click', (e) => { if (e.target.closest('#shot-apply')) applyRecommendation(); });
+    renderShot();
+  }
+
+  /* ---------- captura de la radio: análisis ---------- */
+  const COMPAT = { si: ['', 'Compatible'], quizas: ['warn', 'Posiblemente compatible'], no: ['bad', 'No parece compatible'] };
+  const ratioText = (w, h) => {
+    const r = Math.max(w, h) / Math.min(w, h);
+    const known = [[16 / 9, '16:9'], [16 / 10, '16:10'], [2, '2:1'], [4 / 3, '4:3'], [15 / 9, '15:9'], [3, '3:1']];
+    const best = known.reduce((a, b) => (Math.abs(b[0] - r) < Math.abs(a[0] - r) ? b : a));
+    return Math.abs(best[0] - r) < 0.08 ? best[1] : r.toFixed(2) + ':1';
+  };
+
+  function renderShot() {
+    const box = $('#shot-result');
+    const { screen, analysis: a } = state.radio;
+    $('#shot-clear').hidden = !screen && !a;
+    if (!screen && !a) { box.hidden = true; box.innerHTML = ''; return; }
+    const parts = [];
+    if (screen && !a) parts.push(`<dl class="specs"><dt>Pantalla</dt><dd>${screen.w} × ${screen.h} (${esc(ratioText(screen.w, screen.h))}${screen.h > screen.w ? ', vertical' : ''})</dd></dl>`);
+    if (a) {
+      const c = COMPAT[a.compatible] || COMPAT.quizas;
+      parts.push(`<p class="verdict ${c[0]}"><b>${c[1]}.</b> ${esc(a.reason)}</p>`);
+      const specs = [];
+      if (a.brand_guess) specs.push(['Modelo', a.brand_guess]);
+      if (a.android_version) specs.push(['Android', a.android_version]);
+      if (screen) specs.push(['Pantalla', `${screen.w} × ${screen.h} (${ratioText(screen.w, screen.h)}${screen.h > screen.w ? ', vertical' : ''})`]);
+      if (specs.length) parts.push(`<dl class="specs">${specs.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`);
+      const rows = [];
+      if (a.current_launcher) rows.push(`<li>Pantalla actual: ${esc(a.current_launcher)}</li>`);
+      if (a.visible_apps.length) rows.push(`<li>Apps que vimos: ${esc(a.visible_apps.join(', '))}</li>`);
+      a.notes.forEach((n) => rows.push(`<li>${esc(n)}</li>`));
+      if (rows.length) parts.push(`<ul>${rows.join('')}</ul>`);
+      if (a.compatible !== 'no') {
+        const lay = (TB.layouts.find((l) => l.id === a.recommended.layout) || {}).name || a.recommended.layout;
+        const th = (TB.themes.find((t) => t.id === a.recommended.theme) || {}).name || a.recommended.theme;
+        parts.push(`<p class="rec">Te recomendamos: distribución <b>${esc(lay)}</b>, tema <b>${esc(th)}</b> y ${a.recommended.dock_apps.length} apps en la barra.</p><button type="button" class="btn ghost" id="shot-apply">Aplicar esta recomendación</button>`);
+      }
+    }
+    box.innerHTML = parts.join('');
+    box.hidden = false;
+  }
+
+  function setShotBusy(on) {
+    const lab = $('label[for="shot-file"]');
+    lab.textContent = on ? 'Analizando tu captura…' : 'Subir captura de mi radio';
+    lab.setAttribute('aria-disabled', String(on));
+    $('#shot-file').disabled = on;
+  }
+
+  async function loadShot(file) {
+    const err = $('#shot-error');
+    err.hidden = true;
+    const fail = (m) => { err.textContent = m; err.hidden = false; };
+    if (!file.type.startsWith('image/')) return fail('Elige un archivo de imagen.');
+    if (file.size > 20 * 1024 * 1024) return fail('La imagen pesa más de 20 MB. Elige una más liviana.');
+    let dataUrl;
+    try {
+      const bmp = await createImageBitmap(file);
+      state.radio.screen = { w: bmp.width, h: bmp.height };
+      state.radio.analysis = null;
+      const k = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(bmp.width * k);
+      c.height = Math.round(bmp.height * k);
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      dataUrl = c.toDataURL('image/jpeg', 0.82);
+      bmp.close && bmp.close();
+    } catch (_) {
+      return fail('No pudimos leer esa imagen. Prueba con un PNG o JPG.');
+    }
+    renderShot();
+    update();
+    setShotBusy(true);
+    try {
+      const r = await fetch('/api/analyze-radio', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: dataUrl }) });
+      const data = await r.json().catch(() => ({}));
+      if (r.ok && data.ok) {
+        state.radio.analysis = data.analysis;
+        const a = data.analysis;
+        if (state.radio.type === 'nose' || !state.radio.type) {
+          if (a.compatible === 'si') state.radio.type = 'android';
+          else if (a.compatible === 'no' && a.shows_head_unit && !a.android_detected) state.radio.type = 'original';
+        }
+        if (!state.radio.model && a.brand_guess) state.radio.model = a.brand_guess.slice(0, 40);
+      } else if (r.status === 503) {
+        fail('El análisis automático aún no está disponible. Guardamos las medidas de tu pantalla para adaptar el diseño.');
+      } else {
+        fail((data && data.error) || 'No pudimos analizar la captura. Inténtalo de nuevo.');
+      }
+    } catch (_) {
+      fail('No hay conexión para analizar la captura. Guardamos las medidas de tu pantalla.');
+    }
+    setShotBusy(false);
+    renderShot();
+    update();
+  }
+
+  function applyRecommendation() {
+    const a = state.radio.analysis;
+    if (!a) return;
+    state.style.layout = a.recommended.layout;
+    state.style.theme = a.recommended.theme;
+    state.style.apps = a.recommended.dock_apps.slice(0, 4);
+    update();
   }
 
   /* ---------- foto (queda en el navegador) ---------- */

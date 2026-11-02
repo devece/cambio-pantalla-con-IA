@@ -31,6 +31,7 @@ Copia `.env.example` a `.env`:
 |---|---|
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Guardar pedidos y licencias |
 | `LICENSE_PEPPER` | Secreto largo y aleatorio para vincular licencias a una radio |
+| `ANTHROPIC_API_KEY` | Analizar con IA la captura de la radio del cliente (opcional) |
 | `SITE_URL` | URL pública del sitio (a donde vuelve PayPal) |
 | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` | Credenciales de tu app en developer.paypal.com |
 | `PAYPAL_ENV` | `sandbox` (pruebas) o `live` (cobra de verdad) |

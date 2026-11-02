@@ -18,6 +18,11 @@
     return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n))) : def;
   };
   const pick = (v, list, def) => (list.includes(v) ? v : def);
+  const screenOf = (s) => {
+    const w = s && Number.isInteger(s.w) ? s.w : 0;
+    const h = s && Number.isInteger(s.h) ? s.h : 0;
+    return w >= 200 && w <= 8000 && h >= 200 && h <= 8000 ? { w, h } : null;
+  };
   const money = (n) => new Intl.NumberFormat(C.locale, { style: 'currency', currency: C.currency, maximumFractionDigits: 0 }).format(n);
 
   /** Plan mínimo que necesita lo elegido en "estilo". */
@@ -83,7 +88,13 @@
       : [];
 
     const clean = {
-      radio: { type: radioType, brand: str(radio.brand, 24), model: str(radio.model, 40) },
+      radio: {
+        type: radioType,
+        brand: str(radio.brand, 24),
+        model: str(radio.model, 40),
+        // Medidas de la captura que subió el cliente (solo números; la imagen nunca viaja con el pedido).
+        screen: screenOf(radio.screen),
+      },
       car: {
         type: pick(car.type, C.vehicles, 'auto'),
         color: HEX.test(car.color) ? car.color.toLowerCase() : '#b3261e',

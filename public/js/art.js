@@ -67,8 +67,72 @@
     return '#' + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => ch(v).toString(16).padStart(2, '0')).join('');
   }
 
+  /* ---------- Camioneta con imagen real, repintada al color elegido ---------- */
+  const PICKUP_SRC = 'img/camioneta.png';
+  const tinted = {};
+  let pickupImg = null;
+  function hsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+    let h = 0, s = 0;
+    if (d) {
+      s = d / (1 - Math.abs(2 * l - 1));
+      h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      h = (h * 60 + 360) % 360;
+    }
+    return [h, s, l];
+  }
+  function rgb(h, s, l) {
+    const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = l - c / 2;
+    const [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+    return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
+  }
+  /** Cambia solo la pintura roja de la foto al color elegido; vidrios, llantas y faros no se tocan. */
+  function tintPickup(img, color) {
+    const cv = document.createElement('canvas');
+    cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+    const cx = cv.getContext('2d', { willReadFrequently: true });
+    cx.drawImage(img, 0, 0);
+    const data = cx.getImageData(0, 0, cv.width, cv.height);
+    const px = data.data;
+    const m = /^#?([0-9a-f]{6})$/i.exec(color || '');
+    const n = parseInt(m ? m[1] : 'b3261e', 16);
+    const [th, ts, tl] = hsl((n >> 16) & 255, (n >> 8) & 255, n & 255);
+    const lampX = cv.width * 0.056, lampY0 = cv.height * 0.33, lampY1 = cv.height * 0.57; // luz trasera: se queda roja
+    for (let i = 0; i < px.length; i += 4) {
+      if (px[i + 3] < 8) continue;
+      const x = (i / 4) % cv.width, y = Math.floor(i / 4 / cv.width);
+      if (x < lampX && y > lampY0 && y < lampY1) continue;
+      const [h, s, l] = hsl(px[i], px[i + 1], px[i + 2]);
+      if (s < 0.12 || l < 0.015 || l > 0.9 || !(h >= 335 || h <= 42)) continue;
+      const ns = Math.min(1, s * (ts / 0.6));
+      const nl = tl > 0.55 ? Math.min(0.97, tl * (0.5 + l * 1.5)) : Math.min(0.96, Math.max(0.03, l * (tl / 0.3)));
+      const [r, g, b] = rgb(th, ts < 0.12 ? ts * 0.5 : ns, nl);
+      px[i] = r; px[i + 1] = g; px[i + 2] = b;
+    }
+    cx.putImageData(data, 0, 0);
+    return cv.toDataURL('image/png');
+  }
+  /** Repinta las camionetas ya dibujadas dentro de `root` (se llama después de cada render). */
+  TB.tintCars = function (root) {
+    const imgs = root.querySelectorAll('img[data-pickup]');
+    if (!imgs.length) return;
+    const apply = () => imgs.forEach((el) => {
+      const c = el.dataset.pickup;
+      if (!tinted[c]) { try { tinted[c] = tintPickup(pickupImg, c); } catch (e) { tinted[c] = PICKUP_SRC; } }
+      el.src = tinted[c];
+    });
+    if (pickupImg && pickupImg.complete && pickupImg.naturalWidth) return apply();
+    if (!pickupImg) { pickupImg = new Image(); pickupImg.src = PICKUP_SRC; }
+    pickupImg.addEventListener('load', apply, { once: true });
+  };
+
   /** Auto en SVG. `uid` evita choques de ids cuando hay más de un auto en pantalla. */
   TB.carSVG = function (type, color, night, uid) {
+    if (type === 'camioneta') {
+      const lights = night ? '<div class="pickup-beam"></div>' : '';
+      return `<div class="pickup">${lights}<img class="pickup-img" data-pickup="${color}" src="${tinted[color] || PICKUP_SRC}" alt="" aria-hidden="true"></div>`;
+    }
     const c = CARS[type] || CARS.auto;
     const id = 'c' + (uid || '0');
     const hi = shade(color, 0.38);

@@ -53,6 +53,6 @@ Pruébalo primero en `sandbox` con una cuenta compradora de prueba (developer.pa
 
 ## Notas legales
 
-- Este proyecto es de código y diseño propios. El sitio que lo inspiró no tiene licencia en su repositorio, así que **no se copió** su código, textos, marca ni imágenes. Mantén esa separación.
+- El sitio que inspiró este proyecto (CleanLauncher) es del mismo autor, que autorizó reutilizar su contenido. Aun así, hasta ahora el código, los textos y el diseño de este repositorio son propios; las fotos de autos de terceros (con logos de marca) conviene evitarlas en un producto que se vende.
 - Los textos de términos, privacidad y devoluciones son marcadores: revísalos con un abogado antes de vender.
 - `package.json` está como `UNLICENSED`; elige la licencia que corresponda antes de hacer público el repo.

@@ -220,6 +220,7 @@
       `<svg class="decor" viewBox="0 0 1024 600" aria-hidden="true">${TB.decor(season, ui.night)}</svg>` +
       dock(state, ui) +
       `<div class="alert" hidden></div>`;
+    TB.tintCars(scr);
     tick();
   }
 

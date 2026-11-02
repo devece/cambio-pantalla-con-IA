@@ -15,7 +15,7 @@
   /* ---------- estado ---------- */
   const defaults = () => ({
     radio: { type: null, model: '', screen: null, analysis: null },
-    car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', photo: null },
+    car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', photo: null, photoCut: false },
     style: { theme: 'ruta', layout: 'tarjetas', scene: 'tema', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
       oilOn: true, odometer: 45000, lastOil: 42000, oilEvery: 5000,
@@ -50,6 +50,7 @@
       if (raw) state = merge(defaults(), JSON.parse(raw));
     } catch (_) { /* sin almacenamiento: seguimos con los valores por defecto */ }
     state.car.photo = null;
+    state.car.photoCut = false;
   }
   function save() {
     try {
@@ -361,11 +362,8 @@
     TB.preview.onGo = (id) => { ui.screen = id; update(); };
 
     $('#photo').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadPhoto(f); e.target.value = ''; });
-    $('#photo-clear').addEventListener('click', () => {
-      if (state.car.photo) URL.revokeObjectURL(state.car.photo);
-      state.car.photo = null;
-      update();
-    });
+    $('#photo-clear').addEventListener('click', clearPhoto);
+    $('#photo-mode').addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) showPhoto(b.dataset.mode); });
     $('#pay').addEventListener('click', pay);
     $('#nose-test').addEventListener('click', (e) => { const b = e.target.closest('[data-test]'); if (!b) return; state.radio.type = b.dataset.test; update(); });
     $('#shot-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadShot(f); e.target.value = ''; });
@@ -478,25 +476,58 @@
   }
 
   /* ---------- foto (queda en el navegador) ---------- */
+  const photoUrls = { cut: null, orig: null };
+  function showPhoto(mode) {
+    const url = mode === 'cut' && photoUrls.cut ? photoUrls.cut : photoUrls.orig;
+    state.car.photo = url || null;
+    state.car.photoCut = mode === 'cut' && !!photoUrls.cut;
+    $$('#photo-mode [data-mode]').forEach((b) => b.setAttribute('aria-checked', String((b.dataset.mode === 'cut') === state.car.photoCut)));
+    update();
+  }
+  function clearPhoto() {
+    Object.keys(photoUrls).forEach((k) => { if (photoUrls[k]) URL.revokeObjectURL(photoUrls[k]); photoUrls[k] = null; });
+    state.car.photo = null;
+    state.car.photoCut = false;
+    $('#photo-mode').hidden = true;
+    $('#photo-status').hidden = true;
+    update();
+  }
   async function loadPhoto(file) {
     const err = $('#photo-error');
+    const status = $('#photo-status');
     err.hidden = true;
-    const fail = (m) => { err.textContent = m; err.hidden = false; };
+    const fail = (m) => { err.textContent = m; err.hidden = false; status.hidden = true; };
     if (!file.type.startsWith('image/')) return fail('Elige un archivo de imagen.');
     if (file.size > 15 * 1024 * 1024) return fail('La foto pesa más de 15 MB. Elige una más liviana.');
+    let c;
     try {
       const bmp = await createImageBitmap(file);
       const k = Math.min(1, 1100 / Math.max(bmp.width, bmp.height));
-      const c = document.createElement('canvas');
+      c = document.createElement('canvas');
       c.width = Math.round(bmp.width * k);
       c.height = Math.round(bmp.height * k);
       c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
-      const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.85));
-      if (state.car.photo) URL.revokeObjectURL(state.car.photo);
-      state.car.photo = URL.createObjectURL(blob);
-      update();
     } catch (_) {
-      fail('No pudimos leer esa foto. Prueba con otra.');
+      return fail('No pudimos leer esa foto. Prueba con otra.');
+    }
+    const toUrl = (cv, type, q) => new Promise((r) => cv.toBlob((b) => r(URL.createObjectURL(b)), type, q));
+    Object.keys(photoUrls).forEach((k) => { if (photoUrls[k]) URL.revokeObjectURL(photoUrls[k]); photoUrls[k] = null; });
+    photoUrls.orig = await toUrl(c, 'image/jpeg', 0.85);
+    showPhoto('orig');
+    status.textContent = 'Quitando el fondo y mejorando tu foto… la primera vez puede tardar unos segundos.';
+    status.hidden = false;
+    $('#photo-mode').hidden = true;
+    let res = null;
+    try { res = TB.cutout ? await TB.cutout(c) : null; } catch (_) { res = null; }
+    if (res) {
+      photoUrls.cut = await toUrl(res.canvas, 'image/png');
+      showPhoto('cut');
+      status.textContent = res.method === 'ia'
+        ? 'Listo: le quitamos el fondo y mejoramos la foto. Si no se ve bien, elige “Foto original”.'
+        : 'Le quitamos el fondo con un método simple (sin conexión). Si no se ve bien, elige “Foto original”.';
+      $('#photo-mode').hidden = false;
+    } else {
+      status.textContent = 'No pudimos separar el auto del fondo en esta foto. Usamos la foto tal cual; prueba con otra en que se vea el auto completo.';
     }
   }
 

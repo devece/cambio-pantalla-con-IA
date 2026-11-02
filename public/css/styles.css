@@ -275,3 +275,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .specs dt { color: var(--ink2); font-weight: 500; }
 .specs dd { margin: 0; font-weight: 600; }
 #nose-test p { margin: 6px 0 10px; }
+.shot-tips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.shot-tips span { font-size: 12.5px; background: #fafafc; border: 1px solid var(--borde); border-radius: 999px; padding: 3px 10px; color: var(--ink2); }
+.seg2 { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.seg2 .choice { flex: 1 1 140px; }

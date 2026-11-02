@@ -97,7 +97,7 @@
     const dateShort = rawShort.charAt(0).toUpperCase() + rawShort.slice(1);
     const season = seasonOf(state);
     const carHtml = car.photo
-      ? `<img class="car-photo" src="${car.photo}" alt="Tu auto">`
+      ? `<img class="car-photo${car.photoCut ? ' cut' : ''}" src="${car.photo}" alt="Tu auto">`
       : TB.carSVG(car.type, car.color, night, ++uid);
     const limit = limitFor(state);
     const items = maintItems(state);

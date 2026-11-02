@@ -121,11 +121,17 @@
           </div>
           <div class="group">
             <h3>Tu foto (opcional)</h3>
-            <p class="hint">Se queda en tu celular mientras diseñas: no se sube a ningún lado hasta que pagues. Quitar el fondo y agregar las luces llegará en una próxima versión.</p>
+            <p class="hint">Sube una sola foto, como la tengas. Le quitamos el fondo y la mejoramos aquí mismo, en tu celular: la foto no se sube a ningún lado.</p>
             <div class="photo-row">
               <label class="btn ghost" for="photo">Subir foto de mi auto</label>
               <input type="file" id="photo" accept="image/*" hidden>
               <button type="button" class="btn link" id="photo-clear" hidden>Quitar foto</button>
+            </div>
+            <div class="shot-tips" id="photo-tips"><span>De día</span><span>El auto completo</span><span>En diagonal o de lado</span><span>Sin gente delante</span></div>
+            <p class="hint" id="photo-status" role="status" aria-live="polite" hidden></p>
+            <div class="seg2" id="photo-mode" role="radiogroup" aria-label="Cómo mostrar tu foto" hidden>
+              <button type="button" class="choice compact" role="radio" aria-checked="true" data-mode="cut"><b>Sin fondo y mejorada</b></button>
+              <button type="button" class="choice compact" role="radio" aria-checked="false" data-mode="orig"><b>Foto original</b></button>
             </div>
             <p class="error" id="photo-error" role="alert" hidden></p>
           </div>
@@ -304,6 +310,7 @@
   <script src="js/art.js"></script>
   <script src="js/themes.js"></script>
   <script src="js/preview.js"></script>
+  <script src="js/cutout.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

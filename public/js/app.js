@@ -237,7 +237,7 @@
     const apps = state.style.apps.map((id) => (TB.apps.find((a) => a.id === id) || {}).name).filter(Boolean);
     const rows = [
       ['Radio', radio + (state.radio.model ? ` · ${esc(state.radio.model)}` : '')],
-      ['Auto', `${veh.name}${state.car.name ? ' de ' + esc(state.car.name) : ''}${state.car.photo ? ' · con tu foto' : ''}`],
+      ['Vehículo', `${veh.name}${state.car.name ? ' de ' + esc(state.car.name) : ''}${state.car.photo ? ' · con tu foto' : ''}`],
       ['Diseño', `${th.name} · ${lay.name}${season.id !== 'ninguna' ? ' · ' + season.name : ''}`],
       ['Apps', apps.length ? esc(apps.join(', ')) : 'Sin apps en la barra'],
       ['Funciones', feats.length ? feats.join(', ') : 'Ninguna activada'],

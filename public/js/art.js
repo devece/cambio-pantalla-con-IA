@@ -34,49 +34,104 @@
       body: 'M14 106 L14 90 Q14 82 26 80 L74 74 L108 48 Q116 42 130 42 L238 42 Q252 42 262 52 L292 74 L358 82 Q386 86 386 102 L386 108 Q386 112 380 112 L14 112 Z',
       glass: ['M118 52 Q124 48 134 48 L198 48 L198 74 L96 74 Z', 'M206 48 L238 48 Q246 48 252 55 L274 74 L206 74 Z'],
       wheels: [102, 300],
+      glassBottom: 74,
+      doors: [112, 202, 286],
+      streak: [[150, 168], [226, 244]],
     },
     suv: {
       body: 'M14 106 L14 86 Q14 78 26 76 L66 72 L100 42 Q106 36 120 36 L284 36 Q296 36 302 44 L330 74 L362 80 Q386 84 386 100 L386 108 Q386 112 380 112 L14 112 Z',
       glass: ['M112 46 Q116 42 124 42 L190 42 L190 72 L90 72 Z', 'M198 42 L284 42 Q290 42 294 48 L314 72 L198 72 Z'],
       wheels: [100, 304],
+      glassBottom: 72,
+      doors: [104, 194, 300],
+      streak: [[140, 160], [220, 244]],
     },
     camioneta: {
       body: 'M14 108 L14 62 L150 62 L162 42 Q168 36 180 36 L262 36 Q272 36 278 44 L300 72 L360 78 Q386 82 386 100 L386 108 Q386 112 380 112 L14 112 Z',
       glass: ['M170 44 L226 44 L226 70 L156 70 Z', 'M234 44 L262 44 Q268 44 272 50 L288 70 L234 70 Z'],
       wheels: [96, 306],
+      glassBottom: 70,
+      doors: [160, 230, 292],
+      streak: [[190, 204], [246, 260]],
       extra: '<rect x="22" y="66" width="122" height="6" rx="2" fill="rgba(0,0,0,.28)"/>',
     },
   };
+
+  /* Mezcla un color #rrggbb con blanco (amt > 0) o con negro (amt < 0). */
+  function shade(hex, amt) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+    const n = parseInt(m ? m[1] : '888888', 16);
+    const t = amt < 0 ? 0 : 255;
+    const p = Math.abs(amt);
+    const ch = (v) => Math.round(v + (t - v) * p);
+    return '#' + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => ch(v).toString(16).padStart(2, '0')).join('');
+  }
 
   /** Auto en SVG. `uid` evita choques de ids cuando hay más de un auto en pantalla. */
   TB.carSVG = function (type, color, night, uid) {
     const c = CARS[type] || CARS.auto;
     const id = 'c' + (uid || '0');
-    const glass = night ? '#1a2531' : '#d4e8f4';
+    const hi = shade(color, 0.38);
+    const lo = shade(color, -0.42);
+    const doors = (c.doors || [])
+      .map((x) => `<path d="M${x} ${c.glassBottom} L${x + 2} 104" stroke="rgba(0,0,0,.32)" stroke-width="1.4" fill="none"/><rect x="${x - 15}" y="${c.glassBottom + 8}" width="11" height="2.8" rx="1.4" fill="rgba(255,255,255,.55)"/>`)
+      .join('');
     const wheels = c.wheels
-      .map(
-        (cx) =>
-          `<circle cx="${cx}" cy="108" r="29" fill="rgba(0,0,0,.55)"/><circle cx="${cx}" cy="108" r="25" fill="#101214"/><circle cx="${cx}" cy="108" r="13" fill="#a3acb3"/><circle cx="${cx}" cy="108" r="5" fill="#3a4047"/>`
-      )
+      .map((cx) => {
+        let spokes = '';
+        for (let k = 0; k < 5; k++) {
+          const ang = (k * 72 + 18) * (Math.PI / 180);
+          spokes += `<path d="M${cx} 108 L${(cx + Math.cos(ang) * 17).toFixed(1)} ${(108 + Math.sin(ang) * 17).toFixed(1)}" stroke="#cfd6db" stroke-width="4.2" stroke-linecap="round"/>`;
+        }
+        return (
+          `<circle cx="${cx}" cy="108" r="33" fill="#05070a"/>` +
+          `<circle cx="${cx}" cy="108" r="27" fill="#14171a"/>` +
+          `<circle cx="${cx}" cy="108" r="27" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.5"/>` +
+          `<circle cx="${cx}" cy="108" r="19.500" fill="#2a3036"/>` +
+          `<circle cx="${cx}" cy="108" r="18" fill="url(#${id}r)"/>` +
+          spokes +
+          `<circle cx="${cx}" cy="108" r="5" fill="#eef1f3"/><circle cx="${cx}" cy="108" r="2" fill="#4a5158"/>`
+        );
+      })
       .join('');
     const beam = night
-      ? `<polygon points="384,92 560,56 560,132" fill="url(#${id}b)"/><ellipse cx="388" cy="94" rx="44" ry="20" fill="url(#${id}g)"/>`
+      ? `<polygon points="384,92 600,40 600,150" fill="url(#${id}b)"/><ellipse cx="388" cy="94" rx="50" ry="22" fill="url(#${id}g)"/>`
       : '';
+    const sky = night ? ['#33465c', '#0b121b'] : ['#e9f5fc', '#6f9db8'];
+    const glassFill = c.glass.map((g) => `<path d="${g}" fill="url(#${id}w)"/>`).join('');
+    const streaks = c.glass
+      .map((g, i) => `<clipPath id="${id}k${i}"><path d="${g}"/></clipPath><g clip-path="url(#${id}k${i})"><polygon points="${c.streak[i][0]} 40 ${c.streak[i][0] + 26} 40 ${c.streak[i][0] - 12} 84 ${c.streak[i][0] - 38} 84" fill="rgba(255,255,255,${night ? 0.1 : 0.42})"/><polygon points="${c.streak[i][1]} 40 ${c.streak[i][1] + 8} 40 ${c.streak[i][1] - 30} 84 ${c.streak[i][1] - 38} 84" fill="rgba(255,255,255,${night ? 0.07 : 0.3})"/></g>`)
+      .join('');
     return `<svg class="car-svg" viewBox="0 0 400 150" style="overflow:visible" aria-hidden="true">
       <defs>
-        <linearGradient id="${id}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".32"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".34"/></linearGradient>
-        <linearGradient id="${id}b" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff6c8" stop-opacity=".55"/><stop offset="1" stop-color="#fff6c8" stop-opacity="0"/></linearGradient>
-        <radialGradient id="${id}g"><stop offset="0" stop-color="#fff6c8" stop-opacity=".9"/><stop offset="1" stop-color="#fff6c8" stop-opacity="0"/></radialGradient>
+        <linearGradient id="${id}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${hi}"/><stop offset=".38" stop-color="${color}"/><stop offset=".78" stop-color="${lo}"/><stop offset="1" stop-color="${shade(color, -0.6)}"/></linearGradient>
+        <linearGradient id="${id}h" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".28"/><stop offset=".22" stop-color="#fff" stop-opacity="0"/><stop offset=".62" stop-color="#fff" stop-opacity=".16"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></linearGradient>
+        <linearGradient id="${id}w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient>
+        <radialGradient id="${id}r"><stop offset="0" stop-color="#6b747c"/><stop offset="1" stop-color="#1c2025"/></radialGradient>
+        <linearGradient id="${id}b" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff6c8" stop-opacity=".6"/><stop offset="1" stop-color="#fff6c8" stop-opacity="0"/></linearGradient>
+        <radialGradient id="${id}g"><stop offset="0" stop-color="#fff6c8" stop-opacity=".95"/><stop offset="1" stop-color="#fff6c8" stop-opacity="0"/></radialGradient>
+        <radialGradient id="${id}e"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <clipPath id="${id}c"><path d="${c.body}"/></clipPath>
       </defs>
-      <ellipse cx="200" cy="118" rx="190" ry="9" fill="rgba(0,0,0,.38)"/>
+      <ellipse cx="200" cy="120" rx="205" ry="13" fill="url(#${id}e)"/>
       ${beam}
-      <path d="${c.body}" fill="${color}"/>
       <path d="${c.body}" fill="url(#${id}s)"/>
-      ${c.extra || ''}
-      ${c.glass.map((g) => `<path d="${g}" fill="${glass}"/>`).join('')}
+      <g clip-path="url(#${id}c)">
+        <rect x="0" y="${c.glassBottom + 6}" width="400" height="20" fill="url(#${id}h)"/>
+        <path d="M0 ${c.glassBottom + 3} H400" stroke="rgba(255,255,255,.5)" stroke-width="1.6"/>
+        <path d="M0 ${c.glassBottom + 22} H400" stroke="rgba(0,0,0,.22)" stroke-width="1.4"/>
+        <rect x="0" y="100" width="400" height="14" fill="rgba(0,0,0,.28)"/>
+        ${c.extra || ''}
+      </g>
+      ${doors}
+      ${glassFill}${streaks}
+      ${c.glass.map((g) => `<path d="${g}" fill="none" stroke="rgba(10,14,18,.65)" stroke-width="2.4" stroke-linejoin="round"/>`).join('')}
+      ${c.wheels.map((cx) => `<circle cx="${cx}" cy="108" r="35" fill="#06080b" clip-path="url(#${id}c)" opacity=".9"/>`).join('')}
       ${wheels}
-      <path d="M368 88 L384 90 L384 98 L366 96 Z" fill="${night ? '#fff6c8' : '#e6edf0'}"/>
-      <rect x="14" y="88" width="6" height="10" rx="1.500" fill="${night ? '#ff3b2f' : '#9c2a24'}"/>
+      <path d="M364 86 Q378 85 387 92 L387 100 L368 98 Q362 96 364 86 Z" fill="${night ? '#fffbe6' : '#f3f6f8'}" stroke="rgba(0,0,0,.35)" stroke-width="1"/>
+      <path d="M370 90 Q379 90 384 94" stroke="rgba(120,130,140,.6)" stroke-width="1.6" fill="none"/>
+      <rect x="14" y="86" width="9" height="12" rx="2.500" fill="${night ? '#ff3b2f' : '#b3261e'}" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
+      <path d="M16 112 H384" stroke="rgba(0,0,0,.5)" stroke-width="3" opacity=".6"/>
     </svg>`;
   };
 

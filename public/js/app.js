@@ -807,15 +807,24 @@
     $('#brand-name').textContent = site.name || 'Tablero';
     $('#foot-name').textContent = site.name || 'Tablero';
     $('#year').textContent = new Date().getFullYear();
+    const web = site.web && site.web.name ? site.web : null;
+    const webUrl = web && /^https?:\/\//i.test(web.url || '') ? web.url : web && web.url ? 'https://' + web.url : '';
+    const ig = site.instagram ? `<a href="https://instagram.com/${esc(site.instagram)}" rel="noopener">Instagram @${esc(site.instagram)}</a>` : '';
     const contact = [];
     if (site.supportEmail) contact.push(`<a href="mailto:${esc(site.supportEmail)}">${esc(site.supportEmail)}</a>`);
     if (site.whatsapp) contact.push(`WhatsApp ${esc(site.whatsapp)}`);
+    if (ig) contact.push(ig);
+    if (web) contact.push(webUrl ? `<a href="${esc(webUrl)}" rel="noopener">${esc(web.name)}</a>` : esc(web.name));
     $('#foot-contact').innerHTML = contact.join(' · ');
 
     const links = [];
     if (site.supportEmail) links.push(`<a class="btn cta" href="mailto:${esc(site.supportEmail)}">${esc(site.supportEmail)}</a>`);
+    if (web) links.push(webUrl ? `<a class="btn cta" href="${esc(webUrl)}" rel="noopener">Contáctanos en ${esc(web.name)}</a>` : `<span class="contact-name">${esc(web.name)}</span>`);
     if (site.instagram) links.push(`<a class="btn ghost" href="https://instagram.com/${esc(site.instagram)}" rel="noopener">Instagram @${esc(site.instagram)}</a>`);
     $('#contact-links').innerHTML = links.join('') || 'Pronto publicaremos aquí nuestros datos de contacto.';
+    const extra = [site.supportEmail && 'por correo', site.instagram && 'por Instagram'].filter(Boolean).join(' o ');
+    const how = web ? `Contáctanos en ${web.name}${extra ? ' o ' + extra : ''}` : extra ? `Escríbenos ${extra}` : '';
+    if (how) $('#contact-text').textContent = `${how} y te respondemos. Cuando se apruebe tu pago te damos un WhatsApp de soporte.`;
     if (site.freeUrl) { $('#free-link').href = site.freeUrl; $('#free-option').hidden = false; }
     const plans = C.plans;
     const prices = plans ? Object.values(plans).map((p) => p.price).filter((n) => typeof n === 'number') : [];

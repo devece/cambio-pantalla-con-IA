@@ -10,6 +10,8 @@
     // Completa tus datos reales de contacto (se muestran en el pie de la página).
     supportEmail: '',
     whatsapp: '',
+    // Tu página web como contacto. Si `url` está vacía, se muestra solo el nombre (sin enlace).
+    web: { name: 'Daniexpress', url: '' },
     // Instagram (usuario sin @). Opcional.
     instagram: '',
     // Opcionales: si los completas, el sitio muestra la opción gratis y el enlace "Ya tengo mi código".

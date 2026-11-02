@@ -285,3 +285,22 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .slot.on { background: var(--ink); border-color: var(--ink); color: #fff; }
 .with-thumb.cols-2 .choice { padding: 8px; }
 .with-thumb.cols-2 .choice small { font-size: 12px; }
+
+/* Página de instalación */
+.install .lead { color: var(--ink2); margin-top: 6px; }
+.code { display: flex; flex-wrap: wrap; gap: 6px; margin: 22px 0 14px; justify-content: flex-start; }
+.code span { font: 600 clamp(22px, 5.4vw, 34px)/1 ui-monospace, Menlo, Consolas, monospace; background: #fdf0e0; border: 1px solid #f0c9a0; border-radius: 8px; padding: 10px 8px; min-width: 1.5ch; text-align: center; opacity: 0; animation: pop .35s forwards; }
+@keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.codebtns { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+.install .note { margin: 0 0 18px; }
+.radio-steps { list-style: none; counter-reset: p; margin: 0; padding: 0; display: grid; gap: 12px; }
+.radio-steps li { counter-increment: p; display: grid; gap: 4px; padding: 14px 16px 14px 56px; position: relative; border: 1px solid var(--borde); border-radius: 14px; background: var(--paper); }
+.radio-steps li::before { content: counter(p); position: absolute; left: 14px; top: 14px; width: 30px; height: 30px; border-radius: 50%; background: var(--verde); color: #fff; display: grid; place-items: center; font-weight: 600; }
+.radio-steps li b { font-size: 17px; }
+.radio-steps li span { color: var(--ink2); font-size: 15px; max-width: 64ch; }
+.radio-steps .url { font-family: ui-monospace, Menlo, Consolas, monospace; background: #fdf0e0; padding: 1px 6px; border-radius: 5px; color: var(--ink); }
+.helps details { border-top: 1px solid var(--borde); padding: 12px 0; }
+.helps details:last-child { border-bottom: 1px solid var(--borde); }
+.helps summary { cursor: pointer; font-weight: 500; }
+.helps p { margin-top: 8px; }
+.pay-install { margin-top: 12px; font-size: 14.5px; }

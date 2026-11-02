@@ -14,6 +14,6 @@
     instagram: '',
     // Opcionales: si los completas, el sitio muestra la opción gratis y el enlace "Ya tengo mi código".
     freeUrl: '',      // p. ej. la página de Releases con el APK gratuito
-    downloadUrl: '',  // descarga de la app para quien ya tiene código
+    downloadUrl: '',  // dirección de descarga de la app: se muestra en la guía de instalación (listo.html)
   };
 })();

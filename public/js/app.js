@@ -322,7 +322,7 @@
     $('#summary').innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
     const q = O.quote(state);
     $('#total').textContent = O.money(q.total);
-    $('#pay').textContent = `Pagar ${O.money(q.total)}`;
+    $('#pay').textContent = (TB.site || {}).payment === 'transfer' ? `Pagar ${O.money(q.total)} por transferencia` : `Pagar ${O.money(q.total)}`;
   }
 
   function syncSteps() {
@@ -493,6 +493,12 @@
     $('#bg-clear').addEventListener('click', () => { if (state.style.bg) URL.revokeObjectURL(state.style.bg); state.style.bg = null; update(); });
     $('#photo-mode').addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) showPhoto(b.dataset.mode); });
     $('#pay').addEventListener('click', pay);
+    $('#pay-done').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-copy]');
+      if (!b) return;
+      const done = () => { const t = b.textContent; b.textContent = '¡Copiado!'; setTimeout(() => { b.textContent = t; }, 1500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(b.dataset.copy).then(done, () => {}); else done();
+    });
     $('#nose-test').addEventListener('click', (e) => { const b = e.target.closest('[data-test]'); if (!b) return; state.radio.type = b.dataset.test; update(); });
     $('#shot-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadShot(f); e.target.value = ''; });
     $('#shot-clear').addEventListener('click', () => { state.radio.screen = null; state.radio.analysis = null; $('#shot-error').hidden = true; renderShot(); update(); });
@@ -771,6 +777,52 @@
     if (list.length) ul.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
 
+  /* ---------- pago por transferencia bancaria ---------- */
+  const waNumber = (raw) => {
+    const d = String(raw || '').replace(/\D/g, '');
+    return d.length === 9 && d[0] === '9' ? '56' + d : d;
+  };
+
+  /** Texto del pedido para mandárselo a quien arma la pantalla: resumen legible y los datos para armarla. */
+  function orderMessage(orderId, total) {
+    const rows = $$('#summary div').map((d) => `${$('dt', d).textContent}: ${$('dd', d).textContent}`);
+    const q = O.quote(state);
+    const clean = O.validateOrder(payload()).clean;
+    return [
+      `Hola, soy ${state.car.name || 'cliente'}. Hice el pedido ${orderId} en Tablero y ya transferí ${O.money(total)}.`,
+      `Plan: ${q.lines.map((l) => l.name).join(' + ')}`,
+      ...rows,
+      `Contacto: ${state.contact.kind === 'email' ? 'correo' : 'WhatsApp'} ${state.contact.value}`,
+      'Te adjunto el comprobante y la foto de mi auto.',
+      '',
+      'Datos para armarlo (no lo borres):',
+      JSON.stringify(clean),
+    ].join('\n');
+  }
+
+  function showTransfer(data) {
+    const site = TB.site || {};
+    const bank = site.bank || {};
+    const total = data.total;
+    const done = $('#pay-done');
+    const bankOk = ['bank', 'type', 'number', 'holder', 'rut'].every((k) => String(bank[k] || '').trim());
+    const row = (label, value) => `<div class="brow"><span>${esc(label)}</span><b>${esc(value)}</b><button type="button" class="btn ghost sm" data-copy="${esc(value)}">Copiar</button></div>`;
+    const msg = orderMessage(data.orderId, total);
+    const wa = waNumber(site.whatsapp);
+    let send = '';
+    if (wa) send = `<a class="btn cta" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Enviar mi pedido y comprobante por WhatsApp</a>`;
+    else if (site.supportEmail) send = `<a class="btn cta" href="mailto:${esc(site.supportEmail)}?subject=${encodeURIComponent('Pedido ' + data.orderId)}&body=${encodeURIComponent(msg)}">Enviar mi pedido y comprobante por correo</a>`;
+    else if (site.web && site.web.url) send = `<a class="btn cta" href="${esc(site.web.url)}" target="_blank" rel="noopener">Escríbenos en ${esc(site.web.name || 'nuestra web')} con tu pedido ${esc(data.orderId)}</a>`;
+    done.hidden = false;
+    done.innerHTML = `<b>Pedido ${esc(data.orderId)}</b>
+      <p>${bankOk ? 'Desde la app de tu banco, transfiere <b>exactamente ' + esc(O.money(total)) + '</b> a esta cuenta:' : 'Aún no están cargados los datos de la cuenta en el sitio. Escríbenos con tu número de pedido y te los enviamos.'}</p>
+      ${bankOk ? `<div class="bank">${row('Banco', bank.bank)}${row('Tipo de cuenta', bank.type)}${row('Número de cuenta', bank.number)}${row('Titular', bank.holder)}${row('RUT', bank.rut)}${row('Monto', String(Math.round(total)))}${row('Referencia', data.orderId)}</div><p class="hint">Escribe <b>${esc(data.orderId)}</b> como referencia o comentario para reconocer tu pago más rápido.</p>` : ''}
+      <p><b>Después:</b> envíanos el comprobante y la foto de tu auto. Te mandamos tu código apenas confirmamos el pago.</p>
+      <div class="codebtns">${send}</div>
+      ${!send ? '<p class="hint">Escríbenos en la sección de contacto con tu número de pedido.</p>' : '<p class="hint">Se abre un mensaje ya escrito con tu pedido: solo adjunta el comprobante y la foto de tu auto.</p>'}`;
+    done.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
   async function pay() {
     $('#pay-done').hidden = true;
     const local = O.validateOrder(payload());
@@ -787,6 +839,7 @@
       try { data = await res.json(); } catch (_) { /* respuesta sin JSON */ }
       if (!data) { showErrors(['No pudimos conectar con el servidor. Revisa tu internet e intenta de nuevo.']); return; }
       if (!data.ok) { showErrors(data.errors || [data.error || 'No pudimos procesar tu pedido.']); return; }
+      if ((TB.site || {}).payment === 'transfer') { showTransfer(data); return; }
       if (data.paymentUrl) { window.location.href = data.paymentUrl; return; }
       const done = $('#pay-done');
       done.hidden = false;

@@ -10,6 +10,10 @@
     // Completa tus datos reales de contacto (se muestran en el pie de la página).
     supportEmail: '',
     whatsapp: '',
+    // Forma de cobro. 'transfer' = transferencia bancaria (el cliente te envía su comprobante).
+    payment: 'transfer',
+    // Datos de TU cuenta para recibir transferencias. Si falta alguno, el sitio avisa que aún no están y no muestra la cuenta.
+    bank: { bank: '', type: '', number: '', holder: '', rut: '' },
     // Tu página web como contacto. Si `url` está vacía, se muestra solo el nombre (sin enlace).
     web: { name: 'Daniexpress', url: 'https://www.daniexpress.cl' },
     // Instagram (usuario sin @). Opcional.

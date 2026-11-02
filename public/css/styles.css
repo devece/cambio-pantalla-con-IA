@@ -323,3 +323,13 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .mark.rear { border-color: #ff6b6b; }
 .lights .btn:disabled { opacity: .5; }
 .contact-name { font: 600 22px/1 var(--display); padding: 12px 18px; border: 1.5px solid var(--borde); border-radius: 12px; background: #fdf0e0; }
+.contactline { margin-top: 26px; font-size: 16px; }
+
+/* Datos para transferir */
+.bank { display: grid; gap: 6px; margin: 10px 0; }
+.brow { display: grid; grid-template-columns: 120px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--borde); border-radius: 10px; background: #fff; font-size: 14.5px; }
+.brow span { color: var(--ink2); }
+.brow b { overflow-wrap: anywhere; }
+.btn.sm { min-height: 34px; padding: 6px 12px; font-size: 13px; }
+@media (max-width: 520px) { .brow { grid-template-columns: 1fr auto; } .brow span { grid-column: 1 / -1; } }
+.done p { margin: 8px 0; }

@@ -443,6 +443,16 @@
     if (site.whatsapp) contact.push(`WhatsApp ${esc(site.whatsapp)}`);
     $('#foot-contact').innerHTML = contact.join(' · ');
 
+    const links = [];
+    if (site.supportEmail) links.push(`<a href="mailto:${esc(site.supportEmail)}">${esc(site.supportEmail)}</a>`);
+    if (site.instagram) links.push(`<a href="https://instagram.com/${esc(site.instagram)}" rel="noopener">Instagram @${esc(site.instagram)}</a>`);
+    $('#contact-links').innerHTML = links.join(' · ') || 'Pronto publicaremos aquí nuestros datos de contacto.';
+    if (site.freeUrl) { $('#free-link').href = site.freeUrl; $('#free-option').hidden = false; }
+    if (site.downloadUrl) { $('#download-link').href = site.downloadUrl; $('#have-code').hidden = false; }
+    const plans = C.plans;
+    const prices = plans ? Object.values(plans).map((p) => p.price).filter((n) => typeof n === 'number') : [];
+    if (prices.length) $('#price-from').textContent = 'Desde $' + Math.min(...prices).toLocaleString('es-CL');
+
     load();
     build();
     TB.preview.mount($('#device'));

@@ -10,5 +10,10 @@
     // Completa tus datos reales de contacto (se muestran en el pie de la página).
     supportEmail: '',
     whatsapp: '',
+    // Instagram (usuario sin @). Opcional.
+    instagram: '',
+    // Opcionales: si los completas, el sitio muestra la opción gratis y el enlace "Ya tengo mi código".
+    freeUrl: '',      // p. ej. la página de Releases con el APK gratuito
+    downloadUrl: '',  // descarga de la app para quien ya tiene código
   };
 })();

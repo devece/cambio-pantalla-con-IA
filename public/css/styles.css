@@ -206,3 +206,21 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
+
+/* Portada: opciones, funciones y contacto */
+.options { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 24px; max-width: 760px; }
+.option { background: var(--paper); border: 2px solid var(--borde); border-radius: 12px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; }
+.option h2 { font: 700 24px/1.1 var(--display); }
+.option p { margin: 0; font-size: 16px; color: var(--ink2); }
+.option .from { font: 700 22px/1 var(--display); color: var(--verde); }
+.option .btn { margin-top: 6px; }
+.option[hidden] { display: none; }
+.have-code { margin-top: 14px; font-size: 16px; }
+.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding-bottom: clamp(20px, 3vw, 32px); }
+.features div { border-left: 4px solid var(--amarillo); padding: 4px 0 4px 12px; display: grid; gap: 4px; }
+.features b { font-size: 18px; }
+.features span { font-size: 15px; color: var(--ink2); }
+.contact { padding: 8px 0 40px; max-width: 820px; margin-left: max(16px, calc((100% - var(--wrap)) / 2)); }
+.contact h2 { font: 700 30px/1 var(--display); margin-bottom: 10px; }
+.contact p { color: var(--ink2); max-width: 64ch; margin-top: 6px; }
+@media (max-width: 760px) { .features { grid-template-columns: 1fr; } }

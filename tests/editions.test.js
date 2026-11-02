@@ -45,3 +45,9 @@ test('maintenance.json (usado por el launcher) coincide con el catálogo del sit
   const maintenance = require('../public/shared/maintenance.json');
   assert.deepEqual(maintenance, C.maintenance);
 });
+
+test('restriction.json (usado por el launcher) coincide con el catálogo del sitio', () => {
+  const json = require('../public/shared/restriction.json');
+  const r = C.restriction;
+  assert.deepEqual(json, { year: r.year, verifiedAt: r.verifiedAt, season: r.season, zone: r.zone, types: r.types, digits: r.digits, sources: r.sources });
+});

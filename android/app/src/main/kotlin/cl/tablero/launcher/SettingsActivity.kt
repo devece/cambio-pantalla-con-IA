@@ -4,6 +4,7 @@ import android.app.Activity
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.text.InputFilter
 import android.text.InputType
 import android.view.View
 import android.widget.Button
@@ -19,6 +20,7 @@ import cl.tablero.core.LauncherConfig
 import cl.tablero.core.Limits
 import cl.tablero.core.Maintenance
 import cl.tablero.core.MaintenanceItem
+import cl.tablero.core.RestrictionRules
 
 /**
  * Ajustes: lo mismo que el configurador del sitio, pero dentro de la radio y sin internet.
@@ -49,7 +51,9 @@ class SettingsActivity : Activity() {
     private lateinit var speedMode: RadioGroup
     private lateinit var manualLimit: EditText
     private lateinit var restrOn: CheckBox
-    private val restrDays = linkedMapOf<String, CheckBox>()
+    private lateinit var restrType: RadioGroup
+    private lateinit var restrDigit: EditText
+    private lateinit var rules: RestrictionRules
     private lateinit var voice: CheckBox
     private val apps = linkedMapOf<String, CheckBox>()
 
@@ -58,6 +62,7 @@ class SettingsActivity : Activity() {
         settings = SettingsStore(this)
         limits = EntitlementStore(this).limits
         maintenance = Maintenance.parse(assets.open("maintenance.json").bufferedReader().use { it.readText() })
+        rules = RestrictionRules.parse(assets.open("restriction.json").bufferedReader().use { it.readText() })
         val c = settings.load()
 
         form = LinearLayout(this).apply {
@@ -145,8 +150,26 @@ class SettingsActivity : Activity() {
         voice = check("Saludarme por voz al encender", c.voice, limits.voice)
 
         section("Restricción vehicular")
-        restrOn = check("Recordar mi día de restricción", c.restrOn, limits.restrOn)
-        Ui.WEEKDAYS.forEach { (id, label) -> restrDays[id] = check(label, id in c.restrDays, limits.restrOn) }
+        restrOn = check("Avisarme al entrar a Santiago si hoy tengo restricción (usa el GPS)", c.restrOn, limits.restrOn)
+        restrType = RadioGroup(this).apply {
+            orientation = RadioGroup.VERTICAL
+            Ui.RESTR_TYPES.forEach { (typeId, label) ->
+                addView(RadioButton(this@SettingsActivity).apply {
+                    id = View.generateViewId()
+                    tag = typeId
+                    text = label
+                    isEnabled = limits.restrOn
+                    isChecked = c.restrType == typeId
+                    setTextColor(if (limits.restrOn) Ui.TEXT else Ui.SUB)
+                })
+            }
+        }
+        form.addView(restrType)
+        restrDigit = field("Último dígito de tu patente (0 a 9)", c.restrDigit).apply {
+            inputType = InputType.TYPE_CLASS_NUMBER
+            filters = arrayOf(InputFilter.LengthFilter(1))
+            isEnabled = limits.restrOn
+        }
 
         section("Apps en la barra (máximo ${limits.maxApps})")
         Ui.KNOWN_APPS.forEach { (id, app) -> apps[id] = check(app.label, id in c.apps, true) }
@@ -167,6 +190,8 @@ class SettingsActivity : Activity() {
         }
         val mode = speedMode.findViewById<RadioButton>(speedMode.checkedRadioButtonId)?.tag as? String ?: old.speedAlert
         val type = carTypeGroup.findViewById<RadioButton>(carTypeGroup.checkedRadioButtonId)?.tag as? String ?: old.carType
+        val rType = restrType.findViewById<RadioButton>(restrType.checkedRadioButtonId)?.tag as? String ?: old.restrType
+        val rDigit = restrDigit.text.toString().trim().take(1).filter { it.isDigit() }
         settings.save(
             old.copy(
                 carType = type,
@@ -188,7 +213,10 @@ class SettingsActivity : Activity() {
                 speedAlert = mode,
                 manualLimit = int(manualLimit, old.manualLimit, 20..140),
                 restrOn = restrOn.isChecked,
-                restrDays = restrDays.filterValues { it.isChecked }.keys.toList(),
+                restrType = rType,
+                restrDigit = rDigit,
+                // Los días se calculan con la misma tabla del sitio; aquí ya no se marcan a mano.
+                restrDays = rules.daysFor(rType, rDigit),
                 voice = voice.isChecked,
             ),
         )

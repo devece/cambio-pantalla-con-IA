@@ -250,10 +250,17 @@
           </fieldset>
 
           <fieldset class="feature">
-            <label class="check"><input type="checkbox" data-bind="features.restrOn"><span>Recordar mi día de restricción vehicular</span></label>
+            <label class="check"><input type="checkbox" data-bind="features.restrOn"><span>Recordar mi restricción vehicular</span></label>
             <div class="sub" data-show="features.restrOn">
-              <div class="choices cols-3 compact multi" data-multi="features.restrDays" role="group" aria-label="Días de restricción"></div>
-              <p class="hint">Marca tú los días que te corresponden: la tabla oficial cambia según el año y el tipo de vehículo. Revisa el calendario de tu región.</p>
+              <p class="hint">La radio usa el GPS: cuando entres a Santiago (Provincia de Santiago, San Bernardo y Puente Alto) te avisa si ese día te toca. En el resto de Chile no hay restricción permanente para autos particulares, así que no te molesta.</p>
+              <p class="hint">¿Cómo es tu auto?</p>
+              <div class="choices cols-1 compact" data-choices="features.restrType" role="radiogroup" aria-label="Tipo de auto"></div>
+              <label class="field" data-show-not="features.restrType=nuevo"><span>Último dígito de tu patente</span>
+                <select data-bind="features.restrDigit" id="restr-digit"></select>
+              </label>
+              <p class="note" id="restr-note" role="status"></p>
+              <button type="button" class="btn ghost" id="restr-demo">Ver cómo avisa al entrar a Santiago</button>
+              <p class="hint">Calendario de la temporada <span id="restr-year"></span>. El Ministerio de Transportes publica el nuevo cada abril y lo actualizamos. En días de preemergencia ambiental pueden sumarse más dígitos.</p>
             </div>
           </fieldset>
         </section>

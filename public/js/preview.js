@@ -25,7 +25,7 @@
   ];
   const PRESETS = [88.9, 92.5, 96.1, 99.3, 101.7, 105.3];
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const live = { speed: 58, zone: 0, n: 0, maint: 0, freq: 96.1 };
+  const live = { speed: 58, zone: 0, n: 0, maint: 0, freq: 96.1, zoneMsg: null, zoneUntil: 0 };
   let scr = null;
   let host = null;
   let current = null;
@@ -81,9 +81,18 @@
       out.push({ key: 'Seguro obligatorio (SOAP)', text: 'vence el 31 de marzo', pct: 0.3, warn: false });
     }
     if (f.fuelOn) out.push({ key: 'Combustible', text: `~${fmt(dist(f.tankL * f.kmPerL, state))} ${du(state)} con el tanque lleno${f.gallons ? ` (${(f.tankL / GAL).toFixed(1).replace('.', ',')} gal)` : ''}`, pct: 1, warn: false });
-    if (f.restrOn && f.restrDays.length) {
+    if (f.restrOn && f.restrCity === 'rm' && f.restrDays.length) {
       const names = TB.weekdays.filter((d) => f.restrDays.includes(d.id)).map((d) => d.name.toLowerCase());
-      out.push({ key: 'Restricción vehicular', text: names.join(', '), pct: 0, warn: false, noBar: true });
+      const r = TBCatalog.restriction;
+      const m = new Date().getMonth() + 1;
+      const inSeason = r.season.months.includes(m);
+      const todayId = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'][new Date().getDay()];
+      const today = inSeason && f.restrDays.includes(todayId);
+      out.push({
+        key: 'Restricción vehicular',
+        text: today ? `HOY tienes restricción (${names.join(', ')})` : inSeason ? `te toca el ${names.join(' y ')}` : `te toca el ${names.join(' y ')} · rige desde el ${r.season.from}`,
+        pct: 0, warn: today, noBar: true,
+      });
     }
     return out;
   }
@@ -258,7 +267,8 @@
       `<svg class="decor" viewBox="0 0 1024 600" aria-hidden="true">${TB.decor(season, ui.night)}</svg>` +
       `<canvas class="fx" width="1024" height="600" aria-hidden="true"></canvas>` +
       dock(state, ui) +
-      `<div class="alert" hidden></div>`;
+      `<div class="alert" hidden></div>` +
+      `<div class="zone-alert${live.zoneMsg && live.zoneMsg.warn ? ' warn' : ''}"${live.zoneMsg && Date.now() < live.zoneUntil ? '' : ' hidden'}><b>${live.zoneMsg ? esc(live.zoneMsg.text) : ''}</b></div>`;
     TB.tintCars(scr);
     if (TB.fx) TB.fx.attach(scr.querySelector('.fx'), season, ui.night);
     tick();
@@ -280,6 +290,8 @@
     const time = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
     scr.querySelectorAll('[data-clock]').forEach((el) => (el.textContent = time));
 
+    const za = scr.querySelector('.zone-alert');
+    if (za && live.zoneMsg && Date.now() >= live.zoneUntil) { za.hidden = true; live.zoneMsg = null; }
     const alert = scr.querySelector('.alert');
     if (alert) {
       const show = state.features.speedAlert !== 'off' && v > limit;
@@ -329,5 +341,13 @@
     }, 1000);
   }
 
-  TB.preview = { mount, render, onGo: null, maintItems };
+  /** Muestra por unos segundos el aviso de "entraste a la zona" (demo en la web; en la radio lo dispara el GPS). */
+  function showZoneNotice(n) {
+    live.zoneMsg = n;
+    live.zoneUntil = Date.now() + 9000;
+    const za = scr && scr.querySelector('.zone-alert');
+    if (za) { za.hidden = false; za.className = 'zone-alert' + (n.warn ? ' warn' : ''); za.firstElementChild.textContent = n.text; }
+  }
+
+  TB.preview = { mount, render, onGo: null, maintItems, showZoneNotice };
 })();

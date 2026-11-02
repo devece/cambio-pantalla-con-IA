@@ -1,6 +1,6 @@
 # Tablero
 
-Configurador web para un launcher de radios Android de auto, pensado para Chile (precios en CLP, teléfono +56 9, restricción vehicular, revisión técnica, permiso de circulación, SOAP).
+Configurador web para un launcher de radios Android de auto, pensado para Chile (precios en CLP, teléfono +56 9, restricción vehicular por GPS, revisión técnica, permiso de circulación, SOAP).
 
 El cliente elige radio, auto, diseño y funciones; ve su pantalla funcionando en vivo; paga; y recibe un código para activar el launcher en su radio.
 

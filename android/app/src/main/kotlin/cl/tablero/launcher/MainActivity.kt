@@ -11,6 +11,8 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.view.Gravity
 import android.view.View
@@ -26,6 +28,8 @@ import cl.tablero.core.Maintenance
 import cl.tablero.core.MaintenanceItem
 import cl.tablero.core.Reminder
 import cl.tablero.core.Reminders
+import cl.tablero.core.RestrictionNotice
+import cl.tablero.core.RestrictionRules
 import cl.tablero.core.Speed
 import cl.tablero.core.Tier
 import java.util.Calendar
@@ -48,6 +52,11 @@ class MainActivity : Activity() {
     private var alertView: TextView? = null
     private var tts: TextToSpeech? = null
     private var askedLocation = false
+    private lateinit var restriction: RestrictionRules
+    private var zoneView: TextView? = null
+    private var insideZone = false
+    private val handler = Handler(Looper.getMainLooper())
+    private val hideZone = Runnable { zoneView?.visibility = View.GONE }
 
     private val locationManager by lazy { getSystemService(Context.LOCATION_SERVICE) as LocationManager }
 
@@ -55,6 +64,7 @@ class MainActivity : Activity() {
         override fun onLocationChanged(location: Location) {
             val kmh = if (location.hasSpeed()) (location.speed * 3.6f).roundToInt() else 0
             showSpeed(kmh)
+            checkZone(location.latitude, location.longitude)
         }
 
         override fun onProviderEnabled(provider: String) {}
@@ -69,6 +79,7 @@ class MainActivity : Activity() {
         entitlement = EntitlementStore(this)
         settings = SettingsStore(this)
         maintenance = Maintenance.parse(assets.open("maintenance.json").bufferedReader().use { it.readText() })
+        restriction = RestrictionRules.parse(assets.open("restriction.json").bufferedReader().use { it.readText() })
     }
 
     // Al volver de Ajustes o de Activar código hay que redibujar con lo nuevo.
@@ -82,6 +93,7 @@ class MainActivity : Activity() {
 
     override fun onPause() {
         super.onPause()
+        handler.removeCallbacks(hideZone)
         try {
             locationManager.removeUpdates(locationListener)
         } catch (e: SecurityException) {
@@ -120,6 +132,20 @@ class MainActivity : Activity() {
             visibility = View.INVISIBLE
             text = " "
         }
+        val zone = TextView(this).apply {
+            typeface = Ui.DISPLAY
+            textSize = 20f
+            setTextColor(Color.BLACK)
+            background = Ui.rounded(this@MainActivity, Ui.ACCENT, 22)
+            setPadding(dp(24), dp(8), dp(24), dp(8))
+            gravity = Gravity.CENTER
+            visibility = View.GONE
+        }
+        zoneView = zone
+        main.addView(zone, LinearLayout.LayoutParams(WRAP, WRAP).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+            bottomMargin = dp(8)
+        })
         alertView = alert
         main.addView(alert, LinearLayout.LayoutParams(WRAP, WRAP).apply {
             gravity = Gravity.CENTER_HORIZONTAL
@@ -340,7 +366,7 @@ class MainActivity : Activity() {
     /* ---------- velocidad (GPS) ---------- */
 
     private fun startSpeed() {
-        if (!config.speedShow) return
+        if (!config.speedShow && !config.restrOn) return
         if (!hasLocationPermission()) {
             if (!askedLocation && Build.VERSION.SDK_INT >= 23) {
                 askedLocation = true
@@ -382,6 +408,46 @@ class MainActivity : Activity() {
         alertView?.apply {
             visibility = if (over) View.VISIBLE else View.INVISIBLE
             if (over) text = "Baja la velocidad · $kmh km/h · límite ${limit ?: ""}"
+        }
+    }
+
+    /* ---------- restricción vehicular (GPS) ---------- */
+
+    /** Avisa una sola vez, al pasar de "afuera" a "adentro" de la zona de Santiago. */
+    private fun checkZone(lat: Double, lon: Double) {
+        if (!config.restrOn) return
+        val inside = restriction.inZone(lat, lon)
+        if (inside && !insideZone) {
+            val cal = Calendar.getInstance()
+            val minutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
+            restriction.notice(config, Reminders.weekdayId(cal.get(Calendar.DAY_OF_WEEK)), cal.get(Calendar.MONTH) + 1, minutes)
+                ?.let { showZoneNotice(it) }
+        }
+        insideZone = inside
+    }
+
+    private fun showZoneNotice(n: RestrictionNotice) {
+        zoneView?.apply {
+            text = n.text
+            visibility = View.VISIBLE
+        }
+        handler.removeCallbacks(hideZone)
+        handler.postDelayed(hideZone, 15_000L)
+        speak(n.text)
+    }
+
+    private fun speak(phrase: String) {
+        if (!config.voice) return
+        val engine = tts
+        if (engine != null) {
+            engine.speak(phrase, TextToSpeech.QUEUE_ADD, null, "zona")
+            return
+        }
+        tts = TextToSpeech(this) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = Locale("es", "CL")
+                tts?.speak(phrase, TextToSpeech.QUEUE_ADD, null, "zona")
+            }
         }
     }
 

@@ -44,7 +44,7 @@ dependencies {
 
 // Estos JSON viven en public/shared/ (los comparte el sitio): se copian a los assets al compilar.
 val copyEditions = tasks.register<Copy>("copyEditions") {
-    from(rootProject.file("../public/shared/editions.json"), rootProject.file("../public/shared/maintenance.json"))
+    from(rootProject.file("../public/shared/editions.json"), rootProject.file("../public/shared/maintenance.json"), rootProject.file("../public/shared/restriction.json"))
     into(layout.buildDirectory.dir("generated/editions"))
 }
 android.sourceSets.getByName("main").assets.srcDir(

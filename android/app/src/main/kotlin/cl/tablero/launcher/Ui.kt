@@ -41,6 +41,12 @@ object Ui {
         "lun" to "Lunes", "mar" to "Martes", "mie" to "Miércoles", "jue" to "Jueves", "vie" to "Viernes",
     )
 
+    val RESTR_TYPES: List<Pair<String, String>> = listOf(
+        "sello" to "Con sello verde, inscrito antes de septiembre de 2011",
+        "sin" to "Sin sello verde (más antiguo)",
+        "nuevo" to "Inscrito desde septiembre de 2011 (sin restricción permanente)",
+    )
+
     val CAR_TYPES: List<Pair<String, String>> = listOf("auto" to "Auto", "suv" to "SUV", "camioneta" to "Camioneta")
 
     val CAR_COLORS: List<String> = listOf(

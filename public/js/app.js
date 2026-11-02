@@ -21,7 +21,7 @@
       oilOn: true, odometer: 45000, lastOil: 42000, oilEvery: 5000,
       others: ['neumaticos'], docsOn: true, rtMonth: 6,
       fuelOn: false, tankL: 45, kmPerL: 12,
-      speedShow: true, speedAlert: 'auto', manualLimit: 60, restrOn: false, restrDays: [], voice: true, miles: false, gallons: false,
+      speedShow: true, speedAlert: 'auto', manualLimit: 60, restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: true, miles: false, gallons: false,
     },
     plan: 'esencial',
     addons: {},
@@ -95,6 +95,7 @@
       { id: 'manual', name: 'Manual' },
       { id: 'off', name: 'Sin aviso' },
     ],
+    'features.restrType': () => C.restriction.types,
     plan: () => C.plans.map((p) => ({ id: p.id, name: p.name, desc: p.blurb, price: p.price })),
     'contact.kind': () => [
       { id: 'whatsapp', name: 'WhatsApp' },
@@ -104,7 +105,6 @@
   const MULTI = {
     'style.apps': () => TB.apps,
     'features.others': () => C.maintenance.map((m) => ({ id: m.id, name: m.name, desc: 'cada ' + fmt(m.every) + ' km' })),
-    'features.restrDays': () => TB.weekdays,
   };
   const STEPS = ['Radio', 'Auto', 'Diseño', 'Funciones', 'Pago'];
   const SCREENS = [
@@ -238,6 +238,34 @@
     nose: ['warn', 'Para saberlo, abre los ajustes de tu radio y busca “Acerca del dispositivo”, “Sistema” o “Información”. Si ves una versión de Android y puedes abrir la Play Store, es compatible. Puedes diseñar igual, pero necesitamos que confirmes el tipo antes de pagar.'],
   };
 
+  function syncRestriction() {
+    const f = state.features;
+    const r = C.restriction;
+    const sel = $('#restr-digit');
+    if (!sel.options.length) sel.innerHTML = '<option value="">Elige un dígito</option>' + [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => `<option value="${d}">${d}</option>`).join('');
+    sel.value = f.restrDigit;
+    $('#restr-year').textContent = r.year;
+    $$('[data-show-not]').forEach((el) => {
+      const [p, v] = el.dataset.showNot.split('=');
+      el.hidden = String(get(state, p)) === v;
+    });
+    const n = $('#restr-note');
+    const win = `Rige del ${r.season.from} al ${r.season.to}, ${r.season.days}, de ${r.season.hours}.`;
+    let cls = '';
+    let text = '';
+    if (f.restrType === 'nuevo') {
+      text = 'Tu auto no tiene restricción permanente. Solo puede afectarle una preemergencia o emergencia ambiental, que se anuncia el día anterior.';
+    } else if (f.restrDigit === '') {
+      cls = 'warn';
+      text = 'Elige el último dígito de tu patente para calcular tu día.';
+    } else {
+      const names = TB.weekdays.filter((d) => f.restrDays.includes(d.id)).map((d) => d.name.toLowerCase());
+      text = `Con patente terminada en ${f.restrDigit}, te toca el ${names.join(' y ')}. ${win}${f.restrType === 'sin' ? ' Además, sin sello verde no puedes circular dentro del anillo Américo Vespucio, cualquier día de la semana.' : ''} Fuera de esas fechas no hay restricción. Al entrar a Santiago, la radio te avisa en pantalla y por voz.`;
+    }
+    n.className = 'note' + (cls ? ' ' + cls : '');
+    n.textContent = text;
+  }
+
   function syncNotes() {
     const n = $('#radio-note');
     const r = radioNotes[state.radio.type];
@@ -246,6 +274,8 @@
 
     $('#nose-test').hidden = state.radio.type !== 'nose';
     $('#shot').hidden = state.radio.type !== 'android' && !state.radio.screen && !state.radio.analysis;
+
+    syncRestriction();
 
     const f = state.features;
     const left = f.lastOil + f.oilEvery - f.odometer;
@@ -317,6 +347,7 @@
   }
 
   function update() {
+    state.features.restrDays = O.restrDaysFor(state.features);
     applyConstraints();
     TB.preview.render(state, ui);
     syncChoices();
@@ -395,6 +426,18 @@
       update();
     });
 
+    $('#restr-demo').addEventListener('click', () => {
+      const f = state.features;
+      // Ejemplo: un día de tu restricción, en plena temporada y a media mañana.
+      const ctx = { weekday: f.restrDays[0] || 'lun', month: 6, minutes: 9 * 60 };
+      const n = O.restrictionNotice(f, ctx);
+      const box = $('#restr-note');
+      if (!n) { box.className = 'note warn'; box.textContent = f.restrType === 'nuevo' ? 'Con tu auto no hay aviso permanente: no hay nada que mostrar.' : 'Elige el último dígito de tu patente para ver el aviso.'; return; }
+      TB.preview.showZoneNotice(n);
+      ui.screen = 'inicio';
+      update();
+      TB.preview.showZoneNotice(n);
+    });
     $('#accent-input').addEventListener('input', (e) => { state.style.accent = e.target.value; update(); });
     $('#accent-swatches').addEventListener('click', (e) => { const b = e.target.closest('[data-accent]'); if (b) { state.style.accent = b.dataset.accent; update(); } });
     $('#phrase-slots').addEventListener('click', (e) => { const b = e.target.closest('[data-phrase]'); if (b) { state.car.phrase = b.dataset.phrase; update(); } });

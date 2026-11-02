@@ -29,6 +29,8 @@ class SettingsStore(context: Context) {
             speedAlert = p.getString("speedAlert", d.speedAlert) ?: d.speedAlert,
             manualLimit = p.getInt("manualLimit", d.manualLimit),
             restrOn = p.getBoolean("restrOn", d.restrOn),
+            restrType = p.getString("restrType", d.restrType) ?: d.restrType,
+            restrDigit = p.getString("restrDigit", d.restrDigit) ?: d.restrDigit,
             restrDays = list("restrDays", d.restrDays),
             voice = p.getBoolean("voice", d.voice),
         )
@@ -55,6 +57,8 @@ class SettingsStore(context: Context) {
             .putString("speedAlert", c.speedAlert)
             .putInt("manualLimit", c.manualLimit)
             .putBoolean("restrOn", c.restrOn)
+            .putString("restrType", c.restrType)
+            .putString("restrDigit", c.restrDigit)
             .putString("restrDays", c.restrDays.joinToString(","))
             .putBoolean("voice", c.voice)
             .apply()

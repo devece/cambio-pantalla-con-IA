@@ -25,6 +25,8 @@ data class LauncherConfig(
     val speedAlert: String = "auto",
     val manualLimit: Int = 60,
     val restrOn: Boolean = false,
+    val restrType: String = "sello",
+    val restrDigit: String = "",
     val restrDays: List<String> = emptyList(),
     val voice: Boolean = false,
 )

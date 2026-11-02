@@ -97,6 +97,14 @@ a { color: var(--verde); }
 .daynight button:not(.on) { background: none; color: var(--ink2); }
 .tab { border-width: 1px !important; }
 
+.choices.season-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 0; }
+.season-pills .choice { display: inline-flex; align-items: center; padding: 9px 14px; border-radius: 999px; border-width: 1px; }
+.season-pills .choice b { font-size: 15px; font-weight: 600; }
+.season-pills .choice small { display: none; }
+.season-pills .choice[aria-checked='true'] { background: var(--ink); border-color: var(--ink); color: #fff; box-shadow: none; padding-right: 14px; }
+.season-pills .choice[aria-checked='true']::after { display: none; }
+.season-pills .tag { background: var(--verde); }
+
 /* Opciones */
 .choices { display: grid; gap: 10px; margin-top: 14px; }
 .group .choices { margin-top: 0; }

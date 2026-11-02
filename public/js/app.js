@@ -322,7 +322,7 @@
     $('#summary').innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
     const q = O.quote(state);
     $('#total').textContent = O.money(q.total);
-    $('#pay').textContent = (TB.site || {}).payment === 'transfer' ? `Pagar ${O.money(q.total)} por transferencia` : `Pagar ${O.money(q.total)}`;
+    $('#pay').textContent = (TB.site || {}).payment === 'transfer' ? `Pagar ${O.money(q.total)} por transferencia` : (TB.site || {}).payment === 'contact' ? `Pedir mi pantalla · ${O.money(q.total)}` : `Pagar ${O.money(q.total)}`;
   }
 
   function syncSteps() {
@@ -494,6 +494,13 @@
     $('#photo-mode').addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) showPhoto(b.dataset.mode); });
     $('#pay').addEventListener('click', pay);
     $('#pay-done').addEventListener('click', (e) => {
+      const order = e.target.closest('[data-copy-order]');
+      if (order) {
+        const text = $('#pay-done').dataset.order || '';
+        const ok = () => { $('#copy-note').textContent = '¡Copiado! Pégalo en el mensaje de contacto.'; };
+        if (navigator.clipboard) navigator.clipboard.writeText(text).then(ok, () => { $('#copy-note').textContent = 'No pudimos copiar. Usa el botón de enviar.'; }); else ok();
+        return;
+      }
       const b = e.target.closest('[data-copy]');
       if (!b) return;
       const done = () => { const t = b.textContent; b.textContent = '¡Copiado!'; setTimeout(() => { b.textContent = t; }, 1500); };
@@ -800,6 +807,31 @@
     ].join('\n');
   }
 
+  /** Pago coordinado en el contacto de Daniexpress: el cliente copia su pedido y lo pega allá. */
+  function showContactOrder(data) {
+    const site = TB.site || {};
+    const web = site.web || {};
+    const msg = orderMessage(data.orderId, data.total).replace(' y ya transferí ', ' por ');
+    const wa = waNumber(site.whatsapp);
+    let go = '';
+    if (wa) go = `<a class="btn cta" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Enviar mi pedido por WhatsApp</a>`;
+    else if (site.supportEmail) go = `<a class="btn cta" href="mailto:${esc(site.supportEmail)}?subject=${encodeURIComponent('Pedido ' + data.orderId)}&body=${encodeURIComponent(msg)}">Enviar mi pedido por correo</a>`;
+    else if (web.url) go = `<a class="btn cta" href="${esc(web.url)}" target="_blank" rel="noopener">Ir al contacto de ${esc(web.name || 'Daniexpress')}</a>`;
+    const done = $('#pay-done');
+    done.hidden = false;
+    done.innerHTML = `<b>Pedido ${esc(data.orderId)}</b>
+      <p>Tu pedido está listo por <b>${esc(O.money(data.total))}</b>. El pago se coordina en el contacto de <b>${esc(web.name || 'Daniexpress')}</b>: allá te indican cómo pagar y, cuando confirman el pago, te mandan tu código.</p>
+      <ol class="mini-steps">
+        <li>Copia tu pedido (botón de abajo).</li>
+        <li>Ábrelo en ${esc(web.name || 'Daniexpress')} y pégalo en el mensaje de contacto.</li>
+        <li>Envía también la foto de tu auto.</li>
+      </ol>
+      <div class="codebtns"><button type="button" class="btn primary" data-copy-order>Copiar mi pedido</button>${go}</div>
+      <p class="hint" id="copy-note">Tu pedido incluye todo lo que elegiste, así que no tienes que explicar nada.</p>`;
+    done.dataset.order = msg;
+    done.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
   function showTransfer(data) {
     const site = TB.site || {};
     const bank = site.bank || {};
@@ -839,6 +871,7 @@
       try { data = await res.json(); } catch (_) { /* respuesta sin JSON */ }
       if (!data) { showErrors(['No pudimos conectar con el servidor. Revisa tu internet e intenta de nuevo.']); return; }
       if (!data.ok) { showErrors(data.errors || [data.error || 'No pudimos procesar tu pedido.']); return; }
+      if ((TB.site || {}).payment === 'contact') { showContactOrder(data); return; }
       if ((TB.site || {}).payment === 'transfer') { showTransfer(data); return; }
       if (data.paymentUrl) { window.location.href = data.paymentUrl; return; }
       const done = $('#pay-done');

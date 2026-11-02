@@ -28,6 +28,22 @@
     check: '<path d="M5 12.500l4.500 4.500L19 7.500"/>',
   };
 
+  /* ---------- Ilustraciones del paso "¿Cómo es tu radio?" ---------- */
+  const dots = ['#ff6b6b', '#ffd166', '#06d6a0', '#4cc9f0', '#a78bfa', '#ff9f68', '#5eead4', '#f472b6'];
+  TB.radioThumbs = {
+    android:
+      '<svg viewBox="0 0 120 72" aria-hidden="true"><rect width="120" height="72" rx="8" fill="#1d1f3a"/><rect x="6" y="6" width="108" height="60" rx="5" fill="#3b3fb5"/><rect x="6" y="6" width="108" height="9" rx="4" fill="rgba(0,0,0,.28)"/>' +
+      dots.map((c, i) => `<circle cx="${22 + (i % 4) * 25}" cy="${i < 4 ? 30 : 50}" r="8" fill="${c}"/>`).join('') +
+      '</svg>',
+    original:
+      '<svg viewBox="0 0 120 72" aria-hidden="true"><rect width="120" height="72" rx="8" fill="#23262e"/><rect x="31" y="12" width="58" height="22" rx="3" fill="#6f8fb0"/><rect x="35" y="16" width="30" height="4" rx="1" fill="rgba(255,255,255,.55)"/>' +
+      '<circle cx="14" cy="36" r="9" fill="#12141a" stroke="#4b505c" stroke-width="2"/><circle cx="106" cy="36" r="9" fill="#12141a" stroke="#4b505c" stroke-width="2"/>' +
+      [0, 1, 2, 3, 4].map((i) => `<rect x="${31 + i * 12}" y="42" width="9" height="6" rx="1.5" fill="#3a3f49"/>`).join('') +
+      '<rect x="31" y="54" width="58" height="5" rx="2" fill="#3a3f49"/></svg>',
+    nose:
+      '<svg viewBox="0 0 120 72" aria-hidden="true"><rect width="120" height="72" rx="8" fill="#23253a"/><text x="60" y="55" text-anchor="middle" font-family="Rubik, sans-serif" font-size="52" font-weight="700" fill="#8c90b8">?</text></svg>',
+  };
+
   /* ---------- Autos (vista lateral, de frente a la derecha) ---------- */
   const CARS = {
     auto: {

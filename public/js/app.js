@@ -71,9 +71,9 @@
   /* ---------- catálogos para las opciones ---------- */
   const CHOICES = {
     'radio.type': () => [
-      { id: 'android', name: 'Pantalla grande con apps', desc: 'Se instaló después. Tiene Play Store, YouTube, Waze o similares.' },
-      { id: 'original', name: 'La original del auto', desc: 'Vino de fábrica, con la marca del auto.' },
-      { id: 'nose', name: 'No sé', desc: 'Te mostramos cómo saberlo en 10 segundos.' },
+      { id: 'android', thumb: TB.radioThumbs.android, name: 'Pantalla grande con apps', desc: 'Se instaló después. Tiene Play Store, YouTube, Waze o similares.' },
+      { id: 'original', thumb: TB.radioThumbs.original, name: 'La original del auto', desc: 'Vino de fábrica, con la marca del auto.' },
+      { id: 'nose', thumb: TB.radioThumbs.nose, name: 'No sé', desc: 'Te mostramos cómo saberlo en 10 segundos.' },
     ],
     'car.type': () => TB.vehicles,
     'car.greeting': () => TB.greetings.map((g) => ({ id: g, name: g })),
@@ -108,11 +108,12 @@
 
   /* ---------- construcción de la interfaz ---------- */
   function choiceHtml(it, role, extra) {
+    const th = it.thumb ? `<span class="thumb">${it.thumb}</span>` : '';
     const sw = it.swatch ? `<span class="sw" style="background:linear-gradient(135deg,${it.swatch[0]} 0 55%,${it.swatch[1]} 55%)"></span>` : '';
     const tag = it.tier === 'plus' ? '<span class="tag">Completo</span>' : '';
     const price = it.price ? `<span class="price">${O.money(it.price)}</span>` : '';
     const attr = role === 'radio' ? 'role="radio" aria-checked="false"' : 'role="checkbox" aria-pressed="false"';
-    return `<button type="button" class="choice" ${attr} data-id="${esc(it.id)}"${extra || ''}>${sw}<b>${esc(it.name)}${tag}</b>${it.desc ? `<small>${esc(it.desc)}</small>` : ''}${price}</button>`;
+    return `<button type="button" class="choice" ${attr} data-id="${esc(it.id)}"${extra || ''}>${th}${sw}<b>${esc(it.name)}${tag}</b>${it.desc ? `<small>${esc(it.desc)}</small>` : ''}${price}</button>`;
   }
 
   function build() {

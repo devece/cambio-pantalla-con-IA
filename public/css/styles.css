@@ -240,3 +240,18 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .legal ul { padding-left: 22px; }
 .legal .draft { background: #fff6d6; border: 2px solid var(--amarillo-osc); border-radius: 10px; padding: 10px 14px; color: var(--ink); }
 .legal .updated { font-size: 14px; }
+
+/* Opciones con ilustración (paso de la radio) */
+.with-thumb .choice { align-content: start; gap: 6px; padding: 10px; }
+.with-thumb .choice b { font-size: 15px; }
+.with-thumb .choice small { font-size: 12.5px; }
+.thumb { display: block; border-radius: 8px; overflow: hidden; margin-bottom: 4px; }
+.thumb svg { display: block; width: 100%; height: auto; }
+.with-thumb .choice[aria-checked='true']::after, .with-thumb .choice[aria-pressed='true']::after { top: 16px; right: 16px; background: var(--verde); box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--verde); }
+@media (max-width: 520px) { .with-thumb.cols-3 { grid-template-columns: 1fr; } .with-thumb .choice { grid-template-columns: 96px 1fr; column-gap: 12px; align-items: center; } .with-thumb .thumb { grid-row: 1 / span 2; margin: 0; } }
+
+@media (max-width: 920px) {
+  .choices.season-pills { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .choices.season-pills::-webkit-scrollbar { display: none; }
+  .season-pills .choice { flex: none; padding: 7px 12px; }
+}

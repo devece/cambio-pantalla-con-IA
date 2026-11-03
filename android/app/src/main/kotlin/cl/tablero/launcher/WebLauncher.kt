@@ -2,8 +2,19 @@ package cl.tablero.launcher
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Color
+import android.media.MediaMetadata
+import android.media.session.MediaController
+import android.media.session.MediaSessionManager
+import android.media.session.PlaybackState
+import android.os.Handler
+import android.os.Looper
+import android.util.Base64
+import java.io.ByteArrayOutputStream
 import android.provider.Settings
 import android.view.View
 import android.webkit.JavascriptInterface
@@ -22,8 +33,19 @@ class WebLauncher(private val activity: Activity, private val designJson: String
     private var ready = false
     private val pending = ArrayList<String>()
 
+    private val handler = Handler(Looper.getMainLooper())
+    private var lastMusicSig = ""
+    private var lastArt = ""
+    private val musicPoll = object : Runnable {
+        override fun run() {
+            try { pushMusic() } catch (e: Exception) { /* la música es un extra: nunca debe tumbar la pantalla */ }
+            handler.postDelayed(this, 1500)
+        }
+    }
+
     init {
         setup()
+        handler.postDelayed(musicPoll, 1500)
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -65,6 +87,7 @@ class WebLauncher(private val activity: Activity, private val designJson: String
     fun zoneNotice(text: String, warn: Boolean) = js("TBApp.zoneNotice(" + JSONObject.quote(text) + ",$warn)")
 
     fun destroy() {
+        handler.removeCallbacks(musicPoll)
         view.removeJavascriptInterface("Android")
         view.destroy()
     }
@@ -80,17 +103,91 @@ class WebLauncher(private val activity: Activity, private val designJson: String
         }
 
         @JavascriptInterface
+        fun media(cmd: String) {
+            activity.runOnUiThread {
+                try {
+                    val c = currentController() ?: return@runOnUiThread
+                    when (cmd) {
+                        "prev" -> c.transportControls.skipToPrevious()
+                        "next" -> c.transportControls.skipToNext()
+                        "toggle" -> if (c.playbackState?.state == PlaybackState.STATE_PLAYING) c.transportControls.pause() else c.transportControls.play()
+                    }
+                } catch (e: Exception) {
+                    toast("No se pudo controlar la música.")
+                }
+            }
+        }
+
+        @JavascriptInterface
         fun open(kind: String) {
             activity.runOnUiThread {
                 when (kind) {
                     "radio" -> openRadio()
                     "bluetooth" -> start(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
                     "activate" -> start(Intent(activity, ActivationActivity::class.java))
+                    "musicaccess" -> start(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
                     "settings" -> start(Intent(activity, SettingsActivity::class.java))
                     "music" -> toast("Agrega Spotify o YouTube Music a tu pantalla para abrir tu música desde aquí.")
                 }
             }
         }
+    }
+
+    /* ---------- música en vivo ---------- */
+
+    private fun hasListenerAccess(): Boolean {
+        val enabled = Settings.Secure.getString(activity.contentResolver, "enabled_notification_listeners") ?: return false
+        return enabled.contains(activity.packageName)
+    }
+
+    private fun currentController(): MediaController? {
+        if (!hasListenerAccess()) return null
+        return try {
+            val msm = activity.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
+            val all = msm.getActiveSessions(ComponentName(activity, MediaListener::class.java))
+            all.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING } ?: all.firstOrNull()
+        } catch (e: SecurityException) {
+            null
+        }
+    }
+
+    private fun bitmapToDataUrl(b: Bitmap): String {
+        val max = 220
+        val scale = max.toFloat() / maxOf(b.width, b.height)
+        val small = if (scale < 1f) Bitmap.createScaledBitmap(b, (b.width * scale).toInt(), (b.height * scale).toInt(), true) else b
+        val out = ByteArrayOutputStream()
+        small.compress(Bitmap.CompressFormat.JPEG, 82, out)
+        return "data:image/jpeg;base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+    }
+
+    private fun pushMusic() {
+        val json = JSONObject()
+        val access = hasListenerAccess()
+        json.put("access", access)
+        val c = if (access) currentController() else null
+        val md = c?.metadata
+        if (c != null && md != null) {
+            val title = md.getString(MediaMetadata.METADATA_KEY_TITLE) ?: md.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE) ?: ""
+            val artist = md.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: md.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
+                ?: md.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE) ?: ""
+            val playing = c.playbackState?.state == PlaybackState.STATE_PLAYING
+            val trackSig = c.packageName + "|" + title + "|" + artist
+            val bmp = md.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) ?: md.getBitmap(MediaMetadata.METADATA_KEY_ART)
+                ?: md.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
+            val sig = trackSig + "|" + playing + "|" + (bmp != null)
+            if (sig == lastMusicSig) return
+            // La carátula solo se vuelve a codificar cuando cambia la canción.
+            if (!lastMusicSig.startsWith(trackSig + "|") || lastArt.isEmpty()) lastArt = if (bmp != null) bitmapToDataUrl(bmp) else ""
+            lastMusicSig = sig
+            json.put("active", true).put("playing", playing).put("title", title).put("artist", artist).put("art", lastArt)
+        } else {
+            val sig = "none|$access"
+            if (sig == lastMusicSig) return
+            lastMusicSig = sig
+            lastArt = ""
+            json.put("active", false)
+        }
+        js("TBApp.setMusic(" + JSONObject.quote(json.toString()) + ")")
     }
 
     private fun openRadio() {

@@ -49,6 +49,7 @@
   const blk = (x, y, w, h, o) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="#fff" opacity="${o || 0.22}"/>`;
   const dockMini = blk(8, 62, 104, 5, 0.3);
   TB.layoutThumbs = {
+    estelar: mini(blk(8, 10, 24, 30, 0.12) + '<rect x="12" y="14" width="16" height="8" rx="3" fill="#ffd166" opacity=".85"/>' + '<path d="M38 40 L46 30 L60 28 L72 30 L80 40Z" fill="#fff" opacity=".7"/><path d="M38 44 L80 44" stroke="#fff" stroke-width="3" opacity=".25"/>' + blk(88, 8, 24, 32) + blk(88, 44, 24, 12) + dockMini),
     tarjetas: mini(blk(8, 8, 44, 48) + blk(56, 8, 24, 22) + blk(56, 34, 24, 22) + blk(84, 8, 28, 48) + dockMini),
     centro: mini(blk(8, 8, 26, 22) + blk(8, 34, 26, 22) + blk(38, 8, 44, 48, 0.12) + blk(86, 8, 26, 22) + blk(86, 34, 26, 22) + '<rect x="44" y="30" width="32" height="12" rx="5" fill="#ffd166" opacity=".85"/>' + dockMini),
     manejo: mini('<rect x="10" y="12" width="52" height="40" rx="6" fill="#ffd166" opacity=".8"/>' + blk(68, 8, 44, 20) + blk(68, 32, 44, 12) + blk(68, 48, 44, 10) + dockMini),

@@ -10,7 +10,7 @@
   const defaults = () => ({
     radio: { type: 'android', model: '' },
     car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', phrase: '', plate: '', photo: null, photoCut: false, photoNight: null },
-    style: { theme: 'cristal', layout: 'tarjetas', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
+    style: { theme: 'cristal', layout: 'estelar', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
       oilOn: true, odometer: 0, lastOil: 0, oilEvery: 5000, others: [], docsOn: false, rtMonth: 1, fuelOn: false, tankL: 45, kmPerL: 12,
       speedShow: true, speedAlert: 'auto', manualLimit: 60, restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: false, miles: false, gallons: false,
@@ -41,6 +41,8 @@
   const app = {
     speed: 0,
     weather: null,
+    music: { access: null, active: false },
+    media(cmd) { bridge('media', cmd); },
     open(kind) {
       if (kind === 'music') {
         const id = MUSIC_APPS.find((a) => state.style.apps.includes(a));
@@ -100,6 +102,10 @@
     },
     setSpeed(kmh) { app.speed = Number(kmh) || 0; },
     setLocation(lat, lon) { if (isFinite(lat) && isFinite(lon)) loadWeather(lat, lon); },
+    setMusic(json) {
+      try { app.music = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }
+      if (TB.preview.updateMusic) TB.preview.updateMusic();
+    },
     setNight(on) { nightForced = on === null || on === undefined ? null : !!on; render(); },
     zoneNotice(text, warn) { TB.preview.showZoneNotice({ text: String(text), warn: !!warn }); },
   };
@@ -113,7 +119,7 @@
     window.TBApp.init({
       config: {
         car: { type: 'auto', name: 'Daniel', greeting: 'Hola', phrase: '' },
-        style: { theme: 'cristal', layout: 'tarjetas', apps: ['maps', 'spotify', 'waze', 'whatsapp'] },
+        style: { theme: 'cristal', layout: 'estelar', apps: ['maps', 'spotify', 'waze', 'whatsapp'] },
         features: { oilOn: true, odometer: 45000, lastOil: 42000, docsOn: true, rtMonth: 6, speedShow: true, restrOn: true, restrType: 'sello', restrDigit: '8', restrDays: ['lun'] },
       },
     });

@@ -16,6 +16,7 @@
   const icon = (id, size) =>
     `<svg viewBox="0 0 24 24" width="${size || 28}" height="${size || 28}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TB.icons[id] || ''}</svg>`;
 
+  TB.icons.pausa = '<path d="M8 5v14M16 5v14" stroke-width="3.2"/>';
   TB.icons.casa = '<path d="M4 11l8-7 8 7M6.500 10v10h11V10"/>';
 
   const ZONES = [
@@ -114,6 +115,28 @@
     return `<div class="weather"><span class="wx">${icon(WX(w.code), 44)}</span><b>${t(w.temp)}</b><span class="wd">${esc(w.text)}<small>Sensación ${t(w.feels)} · ${Math.round(w.humidity)}%</small></span></div>`;
   }
 
+
+  /* ---------- reproductor (música en vivo desde la radio) ---------- */
+  const DEMO_MUSIC = { access: true, active: true, playing: true, title: 'Camino a casa', artist: 'Artista de ejemplo', art: '' };
+  function playerInner() {
+    const app = TB.preview.app;
+    const m = app ? app.music : DEMO_MUSIC;
+    const ctl = (playing) => `<div class="ctl"><button class="rbtn" data-media="prev" aria-label="Anterior">${icon('prev', 24)}</button><button class="rbtn play" data-media="toggle" aria-label="${playing ? 'Pausar' : 'Reproducir'}">${icon(playing ? 'pausa' : 'play', 26)}</button><button class="rbtn" data-media="next" aria-label="Siguiente">${icon('next', 24)}</button></div>`;
+    if (m && m.active) {
+      const art = m.art ? `<img class="art" src="${m.art}" alt="">` : `<div class="art disc"></div>`;
+      return `<span class="src">${m.playing ? 'Sonando' : 'En pausa'}</span>${art}<b>${esc(m.title || 'Sin título')}</b><span>${esc(m.artist || '')}</span>${ctl(m.playing)}`;
+    }
+    if (m && m.access === false) {
+      return `<span class="src">Música</span><div class="art disc"></div><b>Ver lo que suena</b><span>Da permiso una vez para mostrar tu canción</span><div class="ctl"><button class="rbtn play wide" data-open="musicaccess" aria-label="Dar permiso">${icon('check', 26)}</button></div>`;
+    }
+    return `<span class="src">Música</span><div class="art disc"></div><b>Tu música</b><span>Abre tu app favorita</span><div class="ctl"><button class="rbtn play" data-open="music" aria-label="Abrir música">${icon('play', 26)}</button></div>`;
+  }
+  function updateMusic() {
+    if (!scr) return;
+    scr.querySelectorAll('.player').forEach((el) => { el.innerHTML = playerInner(); });
+    scr.querySelectorAll('.music-card .music').forEach((el) => { el.innerHTML = playerInner(); });
+  }
+
   /* ---------- piezas de la pantalla de inicio ---------- */
   function pieces(state, ui) {
     const f = state.features;
@@ -146,8 +169,9 @@
       radio: appMode()
         ? `<div class="radio-mini"><div><small>Radio</small><b>FM</b><i>Toca para abrir</i></div><button class="rbtn play" data-open="radio" aria-label="Abrir la radio">${icon('play', 26)}</button></div>`
         : `<div class="radio-mini"><button class="rbtn" data-go="radio" aria-label="Anterior">${icon('prev', 22)}</button><div><small>FM</small><b>${live.freq.toFixed(1)}</b><i>MHz</i></div><button class="rbtn" data-go="radio" aria-label="Siguiente">${icon('next', 22)}</button></div>`,
+      player: `<div class="music player">${playerInner()}</div>`,
       music: appMode()
-        ? `<div class="music"><span class="src">Música</span><div class="disc"></div><b>Tu música</b><span>Abre tu app favorita</span><div class="ctl"><button class="rbtn play" data-open="music" aria-label="Abrir música">${icon('play', 26)}</button></div></div>`
+        ? `<div class="music">${playerInner()}</div>`
         : `<div class="music"><span class="src">Bluetooth</span><div class="disc"></div><b>Camino a casa</b><span>Artista de ejemplo</span><div class="ctl"><button class="rbtn" aria-label="Anterior">${icon('prev', 24)}</button><button class="rbtn play" aria-label="Reproducir">${icon('play', 26)}</button><button class="rbtn" aria-label="Siguiente">${icon('next', 24)}</button></div></div>`,
       limitSign: `<div class="limit"><div class="sign"><b data-limit>${limit == null ? '—' : dist(limit, state)}</b></div><small>${f.speedAlert === 'manual' ? 'Límite fijo' : 'Límite de la vía'}</small></div>`,
       routeCard: `<div class="route-card"><div><small>Altitud</small><b>2.850 m</b></div><div class="compass" aria-hidden="true"><svg viewBox="0 0 60 60" width="64" height="64"><circle cx="30" cy="30" r="27" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/><text x="30" y="11" text-anchor="middle" font-size="9" fill="currentColor">N</text><path d="M30 12 L36 32 L30 28 L24 32Z" fill="var(--accent)" transform="rotate(42 30 30)"/><path d="M30 48 L24 32 L30 36 L36 32Z" fill="currentColor" opacity=".45" transform="rotate(42 30 30)"/></svg></div><div><small>Rumbo</small><b>NE 42°</b></div></div>`,
@@ -162,6 +186,11 @@
   }
 
   const LAYOUTS = {
+    estelar: (p) => `
+      <section class="st-left"><div class="st-clock"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div>
+        <div class="st-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" class="trk"/><circle cx="60" cy="60" r="52" class="val" data-ring pathLength="100" stroke-dasharray="0 100"/></svg><div class="st-spd"><b data-speed>${p.spd}</b><span>${p.su}</span></div></div></section>
+      <section class="st-stage"><div class="st-hello"><h2>${p.hello}</h2><p>${esc(p.sub)}</p></div><div class="st-streaks" aria-hidden="true"></div><div class="st-glow" aria-hidden="true"></div><div class="car st-car">${p.car}</div></section>
+      <section class="st-right"><div class="card music-card st-player">${p.player}</div><div class="card st-wx">${p.weather}</div></section>`,
     tarjetas: (p) => `
       <section class="card greet"><div class="greet-txt"><h2>${p.hello}</h2><p>${esc(p.sub)}</p></div><div class="car">${p.car}</div>${p.weather}</section>
       <section class="card clock"><div class="clk"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div>${p.speed}</section>
@@ -315,6 +344,8 @@
     }
 
     scr.querySelectorAll('[data-speed]').forEach((el) => (el.textContent = dist(v, state)));
+    const ringMax = state.features.miles ? 120 : 200;
+    scr.querySelectorAll('[data-ring]').forEach((el) => el.setAttribute('stroke-dasharray', Math.min(100, (v / ringMax) * 100).toFixed(1) + ' 100'));
     scr.querySelectorAll('[data-limit]').forEach((el) => (el.textContent = limit == null ? '—' : dist(limit, state)));
     const time = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
     scr.querySelectorAll('[data-clock]').forEach((el) => (el.textContent = time));
@@ -372,6 +403,8 @@
       }
       const app = TB.preview.app;
       if (app) {
+        const media = e.target.closest('[data-media]');
+        if (media && app.media) { app.media(media.dataset.media); return; }
         const open = e.target.closest('[data-open]');
         if (open) { app.open(open.dataset.open); return; }
         const a = e.target.closest('[data-app]');
@@ -393,5 +426,5 @@
     if (za) { za.hidden = false; za.className = 'zone-alert' + (n.warn ? ' warn' : ''); za.firstElementChild.textContent = n.text; }
   }
 
-  TB.preview = { mount, render, onGo: null, maintItems, showZoneNotice, app: null };
+  TB.preview = { mount, render, onGo: null, maintItems, showZoneNotice, updateMusic, app: null };
 })();

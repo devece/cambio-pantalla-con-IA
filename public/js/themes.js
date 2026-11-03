@@ -114,6 +114,7 @@
   ];
 
   TB.layouts = [
+    { id: 'estelar', name: 'Estelar', desc: 'Tu auto con reflejo y luces en movimiento, reloj grande y reproductor de música.' },
     { id: 'tarjetas', name: 'Tarjetas', desc: 'Clima, radio y música a la vista.' },
     { id: 'centro', name: 'Auto al centro', desc: 'Tu auto como protagonista.' },
     { id: 'manejo', name: 'Modo manejo', desc: 'Velocidad grande y límite de la vía.' },

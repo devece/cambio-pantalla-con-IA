@@ -16,7 +16,7 @@
     // Datos de TU cuenta para recibir transferencias. Si falta alguno, el sitio avisa que aún no están y no muestra la cuenta.
     bank: { bank: '', type: '', number: '', holder: '', rut: '' },
     // Tu página web como contacto. Si `url` está vacía, se muestra solo el nombre (sin enlace).
-    web: { name: 'Daniexpress', url: 'https://www.daniexpress.cl' },
+    web: { name: 'Daniexpress', url: 'https://wa.me/56958897906' },
     // Instagram (usuario sin @). Opcional.
     instagram: '',
     // Opcionales: si los completas, el sitio muestra la opción gratis y el enlace "Ya tengo mi código".

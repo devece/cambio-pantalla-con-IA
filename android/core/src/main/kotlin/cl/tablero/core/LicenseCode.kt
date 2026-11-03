@@ -20,7 +20,7 @@ object LicenseCode {
 
 sealed interface ActivationResult {
     /** El servidor aceptó el código: la radio queda en este nivel. */
-    data class Activated(val tier: Tier) : ActivationResult
+    data class Activated(val tier: Tier, val design: String? = null) : ActivationResult
 
     /** El código no sirve (no existe, ya está en otra radio...). Reintentar no ayuda. */
     data class Rejected(val message: String) : ActivationResult
@@ -40,7 +40,9 @@ object ActivationResponse {
 
         if (httpStatus == 200 && json != null && json.optBoolean("ok")) {
             val tier = Tier.fromId(json.optString("plan"))?.takeIf { it != Tier.FREE }
-            return if (tier != null) ActivationResult.Activated(tier)
+            // Lo que el cliente armó en el sitio (configuración y enlaces a su foto); null si el código se creó a mano.
+            val design = json.optJSONObject("design")?.toString()
+            return if (tier != null) ActivationResult.Activated(tier, design)
             else ActivationResult.Unavailable("Respuesta incompleta del servidor. Intenta de nuevo.")
         }
 

@@ -51,8 +51,18 @@ android.sourceSets.getByName("main").assets.srcDir(
     files(layout.buildDirectory.dir("generated/editions")).builtBy(copyEditions)
 )
 
+// La pantalla de inicio con el diseño del cliente es el mismo motor del sitio: se empaqueta dentro de la app (assets/web/)
+// para que funcione sin internet y siempre dibuje igual que la vista previa.
+val copyWeb = tasks.register<Copy>("copyWeb") {
+    from(rootProject.file("../public")) {
+        include("launcher.html", "css/preview.css", "js/art.js", "js/themes.js", "js/fx.js", "js/preview.js", "js/launcher.js", "shared/catalog.js", "img/auto.png", "img/camioneta.png")
+    }
+    into(layout.buildDirectory.dir("generated/web/web"))
+}
+android.sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("generated/web"))
+
 // El srcDir de arriba no arrastra la dependencia de la tarea: sin esto `copyEditions` nunca corre
 // y el APK queda sin sus JSON (la app se cerraría al abrir). Se verifica además en el flujo de GitHub.
 tasks.configureEach {
-    if (name.startsWith("merge") && name.endsWith("Assets")) dependsOn(copyEditions)
+    if (name.startsWith("merge") && name.endsWith("Assets")) dependsOn(copyEditions, copyWeb)
 }

@@ -31,6 +31,13 @@
   let current = null;
   let uid = 0;
 
+  /* ---------- modo app ----------
+   * Dentro de la app de la radio (js/launcher.js) `TB.preview.app` trae datos reales: velocidad por GPS, clima y
+   * acciones para abrir apps. Sin él (en el sitio) todo es la demostración de siempre. */
+  const appMode = () => !!TB.preview.app;
+  const WX = (c) => (c >= 51 && c <= 67) || (c >= 80 && c <= 99) ? 'lluvia' : 'sol';
+  const openAttr = (kind) => (appMode() ? `data-open="${kind}"` : `data-go="${kind === 'bluetooth' ? 'bluetooth' : 'radio'}"`);
+
   /* ---------- helpers de estado ---------- */
   const themeOf = (s) => TB.themes.find((t) => t.id === s.style.theme) || TB.themes[0];
   const seasonOf = (s) => (s.style.season === 'auto' ? TB.seasonFor(new Date()) : s.style.season);
@@ -51,6 +58,8 @@
     }
     return { th, t };
   }
+  /** En la radio no conocemos el límite de cada calle: solo hay límite si el cliente fijó uno. */
+  const appLimit = (state) => (state.features.speedAlert === 'manual' ? state.features.manualLimit : null);
   function limitFor(state) {
     const f = state.features;
     return f.speedAlert === 'manual' ? f.manualLimit : ZONES[live.zone].limit;
@@ -97,6 +106,14 @@
     return out;
   }
 
+  /** Tarjeta del clima con datos reales (Open-Meteo); sin datos todavía, lo dice. */
+  function appWeather(state) {
+    const w = TB.preview.app.weather;
+    if (!w) return `<div class="weather"><span class="wx">${icon('sol', 44)}</span><b>—</b><span class="wd">Clima<small>sin datos aún</small></span></div>`;
+    const t = (v) => Math.round(v) + '°';
+    return `<div class="weather"><span class="wx">${icon(WX(w.code), 44)}</span><b>${t(w.temp)}</b><span class="wd">${esc(w.text)}<small>Sensación ${t(w.feels)} · ${Math.round(w.humidity)}%</small></span></div>`;
+  }
+
   /* ---------- piezas de la pantalla de inicio ---------- */
   function pieces(state, ui) {
     const f = state.features;
@@ -114,8 +131,8 @@
     const carHtml = car.photo
       ? `<img class="car-photo${car.photoCut ? ' cut' : ''}${night && car.photoCut ? ' night' : ''}" src="${night && car.photoCut && car.photoNight ? car.photoNight : car.photo}" alt="Tu auto">`
       : TB.carSVG(car.type, car.color, night, ++uid);
-    const limit = limitFor(state);
-    const spd = dist(live.speed, state);
+    const limit = appMode() ? appLimit(state) : limitFor(state);
+    const spd = dist(appMode() ? TB.preview.app.speed || 0 : live.speed, state);
     const items = maintItems(state);
     return {
       hello: `${esc(car.greeting)}, ${car.name ? esc(car.name) : 'amigo'}`,
@@ -125,13 +142,17 @@
       date,
       dateShort,
       speed: f.speedShow ? `<div class="spd"><b data-speed>${spd}</b><span>${su(state)}</span></div>` : '',
-      weather: `<div class="weather"><span class="wx">${icon('lluvia', 44)}</span><b>14°</b><span class="wd">Lluvioso<small>Sensación 13° · 82%</small></span></div>`,
-      radio: `<div class="radio-mini"><button class="rbtn" data-go="radio" aria-label="Anterior">${icon('prev', 22)}</button><div><small>FM</small><b>${live.freq.toFixed(1)}</b><i>MHz</i></div><button class="rbtn" data-go="radio" aria-label="Siguiente">${icon('next', 22)}</button></div>`,
-      music: `<div class="music"><span class="src">Bluetooth</span><div class="disc"></div><b>Camino a casa</b><span>Artista de ejemplo</span><div class="ctl"><button class="rbtn" aria-label="Anterior">${icon('prev', 24)}</button><button class="rbtn play" aria-label="Reproducir">${icon('play', 26)}</button><button class="rbtn" aria-label="Siguiente">${icon('next', 24)}</button></div></div>`,
-      limitSign: `<div class="limit"><div class="sign"><b data-limit>${dist(limit, state)}</b></div><small>${f.speedAlert === 'manual' ? 'Límite fijo' : 'Límite de la vía'}</small></div>`,
+      weather: appMode() ? appWeather(state) : `<div class="weather"><span class="wx">${icon('lluvia', 44)}</span><b>14°</b><span class="wd">Lluvioso<small>Sensación 13° · 82%</small></span></div>`,
+      radio: appMode()
+        ? `<div class="radio-mini"><div><small>Radio</small><b>FM</b><i>Toca para abrir</i></div><button class="rbtn play" data-open="radio" aria-label="Abrir la radio">${icon('play', 26)}</button></div>`
+        : `<div class="radio-mini"><button class="rbtn" data-go="radio" aria-label="Anterior">${icon('prev', 22)}</button><div><small>FM</small><b>${live.freq.toFixed(1)}</b><i>MHz</i></div><button class="rbtn" data-go="radio" aria-label="Siguiente">${icon('next', 22)}</button></div>`,
+      music: appMode()
+        ? `<div class="music"><span class="src">Música</span><div class="disc"></div><b>Tu música</b><span>Abre tu app favorita</span><div class="ctl"><button class="rbtn play" data-open="music" aria-label="Abrir música">${icon('play', 26)}</button></div></div>`
+        : `<div class="music"><span class="src">Bluetooth</span><div class="disc"></div><b>Camino a casa</b><span>Artista de ejemplo</span><div class="ctl"><button class="rbtn" aria-label="Anterior">${icon('prev', 24)}</button><button class="rbtn play" aria-label="Reproducir">${icon('play', 26)}</button><button class="rbtn" aria-label="Siguiente">${icon('next', 24)}</button></div></div>`,
+      limitSign: `<div class="limit"><div class="sign"><b data-limit>${limit == null ? '—' : dist(limit, state)}</b></div><small>${f.speedAlert === 'manual' ? 'Límite fijo' : 'Límite de la vía'}</small></div>`,
       routeCard: `<div class="route-card"><div><small>Altitud</small><b>2.850 m</b></div><div class="compass" aria-hidden="true"><svg viewBox="0 0 60 60" width="64" height="64"><circle cx="30" cy="30" r="27" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/><text x="30" y="11" text-anchor="middle" font-size="9" fill="currentColor">N</text><path d="M30 12 L36 32 L30 28 L24 32Z" fill="var(--accent)" transform="rotate(42 30 30)"/><path d="M30 48 L24 32 L30 36 L36 32Z" fill="currentColor" opacity=".45" transform="rotate(42 30 30)"/></svg></div><div><small>Rumbo</small><b>NE 42°</b></div></div>`,
       mapCard: `<svg class="mapsvg" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="160" fill="rgba(255,255,255,.06)"/><g fill="none" stroke="rgba(255,255,255,.22)" stroke-width="6" stroke-linecap="round"><path d="M-10 120 L120 110 L170 60 L310 70"/><path d="M60 -10 L80 90 L70 170"/><path d="M200 -10 L190 70 L230 170"/></g><path d="M-10 120 L120 110 L170 60 L260 66" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round"/><circle cx="170" cy="60" r="9" fill="var(--accent)"/><circle cx="170" cy="60" r="3.5" fill="var(--accent-ink)"/></svg><div class="map-info"><b>Ruta a casa</b><small>18 min · ${imp(state) ? '7,7 mi' : '12,4 km'}</small></div>`,
-      menu: `<nav class="side-menu card">${[['inicio', 'casa', 'Inicio'], ['radio', 'radio', 'Radio'], ['bluetooth', 'bluetooth', 'Bluetooth'], ['mantenimiento', 'check', 'Mantención']].map(([go, ic, t], i) => `<button class="sm${i === 0 ? ' on' : ''}" data-go="${go}">${icon(ic, 28)}<span>${t}</span></button>`).join('')}</nav>`,
+      menu: `<nav class="side-menu card">${[['inicio', 'casa', 'Inicio'], ['radio', 'radio', 'Radio'], ['bluetooth', 'bluetooth', 'Bluetooth'], ['mantenimiento', 'check', 'Mantención']].map(([go, ic, t], i) => `<button class="sm${i === 0 ? ' on' : ''}" ${go === 'radio' || go === 'bluetooth' ? openAttr(go) : `data-go="${go}"`}>${icon(ic, 28)}<span>${t}</span></button>`).join('')}</nav>`,
       plate: car.plate ? `<span class="plate">${esc(car.plate)}</span>` : '',
       maint: items.length ? `<div class="maint${items[0].warn ? ' warn' : ''}" data-maint><b>${esc(items[0].key)}</b><span>${esc(items[0].text)}</span></div>` : '',
       hasMaint: items.length > 0,
@@ -211,14 +232,14 @@
   };
 
   function dock(state, ui) {
-    const items = [{ go: 'inicio', ic: 'casa', t: 'Inicio' }, { go: 'radio', ic: 'radio', t: 'Radio' }, { go: 'bluetooth', ic: 'bluetooth', t: 'Bluetooth' }];
+    const items = [{ go: 'inicio', ic: 'casa', t: 'Inicio' }, { go: 'radio', open: 'radio', ic: 'radio', t: 'Radio' }, { go: 'bluetooth', open: 'bluetooth', ic: 'bluetooth', t: 'Bluetooth' }];
     state.style.apps.forEach((id) => {
       const a = TB.apps.find((x) => x.id === id);
-      if (a) items.push({ ic: id, t: id === 'telefono' ? 'Teléfono' : a.name });
+      if (a) items.push({ app: id, ic: id, t: id === 'telefono' ? 'Teléfono' : a.name });
     });
     items.push({ go: 'mantenimiento', ic: 'check', t: 'Mantención' });
     return `<nav class="dock">${items
-      .map((i) => `<button class="dk${i.go && i.go === ui.screen ? ' on' : ''}" ${i.go ? `data-go="${i.go}"` : ''}><span class="ic">${icon(i.ic, 30)}</span><small>${esc(i.t)}</small></button>`)
+      .map((i) => `<button class="dk${i.go && i.go === ui.screen ? ' on' : ''}" ${i.open && appMode() ? `data-open="${i.open}"` : i.go ? `data-go="${i.go}"` : ''} ${i.app ? `data-app="${i.app}"` : ''}><span class="ic">${icon(i.ic, 30)}</span><small>${esc(i.t)}</small></button>`)
       .join('')}</nav>`;
   }
 
@@ -282,13 +303,19 @@
     const { state } = current;
     live.n++;
     if (!reduced && live.n % 12 === 0) live.zone = (live.zone + 1) % ZONES.length;
-    const limit = limitFor(state);
-    const target = reduced ? limit + 8 : limit + 7 * Math.sin(live.n / 3.5) - 1;
-    live.speed += (target - live.speed) * 0.4;
-    const v = Math.max(0, Math.round(live.speed));
+    const real = TB.preview.app;
+    const limit = real ? appLimit(state) : limitFor(state);
+    let v;
+    if (real) {
+      v = Math.max(0, Math.round(real.speed || 0)); // velocidad real del GPS
+    } else {
+      const target = reduced ? limit + 8 : limit + 7 * Math.sin(live.n / 3.5) - 1;
+      live.speed += (target - live.speed) * 0.4;
+      v = Math.max(0, Math.round(live.speed));
+    }
 
     scr.querySelectorAll('[data-speed]').forEach((el) => (el.textContent = dist(v, state)));
-    scr.querySelectorAll('[data-limit]').forEach((el) => (el.textContent = dist(limit, state)));
+    scr.querySelectorAll('[data-limit]').forEach((el) => (el.textContent = limit == null ? '—' : dist(limit, state)));
     const time = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
     scr.querySelectorAll('[data-clock]').forEach((el) => (el.textContent = time));
 
@@ -296,7 +323,7 @@
     if (za && live.zoneMsg && Date.now() >= live.zoneUntil) { za.hidden = true; live.zoneMsg = null; }
     const alert = scr.querySelector('.alert');
     if (alert) {
-      const show = state.features.speedAlert !== 'off' && v > limit;
+      const show = state.features.speedAlert !== 'off' && limit != null && v > limit;
       alert.hidden = !show;
       if (show) alert.textContent = `Baja la velocidad · ${dist(v, state)} ${su(state)} · límite ${dist(limit, state)}`;
     }
@@ -320,6 +347,14 @@
     scr.className = 'scr';
     host.appendChild(scr);
     const fit = () => {
+      if (appMode()) {
+        // Pantalla completa: la radio se ajusta a lo ancho o a lo alto, lo que quepa, y queda centrada.
+        const s = Math.min(host.clientWidth / 1024, host.clientHeight / 600);
+        scr.style.transform = `scale(${s})`;
+        scr.style.left = Math.round((host.clientWidth - 1024 * s) / 2) + 'px';
+        scr.style.top = Math.round((host.clientHeight - 600 * s) / 2) + 'px';
+        return;
+      }
       const s = host.clientWidth / 1024;
       scr.style.transform = `scale(${s})`;
       host.style.height = Math.round(600 * s) + 'px';
@@ -334,6 +369,13 @@
         live.freq = parseFloat(fr.dataset.freqSet);
         if (current) render(current.state, current.ui);
         return;
+      }
+      const app = TB.preview.app;
+      if (app) {
+        const open = e.target.closest('[data-open]');
+        if (open) { app.open(open.dataset.open); return; }
+        const a = e.target.closest('[data-app]');
+        if (a) { app.openApp(a.dataset.app); return; }
       }
       const go = e.target.closest('[data-go]');
       if (go && TB.preview.onGo) TB.preview.onGo(go.dataset.go);
@@ -351,5 +393,5 @@
     if (za) { za.hidden = false; za.className = 'zone-alert' + (n.warn ? ' warn' : ''); za.firstElementChild.textContent = n.text; }
   }
 
-  TB.preview = { mount, render, onGo: null, maintItems, showZoneNotice };
+  TB.preview = { mount, render, onGo: null, maintItems, showZoneNotice, app: null };
 })();

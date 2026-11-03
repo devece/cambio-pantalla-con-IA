@@ -4,13 +4,15 @@
  * El launcher en la radio llama aquí para activar su código.
  * Regla: un código se liga a UNA radio. Si ya está ligado a otra, se rechaza.
  * Solo se guarda un hash (HMAC) del identificador de la radio.
- * Respuesta correcta: { ok: true, status: 'active', plan: 'esencial' | 'completo' }.
+ * Respuesta correcta: { ok: true, status: 'active', plan: 'esencial' | 'completo', design }.
+ * `design` es lo que el cliente armó en el sitio (configuración + enlaces temporales a su foto) o null si el código se creó a mano.
  *
  * Requiere SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY y LICENSE_PEPPER.
  */
 const { normalizeCode, hashDeviceId } = require('../lib/license.js');
 const { allowMethod, readJson, rateLimit } = require('../lib/http.js');
 const db = require('../lib/supabase.js');
+const { buildDesign } = require('../lib/design.js');
 
 module.exports = async function handler(req, res) {
   if (!allowMethod(req, res, 'POST')) return;
@@ -46,10 +48,11 @@ module.exports = async function handler(req, res) {
       if (!updated || !updated.length) return res.status(409).json({ ok: false, error: 'Este código ya fue activado.' });
     }
     // El launcher necesita saber qué plan compró para decidir qué desbloquear.
-    const orders = await db.rest(`orders?public_id=eq.${encodeURIComponent(lic.order_public_id)}&select=plan&limit=1`);
+    const orders = await db.rest(`orders?public_id=eq.${encodeURIComponent(lic.order_public_id)}&select=plan,config&limit=1`);
     const plan = orders && orders[0] && orders[0].plan;
     if (!plan) throw new Error('Licencia sin pedido asociado');
-    return res.status(200).json({ ok: true, status: 'active', plan });
+    const design = await buildDesign(orders[0].config);
+    return res.status(200).json({ ok: true, status: 'active', plan, design });
   } catch (err) {
     console.error('license: error', err.status, err.detail);
     return res.status(502).json({ ok: false, error: 'No pudimos verificar el código. Intenta de nuevo.' });

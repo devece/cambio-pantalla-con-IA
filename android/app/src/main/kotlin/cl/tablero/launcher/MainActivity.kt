@@ -54,6 +54,7 @@ class MainActivity : Activity() {
     private var askedLocation = false
     private lateinit var restriction: RestrictionRules
     private var zoneView: TextView? = null
+    private var web: WebLauncher? = null
     private var insideZone = false
     private val handler = Handler(Looper.getMainLooper())
     private val hideZone = Runnable { zoneView?.visibility = View.GONE }
@@ -64,6 +65,8 @@ class MainActivity : Activity() {
         override fun onLocationChanged(location: Location) {
             val kmh = if (location.hasSpeed()) (location.speed * 3.6f).roundToInt() else 0
             showSpeed(kmh)
+            web?.setSpeed(kmh)
+            web?.setLocation(location.latitude, location.longitude)
             checkZone(location.latitude, location.longitude)
         }
 
@@ -86,7 +89,19 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         config = Gate.apply(settings.load(), entitlement.limits)
-        setContentView(buildUi())
+        web?.destroy()
+        web = null
+        val designs = DesignStore(this)
+        val design = if (designs.has()) designs.loadText() else null
+        if (design != null) {
+            // Con el diseño del cliente: se dibuja con el mismo motor del sitio, con datos reales de la radio.
+            config = designs.applyTo(config)
+            val launcher = WebLauncher(this, design)
+            web = launcher
+            setContentView(launcher.view)
+        } else {
+            setContentView(buildUi())
+        }
         startSpeed()
         greetOnce()
     }
@@ -102,6 +117,8 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        web?.destroy()
+        web = null
         tts?.shutdown()
         super.onDestroy()
     }
@@ -427,6 +444,11 @@ class MainActivity : Activity() {
     }
 
     private fun showZoneNotice(n: RestrictionNotice) {
+        web?.let {
+            it.zoneNotice(n.text, n.warn)
+            speak(n.text)
+            return
+        }
         zoneView?.apply {
             text = n.text
             visibility = View.VISIBLE

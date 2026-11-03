@@ -47,7 +47,10 @@ jobs:
           for f in editions maintenance restriction; do
             grep -q "assets/$f.json" contenido.txt || { echo "::error::Falta assets/$f.json dentro del APK"; exit 1; }
           done
-          echo "El APK trae editions, maintenance y restriction."
+          for f in launcher.html css/preview.css js/preview.js js/launcher.js js/art.js js/themes.js js/fx.js shared/catalog.js img/auto.png; do
+            grep -q "assets/web/$f" contenido.txt || { echo "::error::Falta assets/web/$f dentro del APK"; exit 1; }
+          done
+          echo "El APK trae sus datos y la pantalla de inicio."
 
       - name: Dejar el APK con un nombre fijo
         run: cp android/app/build/outputs/apk/debug/app-debug.apk tablero.apk

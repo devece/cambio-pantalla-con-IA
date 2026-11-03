@@ -1,0 +1,49 @@
+name: Android
+
+# Compila la app de la radio y deja el APK listo para descargar.
+# Se ejecuta solo al cambiar la carpeta android/ o los datos compartidos, y también a mano (Actions > Android > Run workflow).
+on:
+  push:
+    paths:
+      - 'android/**'
+      - 'public/shared/**'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Pruebas de las reglas (sin Android)
+        working-directory: android
+        run: ./gradlew --no-daemon :core:test
+
+      - name: Compilar el APK
+        working-directory: android
+        run: ./gradlew --no-daemon :app:assembleDebug -PtableroApiBase=https://tablero-pearl.vercel.app
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tablero-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: reportes-de-error
+          path: |
+            android/core/build/reports/tests
+            android/app/build/reports

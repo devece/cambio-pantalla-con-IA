@@ -70,7 +70,8 @@ class ActivationActivity : Activity() {
             if (result is ActivationResult.Activated) {
                 try {
                     val store = DesignStore(this)
-                    if (result.design != null) store.save(result.design) else store.clear()
+                    val design = result.design
+                    if (design != null) store.save(design) else store.clear()
                 } catch (e: Exception) {
                     // sin diseño la app igual queda activada, con su pantalla de siempre
                 }

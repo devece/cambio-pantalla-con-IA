@@ -41,6 +41,14 @@ jobs:
         working-directory: android
         run: ./gradlew --no-daemon :app:assembleDebug -PtableroApiBase=https://tablero-pearl.vercel.app
 
+      - name: Revisar que el APK trae sus datos
+        run: |
+          unzip -l android/app/build/outputs/apk/debug/app-debug.apk > contenido.txt
+          for f in editions maintenance restriction; do
+            grep -q "assets/$f.json" contenido.txt || { echo "::error::Falta assets/$f.json dentro del APK"; exit 1; }
+          done
+          echo "El APK trae editions, maintenance y restriction."
+
       - name: Dejar el APK con un nombre fijo
         run: cp android/app/build/outputs/apk/debug/app-debug.apk tablero.apk
 

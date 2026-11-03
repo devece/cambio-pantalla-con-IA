@@ -50,3 +50,9 @@ val copyEditions = tasks.register<Copy>("copyEditions") {
 android.sourceSets.getByName("main").assets.srcDir(
     files(layout.buildDirectory.dir("generated/editions")).builtBy(copyEditions)
 )
+
+// El srcDir de arriba no arrastra la dependencia de la tarea: sin esto `copyEditions` nunca corre
+// y el APK queda sin sus JSON (la app se cerraría al abrir). Se verifica además en el flujo de GitHub.
+tasks.configureEach {
+    if (name.startsWith("merge") && name.endsWith("Assets")) dependsOn(copyEditions)
+}

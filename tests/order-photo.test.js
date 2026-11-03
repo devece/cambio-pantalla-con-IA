@@ -13,14 +13,18 @@ const res = () => {
   return r;
 };
 let n = 0;
+const crypto = require('node:crypto');
+const TOKEN = 'llave-secreta-del-pedido';
+const TOKEN_HASH = crypto.createHash('sha256').update(TOKEN).digest('hex');
 const post = async (body) => {
   const r = res();
-  await require('../api/order-photo.js')({ method: 'POST', headers: { 'x-forwarded-for': 'ph-' + n++ }, body }, r);
+  const withToken = Object.prototype.hasOwnProperty.call(body, 'token') ? body : Object.assign({ token: TOKEN }, body);
+  await require('../api/order-photo.js')({ method: 'POST', headers: { 'x-forwarded-for': 'ph-' + n++ }, body: withToken }, r);
   return r;
 };
 
 function setup(status = 'pending') {
-  const orders = [{ public_id: 'TB-0A1B2C3D', status, config: { car: { type: 'auto' } } }];
+  const orders = [{ public_id: 'TB-0A1B2C3D', status, config: { car: { type: 'auto' }, photoTokenHash: TOKEN_HASH } }];
   const stored = {};
   db.configured = () => true;
   db.storageUpload = async (bucket, path, buf, type) => { stored[path] = { bucket, size: buf.length, type }; return path; };
@@ -45,6 +49,7 @@ test('guarda la foto de día y la de noche junto al pedido', async () => {
   assert.equal(photo.night, 'orders/TB-0A1B2C3D/night.png');
   assert.deepEqual(photo.lights, [{ kind: 'faro', x: 0.2, y: 0.5, size: 1 }], 'solo luces válidas');
   assert.deepEqual(orders[0].config.car, { type: 'auto' }, 'no pierde el resto de la configuración');
+  assert.equal(orders[0].config.photoTokenHash, TOKEN_HASH, 'conserva la llave del pedido');
 });
 
 test('rechaza pedidos inválidos, ajenos o ya pagados', async () => {
@@ -70,4 +75,19 @@ test('sin base de datos responde 503', async () => {
   setup();
   db.configured = () => false;
   assert.equal((await post({ orderId: 'TB-0A1B2C3D', kind: 'day', image: png() })).code, 503);
+});
+
+test('sin la llave del pedido no se puede cambiar la foto de otro cliente', async () => {
+  const { stored } = setup();
+  assert.equal((await post({ orderId: 'TB-0A1B2C3D', kind: 'day', image: png(), token: 'adivinada' })).code, 403);
+  assert.equal((await post({ orderId: 'TB-0A1B2C3D', kind: 'day', image: png(), token: '' })).code, 403);
+  assert.equal((await post({ orderId: 'TB-0A1B2C3D', kind: 'day', image: png(), token: 12345 })).code, 403);
+  assert.deepEqual(stored, {}, 'no se guardó nada');
+});
+
+test('un pedido antiguo sin llave guardada no admite fotos nuevas', async () => {
+  const { orders, stored } = setup();
+  delete orders[0].config.photoTokenHash;
+  assert.equal((await post({ orderId: 'TB-0A1B2C3D', kind: 'day', image: png() })).code, 403);
+  assert.deepEqual(stored, {});
 });

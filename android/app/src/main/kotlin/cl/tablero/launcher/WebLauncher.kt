@@ -58,10 +58,11 @@ class WebLauncher(private val activity: Activity, private val designJson: String
             javaScriptEnabled = true
             domStorageEnabled = true
             allowFileAccess = true
+            // La pantalla solo lee sus propios archivos con <script> e <img>: no necesita que una página local lea otros archivos.
             @Suppress("DEPRECATION")
-            allowFileAccessFromFileURLs = true
+            allowFileAccessFromFileURLs = false
             @Suppress("DEPRECATION")
-            allowUniversalAccessFromFileURLs = true
+            allowUniversalAccessFromFileURLs = false
             cacheMode = WebSettings.LOAD_DEFAULT
         }
         view.addJavascriptInterface(Bridge(), "Android")

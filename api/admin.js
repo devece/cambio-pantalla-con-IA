@@ -43,8 +43,13 @@ async function ensureLicense(orderId) {
 
 const ACTIONS = {
   async list() {
-    const orders = await db.rest('orders?select=public_id,status,plan,total,contact_kind,contact_value,created_at,paid_at,config&order=created_at.desc&limit=60');
-    const licenses = await db.rest('licenses?select=code,order_public_id,status,device_hash,activated_at,transfers_used,created_at&order=created_at.desc&limit=100');
+    const cols = 'public_id,status,plan,total,contact_kind,contact_value,created_at,paid_at,config';
+    const recent = (await db.rest(`orders?select=${cols}&order=created_at.desc&limit=300`)) || [];
+    // Los pendientes se piden aparte: así un pedido antiguo sin pagar nunca queda fuera de la lista.
+    const pend = (await db.rest(`orders?select=${cols}&status=eq.pending&order=created_at.desc&limit=200`)) || [];
+    const seen = new Set(recent.map((o) => o.public_id));
+    const orders = recent.concat(pend.filter((o) => !seen.has(o.public_id)));
+    const licenses = await db.rest('licenses?select=code,order_public_id,status,device_hash,activated_at,transfers_used,created_at&order=created_at.desc&limit=300');
     const byOrder = Object.fromEntries((orders || []).map((o) => [o.public_id, o]));
     return {
       pending: (orders || []).filter((o) => o.status === 'pending').map(({ config, ...o }) => ({ ...o, hasPhoto: !!(config && config.photo && config.photo.day) })),

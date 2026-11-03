@@ -31,9 +31,23 @@ android {
         jvmTarget = "17"
     }
 
+    // Firma de release: solo si CI entrega la clave (secretos TB_KEYSTORE_*). Sin ella se compila el APK de prueba (debug).
+    val keystorePath = System.getenv("TB_KEYSTORE_FILE")
+    signingConfigs {
+        if (keystorePath != null && file(keystorePath).exists()) {
+            create("tablero") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("TB_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("TB_KEY_ALIAS")
+                keyPassword = System.getenv("TB_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfigs.findByName("tablero")?.let { signingConfig = it }
         }
     }
 }

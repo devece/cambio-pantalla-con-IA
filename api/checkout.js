@@ -29,6 +29,9 @@ module.exports = async function handler(req, res) {
 
   const q = quote(clean);
   const orderId = 'TB-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+  // Llave secreta del pedido: solo quien lo creó puede subir su foto después (se guarda únicamente su hash).
+  const photoToken = crypto.randomBytes(16).toString('hex');
+  const photoTokenHash = crypto.createHash('sha256').update(photoToken).digest('hex');
 
   if (!db.configured()) {
     return res.status(200).json({
@@ -54,7 +57,7 @@ module.exports = async function handler(req, res) {
         currency: q.currency,
         contact_kind: clean.contact.kind,
         contact_value: clean.contact.value,
-        config: { radio: clean.radio, car: clean.car, style: clean.style, features: clean.features },
+        config: { radio: clean.radio, car: clean.car, style: clean.style, features: clean.features, photoTokenHash },
       },
     });
   } catch (err) {
@@ -67,6 +70,7 @@ module.exports = async function handler(req, res) {
       ok: true,
       mode: 'pending-payment',
       orderId,
+      photoToken,
       total: q.total,
       currency: q.currency,
       paymentUrl: null,
@@ -92,6 +96,7 @@ module.exports = async function handler(req, res) {
       ok: true,
       mode: 'paypal',
       orderId,
+      photoToken,
       total: q.total,
       currency: q.currency,
       paymentUrl: pp.approveUrl,

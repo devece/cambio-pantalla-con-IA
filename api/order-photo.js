@@ -6,6 +6,7 @@
  *
  * Requiere SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY y el bucket privado `tablero-fotos`.
  */
+const crypto = require('node:crypto');
 const { allowMethod, readJson, rateLimit } = require('../lib/http.js');
 const { parseImage } = require('../lib/radio-analysis.js');
 const { cleanLights } = require('../lib/lights.js');
@@ -41,6 +42,13 @@ module.exports = async function handler(req, res) {
     const rows = await db.rest(`orders?public_id=eq.${orderId}&select=status,config&limit=1`);
     const order = rows && rows[0];
     if (!order) return res.status(404).json({ ok: false, error: 'No encontramos ese pedido.' });
+    // Solo quien creó el pedido tiene la llave (se entrega en la respuesta de /api/checkout; aquí solo queda su hash).
+    const expected = order.config && order.config.photoTokenHash;
+    const given = typeof body.token === 'string' ? body.token.slice(0, 64) : '';
+    const givenHash = crypto.createHash('sha256').update(given).digest('hex');
+    if (!expected || typeof expected !== 'string' || expected.length !== 64 || !crypto.timingSafeEqual(Buffer.from(givenHash), Buffer.from(expected))) {
+      return res.status(403).json({ ok: false, error: 'No tienes permiso para cambiar la foto de este pedido.' });
+    }
     if (order.status !== 'pending') return res.status(409).json({ ok: false, error: 'Este pedido ya no admite cambios de foto.' });
 
     const ext = EXT[img.mediaType];

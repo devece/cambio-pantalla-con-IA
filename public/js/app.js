@@ -793,14 +793,14 @@
   }));
 
   /** Sube la foto del auto (y su versión de noche) junto al pedido. Devuelve 'ok', 'none' (no hay foto) o 'fail'. */
-  async function uploadOrderPhotos(orderId) {
+  async function uploadOrderPhotos(orderId, token) {
     if (!state.car.photo) return 'none';
     const send = async (kind, url) => {
       const image = await blobToDataUrl(url);
       const r = await fetch('/api/order-photo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, kind, image, cut: state.car.photoCut === true, lights: lightPts }),
+        body: JSON.stringify({ orderId, token, kind, image, cut: state.car.photoCut === true, lights: lightPts }),
       });
       const d = await r.json().catch(() => ({}));
       return r.ok && d.ok;
@@ -904,7 +904,7 @@
       if (!data.ok) { showErrors(data.errors || [data.error || 'No pudimos procesar tu pedido.']); return; }
       if ((TB.site || {}).payment === 'contact') {
         if (state.car.photo) btn.textContent = 'Guardando tu foto…';
-        data.photo = await uploadOrderPhotos(data.orderId);
+        data.photo = await uploadOrderPhotos(data.orderId, data.photoToken);
         showContactOrder(data);
         return;
       }

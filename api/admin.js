@@ -43,11 +43,11 @@ async function ensureLicense(orderId) {
 
 const ACTIONS = {
   async list() {
-    const orders = await db.rest('orders?select=public_id,status,plan,total,contact_kind,contact_value,created_at,paid_at&order=created_at.desc&limit=60');
+    const orders = await db.rest('orders?select=public_id,status,plan,total,contact_kind,contact_value,created_at,paid_at,config&order=created_at.desc&limit=60');
     const licenses = await db.rest('licenses?select=code,order_public_id,status,device_hash,activated_at,transfers_used,created_at&order=created_at.desc&limit=100');
     const byOrder = Object.fromEntries((orders || []).map((o) => [o.public_id, o]));
     return {
-      pending: (orders || []).filter((o) => o.status === 'pending'),
+      pending: (orders || []).filter((o) => o.status === 'pending').map(({ config, ...o }) => ({ ...o, hasPhoto: !!(config && config.photo && config.photo.day) })),
       licenses: (licenses || []).map((l) => ({
         code: l.code,
         orderId: l.order_public_id,
@@ -58,6 +58,7 @@ const ACTIONS = {
         createdAt: l.created_at,
         plan: (byOrder[l.order_public_id] || {}).plan || null,
         contact: (byOrder[l.order_public_id] || {}).contact_value || '',
+        hasPhoto: !!(((byOrder[l.order_public_id] || {}).config || {}).photo || {}).day,
       })),
     };
   },

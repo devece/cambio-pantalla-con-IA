@@ -123,7 +123,7 @@
         $('#login').hidden = true; $('#app').hidden = false;
         var body = $('#codes tbody');
         body.innerHTML = d.licenses.map(function (l) {
-          return '<tr><td><code>' + esc(l.code) + '</code><br><small>' + esc(l.orderId) + (l.contact ? ' · ' + esc(l.contact) : '') + '</small></td>' +
+          return '<tr><td><code>' + esc(l.code) + '</code><br><small>' + esc(l.orderId) + (l.contact ? ' · ' + esc(l.contact) : '') + (l.hasPhoto ? ' · foto ✓' : '') + '</small></td>' +
             '<td>' + esc(l.plan || '') + '</td><td>' + badge(l) + (l.transfersUsed ? '<br><small>traspasos: ' + l.transfersUsed + '</small>' : '') + '</td>' +
             '<td><button type="button" class="btn link" data-act="release" data-code="' + esc(l.code) + '">Liberar radio</button> ' +
             (l.status === 'revoked' ? '' : '<button type="button" class="btn link" data-act="revoke" data-code="' + esc(l.code) + '">Anular</button>') + '</td></tr>';
@@ -131,7 +131,7 @@
         $('#codes-empty').hidden = d.licenses.length > 0;
         $('#pending').innerHTML = d.pending.length
           ? '<p class="hint">Pedidos esperando pago:</p>' + d.pending.map(function (o) {
-              return '<div class="row"><span><b>' + esc(o.public_id) + '</b> · ' + esc(o.plan) + ' · ' + money(o.total) + ' · ' + esc(o.contact_value) + '</span><button type="button" class="btn ghost" data-confirm="' + esc(o.public_id) + '">Confirmar pago</button></div>';
+              return '<div class="row"><span><b>' + esc(o.public_id) + '</b> · ' + esc(o.plan) + ' · ' + money(o.total) + ' · ' + esc(o.contact_value) + (o.hasPhoto ? ' · foto ✓' : ' · sin foto') + '</span><button type="button" class="btn ghost" data-confirm="' + esc(o.public_id) + '">Confirmar pago</button></div>';
             }).join('')
           : '';
       });

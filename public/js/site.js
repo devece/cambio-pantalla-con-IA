@@ -21,6 +21,6 @@
     instagram: '',
     // Opcionales: si los completas, el sitio muestra la opción gratis y el enlace "Ya tengo mi código".
     freeUrl: '',      // p. ej. la página de Releases con el APK gratuito
-    downloadUrl: '',  // dirección de descarga de la app: se muestra en la guía de instalación (listo.html)
+    downloadUrl: 'https://tablero-pearl.vercel.app/app',  // dirección corta para descargar la app: se muestra en la guía (listo.html). Redirige al instalador.
   };
 })();

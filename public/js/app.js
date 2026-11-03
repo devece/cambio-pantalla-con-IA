@@ -784,6 +784,36 @@
     if (list.length) ul.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
 
+  /* ---------- foto del pedido (se envía solo al hacer el pedido) ---------- */
+  const blobToDataUrl = (url) => fetch(url).then((r) => r.blob()).then((b) => new Promise((ok, fail) => {
+    const f = new FileReader();
+    f.onload = () => ok(f.result);
+    f.onerror = fail;
+    f.readAsDataURL(b);
+  }));
+
+  /** Sube la foto del auto (y su versión de noche) junto al pedido. Devuelve 'ok', 'none' (no hay foto) o 'fail'. */
+  async function uploadOrderPhotos(orderId) {
+    if (!state.car.photo) return 'none';
+    const send = async (kind, url) => {
+      const image = await blobToDataUrl(url);
+      const r = await fetch('/api/order-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, kind, image, cut: state.car.photoCut === true, lights: lightPts }),
+      });
+      const d = await r.json().catch(() => ({}));
+      return r.ok && d.ok;
+    };
+    try {
+      if (!(await send('day', state.car.photo))) return 'fail';
+      if (state.car.photoCut && nightUrl) await send('night', nightUrl); // la de noche es un extra: si falla, igual queda la de día
+      return 'ok';
+    } catch (_) {
+      return 'fail';
+    }
+  }
+
   /* ---------- pago por transferencia bancaria ---------- */
   const waNumber = (raw) => {
     const d = String(raw || '').replace(/\D/g, '');
@@ -791,7 +821,7 @@
   };
 
   /** Texto del pedido para mandárselo a quien arma la pantalla: resumen legible y los datos para armarla. */
-  function orderMessage(orderId, total) {
+  function orderMessage(orderId, total, photo) {
     const rows = $$('#summary div').map((d) => `${$('dt', d).textContent}: ${$('dd', d).textContent}`);
     const q = O.quote(state);
     const clean = O.validateOrder(payload()).clean;
@@ -800,7 +830,7 @@
       `Plan: ${q.lines.map((l) => l.name).join(' + ')}`,
       ...rows,
       `Contacto: ${state.contact.kind === 'email' ? 'correo' : 'WhatsApp'} ${state.contact.value}`,
-      'Te adjunto el comprobante y la foto de mi auto.',
+      photo === 'ok' ? 'Mi foto ya quedó guardada con el pedido.' : state.car.photo ? 'No pude subir mi foto: te la envío por aquí.' : 'Te adjunto el comprobante y la foto de mi auto.',
       '',
       'Datos para armarlo (no lo borres):',
       JSON.stringify(clean),
@@ -811,7 +841,7 @@
   function showContactOrder(data) {
     const site = TB.site || {};
     const web = site.web || {};
-    const msg = orderMessage(data.orderId, data.total).replace(' y ya transferí ', ' por ');
+    const msg = orderMessage(data.orderId, data.total, data.photo).replace(' y ya transferí ', ' por ');
     const wa = waNumber(site.whatsapp);
     let go = '';
     if (wa) go = `<a class="btn cta" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Enviar mi pedido por WhatsApp</a>`;
@@ -824,10 +854,11 @@
       <ol class="mini-steps">
         <li>Copia tu pedido (botón de abajo).</li>
         <li>Ábrelo en ${esc(web.name || 'Daniexpress')} y pégalo en el mensaje de contacto.</li>
-        <li>Envía también la foto de tu auto.</li>
+        ${data.photo === 'ok' ? '<li>Tu foto ya quedó guardada con tu pedido: no tienes que enviarla.</li>' : '<li>Envía también la foto de tu auto.</li>'}
       </ol>
       <div class="codebtns"><button type="button" class="btn primary" data-copy-order>Copiar mi pedido</button>${go}</div>
-      <p class="hint" id="copy-note">Tu pedido incluye todo lo que elegiste, así que no tienes que explicar nada.</p>`;
+      <p class="hint" id="copy-note">Tu pedido incluye todo lo que elegiste, así que no tienes que explicar nada.</p>
+      ${data.photo === 'fail' ? '<p class="error">No pudimos guardar tu foto. Envíasela a Daniexpress junto con tu pedido.</p>' : ''}`;
     done.dataset.order = msg;
     done.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
@@ -871,7 +902,12 @@
       try { data = await res.json(); } catch (_) { /* respuesta sin JSON */ }
       if (!data) { showErrors(['No pudimos conectar con el servidor. Revisa tu internet e intenta de nuevo.']); return; }
       if (!data.ok) { showErrors(data.errors || [data.error || 'No pudimos procesar tu pedido.']); return; }
-      if ((TB.site || {}).payment === 'contact') { showContactOrder(data); return; }
+      if ((TB.site || {}).payment === 'contact') {
+        if (state.car.photo) btn.textContent = 'Guardando tu foto…';
+        data.photo = await uploadOrderPhotos(data.orderId);
+        showContactOrder(data);
+        return;
+      }
       if ((TB.site || {}).payment === 'transfer') { showTransfer(data); return; }
       if (data.paymentUrl) { window.location.href = data.paymentUrl; return; }
       const done = $('#pay-done');

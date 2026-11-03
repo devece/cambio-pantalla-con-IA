@@ -10,7 +10,7 @@
   const defaults = () => ({
     radio: { type: 'android', model: '' },
     car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', phrase: '', plate: '', photo: null, photoCut: false, photoNight: null },
-    style: { theme: 'ruta', layout: 'tarjetas', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
+    style: { theme: 'cristal', layout: 'tarjetas', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
       oilOn: true, odometer: 0, lastOil: 0, oilEvery: 5000, others: [], docsOn: false, rtMonth: 1, fuelOn: false, tankL: 45, kmPerL: 12,
       speedShow: true, speedAlert: 'auto', manualLimit: 60, restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: false, miles: false, gallons: false,
@@ -95,6 +95,7 @@
       TB.preview.app = app;
       TB.preview.onGo = (id) => { ui.screen = id === 'inicio' ? 'inicio' : id; render(); };
       if (!mounted) { TB.preview.mount(document.getElementById('host')); mounted = true; }
+      document.getElementById('key').hidden = !!(design && design.config);
       setDesign(design);
     },
     setSpeed(kmh) { app.speed = Number(kmh) || 0; },
@@ -103,6 +104,7 @@
     zoneNotice(text, warn) { TB.preview.showZoneNotice({ text: String(text), warn: !!warn }); },
   };
 
+  document.getElementById('key').addEventListener('click', () => bridge('open', 'activate'));
   document.querySelector('[data-gear]').addEventListener('click', () => bridge('open', 'settings'));
   setInterval(() => { if (mounted && nightForced === null && ui.night !== hourNight()) render(); }, 60000);
 

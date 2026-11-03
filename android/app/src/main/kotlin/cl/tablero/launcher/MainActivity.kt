@@ -92,16 +92,12 @@ class MainActivity : Activity() {
         web?.destroy()
         web = null
         val designs = DesignStore(this)
-        val design = if (designs.has()) designs.loadText() else null
-        if (design != null) {
-            // Con el diseño del cliente: se dibuja con el mismo motor del sitio, con datos reales de la radio.
-            config = designs.applyTo(config)
-            val launcher = WebLauncher(this, design)
-            web = launcher
-            setContentView(launcher.view)
-        } else {
-            setContentView(buildUi())
-        }
+        val saved = if (designs.has()) designs.loadText() else null
+        if (saved != null) config = designs.applyTo(config)
+        // Con o sin código se dibuja con el motor del sitio; sin código, con el diseño base de la edición gratuita.
+        val launcher = WebLauncher(this, saved ?: "{}")
+        web = launcher
+        setContentView(launcher.view)
         startSpeed()
         greetOnce()
     }

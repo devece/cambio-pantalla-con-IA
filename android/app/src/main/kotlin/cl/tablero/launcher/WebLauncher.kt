@@ -85,6 +85,7 @@ class WebLauncher(private val activity: Activity, private val designJson: String
                 when (kind) {
                     "radio" -> openRadio()
                     "bluetooth" -> start(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+                    "activate" -> start(Intent(activity, ActivationActivity::class.java))
                     "settings" -> start(Intent(activity, SettingsActivity::class.java))
                     "music" -> toast("Agrega Spotify o YouTube Music a tu pantalla para abrir tu música desde aquí.")
                 }

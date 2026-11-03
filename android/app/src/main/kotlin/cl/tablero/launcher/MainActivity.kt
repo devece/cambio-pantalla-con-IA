@@ -486,12 +486,12 @@ class MainActivity : Activity() {
     /* ---------- utilidades ---------- */
 
     private fun open(pkg: String) {
-        val intent = packageManager.getLaunchIntentForPackage(pkg)
+        val intent = Apps.launchIntent(packageManager, pkg)
         if (intent == null) Toast.makeText(this, "Esa app no está instalada en la radio", Toast.LENGTH_SHORT).show()
         else startActivity(intent)
     }
 
-    private fun isInstalled(pkg: String): Boolean = packageManager.getLaunchIntentForPackage(pkg) != null
+    private fun isInstalled(pkg: String): Boolean = Apps.isInstalled(packageManager, pkg)
 
     private fun card(): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL

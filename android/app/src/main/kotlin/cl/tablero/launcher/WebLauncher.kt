@@ -94,12 +94,12 @@ class WebLauncher(private val activity: Activity, private val designJson: String
     }
 
     private fun openRadio() {
-        val pkg = RADIO_PACKAGES.firstOrNull { activity.packageManager.getLaunchIntentForPackage(it) != null }
+        val pkg = RADIO_PACKAGES.firstOrNull { Apps.isInstalled(activity.packageManager, it) }
         if (pkg == null) toast("No encontramos la app de radio de tu equipo.") else launch(pkg)
     }
 
     private fun launch(pkg: String) {
-        val intent = activity.packageManager.getLaunchIntentForPackage(pkg)
+        val intent = Apps.launchIntent(activity.packageManager, pkg)
         if (intent == null) toast("Esa app no está instalada en la radio.") else start(intent)
     }
 

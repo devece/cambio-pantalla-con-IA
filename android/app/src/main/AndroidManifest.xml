@@ -5,11 +5,17 @@
     <!-- Velocidad y alerta de velocidad (solo mientras la pantalla de inicio está abierta). -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <!-- Ver todas las apps instaladas (el APK no se publica en Play Store): así las reconoce aunque la radio use otro tipo de icono. -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
     <!-- Desde Android 11 hay que declarar qué apps queremos poder abrir desde el launcher. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
         </intent>
     </queries>
 

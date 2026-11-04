@@ -78,7 +78,7 @@
   (function () {
     var $ = function (s) { return document.querySelector(s); };
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
-    var money = function (n) { return '$' + Math.round(n).toLocaleString('es-CL'); };
+    var money = function (cents) { return 'US$' + (cents / 100).toLocaleString('es-CL', { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 }); };
     var token = '';
     try { token = sessionStorage.getItem('tb-admin') || ''; } catch (e) {}
 

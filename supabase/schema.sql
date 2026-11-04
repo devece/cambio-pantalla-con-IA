@@ -10,13 +10,13 @@ create table if not exists public.tablero_orders (
                  check (status in ('pending','paid','failed','refunded')),
   plan           text not null,
   addons         jsonb not null default '{}'::jsonb,
-  total          integer not null check (total >= 0), -- CLP, sin decimales
-  currency       text not null default 'CLP',
+  total          integer not null check (total >= 0), -- centavos de USD (800 = US$ 8,00)
+  currency       text not null default 'USD',
   contact_kind   text not null check (contact_kind in ('whatsapp','email')),
   contact_value  text not null,
   config         jsonb not null,                       -- radio, auto, estilo, funciones (sin foto)
   payment_ref    text,                                 -- id del cobro en el proveedor (PayPal, si se usa)
-  charge_amount  numeric(10,2),                        -- monto exacto pedido al proveedor (PayPal va en USD)
+  charge_amount  numeric(10,2),                        -- monto exacto pedido al proveedor (en USD)
   charge_currency text,
   created_at     timestamptz not null default now(),
   paid_at        timestamptz

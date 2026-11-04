@@ -77,7 +77,7 @@ test('crear un código deja el pedido pagado y una licencia con formato válido'
 test('confirmar un pedido pendiente crea su código una sola vez', async () => {
   const d = fakeDb();
   process.env.ADMIN_TOKEN = 'clave-secreta';
-  d.orders.push({ public_id: 'TB-0A1B2C3D', status: 'pending', plan: 'esencial', total: 9990, contact_value: '+56912345678' });
+  d.orders.push({ public_id: 'TB-0A1B2C3D', status: 'pending', plan: 'esencial', total: 300, contact_value: '+56912345678' });
   const a = await call({ action: 'confirm', orderId: 'tb-0a1b2c3d' });
   const b = await call({ action: 'confirm', orderId: 'TB-0A1B2C3D' });
   assert.equal(a.code, 200);

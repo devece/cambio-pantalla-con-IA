@@ -1,6 +1,7 @@
 /*
  * Catálogo compartido entre el navegador y el servidor (api/).
- * Los PRECIOS SON DE EJEMPLO: defínelos tú antes de vender.
+ * Los precios están en dólares (USD) y se guardan en CENTAVOS (300 = US$ 3,00).
+ * Los PRECIOS SON DE EJEMPLO: confírmalos tú antes de vender.
  * El servidor siempre recalcula el total con este archivo; nunca confía en el precio que manda el navegador.
  */
 (function (root, factory) {
@@ -11,13 +12,13 @@
     {
       id: 'esencial',
       name: 'Esencial',
-      price: 9990,
+      price: 300,
       blurb: 'Tu pantalla con 3 diseños visuales y todas las funciones de manejo.',
     },
     {
       id: 'completo',
       name: 'Completo',
-      price: 14990,
+      price: 800,
       blurb: 'Los 8 diseños visuales, decoraciones de temporada y cambios ilimitados.',
     },
   ];
@@ -26,7 +27,7 @@
     {
       id: 'foto',
       name: 'Foto de tu auto con luces',
-      price: 3990,
+      price: 100,
       blurb: 'Preparamos tu foto de día y de noche, con el fondo recortado.',
       // false = el servicio todavía no existe: ni se muestra ni se cobra. Cámbialo cuando esté listo.
       available: false,
@@ -102,7 +103,7 @@
   };
 
   return {
-    currency: 'CLP',
+    currency: 'USD',
     locale: 'es-CL',
     plans,
     addons,

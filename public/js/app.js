@@ -925,7 +925,6 @@
   /* ---------- arranque ---------- */
   function init() {
     const site = TB.site || {};
-    if (site.prototype) $('#ribbon').hidden = false;
     $('#brand-name').textContent = site.name || 'Tablero';
     $('#foot-name').textContent = site.name || 'Tablero';
     $('#year').textContent = new Date().getFullYear();
@@ -950,7 +949,7 @@
     if (site.freeUrl) { $('#free-link').href = site.freeUrl; $('#free-option').hidden = false; }
     const plans = C.plans;
     const prices = plans ? Object.values(plans).map((p) => p.price).filter((n) => typeof n === 'number') : [];
-    if (prices.length) $('#price-from').textContent = 'Desde $' + Math.min(...prices).toLocaleString('es-CL');
+    if (prices.length) $('#price-from').textContent = 'Desde ' + O.money(Math.min(...prices));
 
     load();
     build();

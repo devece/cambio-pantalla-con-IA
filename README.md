@@ -1,6 +1,6 @@
 # Tablero
 
-Configurador web para un launcher de radios Android de auto, pensado para Chile (precios en CLP, teléfono +56 9, restricción vehicular por GPS, revisión técnica, permiso de circulación, SOAP).
+Configurador web para un launcher de radios Android de auto, pensado para Chile (precios en USD, teléfono +56 9, restricción vehicular por GPS, revisión técnica, permiso de circulación, SOAP).
 
 El cliente elige radio, auto, diseño y funciones; ve su pantalla funcionando en vivo; paga; y recibe un código para activar el launcher en su radio.
 
@@ -10,7 +10,7 @@ El cliente elige radio, auto, diseño y funciones; ve su pantalla funcionando en
 
 - Sitio estático (HTML/CSS/JS sin build) en `public/`.
 - Vista previa de la radio (1024×600) con 8 temas visuales (día y noche), 4 distribuciones, 5 pantallas, fondos, autos generados en SVG y decoración de temporada (Fiestas Patrias, Halloween, Navidad, Año Nuevo).
-- Planes: **Esencial** $9.990 y **Completo** $14.990 CLP (valores de ejemplo, ajústalos en `public/shared/catalog.js`).
+- Planes: **Esencial** US$ 3 y **Completo** US$ 8, más un extra de US$ 1 (aún desactivado). Los precios están en centavos en `public/shared/catalog.js`.
 - Funciones de API (Vercel) en `api/`: `checkout` (valida y cotiza; el precio siempre se recalcula en el servidor) y `license` (activa un código vinculado a una sola radio).
 - Esquema de base de datos Supabase en `supabase/schema.sql` (RLS activado, sin políticas públicas).
 
@@ -35,7 +35,6 @@ Copia `.env.example` a `.env`:
 | `SITE_URL` | URL pública del sitio (a donde vuelve PayPal) |
 | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` | Credenciales de tu app en developer.paypal.com |
 | `PAYPAL_ENV` | `sandbox` (pruebas) o `live` (cobra de verdad) |
-| `PAYPAL_CLP_PER_USD` | Tipo de cambio fijo: PayPal no acepta CLP, se cobra en USD |
 
 ## Pago con PayPal
 
@@ -43,14 +42,14 @@ Copia `.env.example` a `.env`:
 2. El cliente aprueba en PayPal y vuelve a `api/paypal-return.js`, que captura el cobro, comprueba que el monto coincide con lo guardado, marca el pedido `paid` y muestra el código de licencia. Es idempotente: recargar no duplica nada.
 3. Si cancela, vuelve al paso de pago con su configuración intacta.
 
-Pruébalo primero en `sandbox` con una cuenta compradora de prueba (developer.paypal.com > Sandbox > Accounts). Revisa `PAYPAL_CLP_PER_USD` de vez en cuando: el cliente ve el total en CLP, pero PayPal le cobra el equivalente en USD.
+Pruébalo primero en `sandbox` con una cuenta compradora de prueba (developer.paypal.com > Sandbox > Accounts). El cliente ve y paga el mismo total en USD, sin conversión.
 
 ## Publicar en Vercel
 
 1. Sube el repositorio a GitHub e impórtalo en Vercel (la configuración está en `vercel.json`).
 2. Crea el proyecto en Supabase y ejecuta `supabase/schema.sql`.
 3. Carga las variables de entorno en Vercel.
-4. Cuando todo esté listo, cambia `TB.site.prototype` a `false` en `public/js/site.js` y completa `supportEmail` y `whatsapp`.
+4. Completa `supportEmail` y `whatsapp` en `public/js/site.js`.
 
 ## Notas legales
 

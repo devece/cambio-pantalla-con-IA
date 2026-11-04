@@ -23,7 +23,9 @@
     const h = s && Number.isInteger(s.h) ? s.h : 0;
     return w >= 200 && w <= 8000 && h >= 200 && h <= 8000 ? { w, h } : null;
   };
-  const money = (n) => new Intl.NumberFormat(C.locale, { style: 'currency', currency: C.currency, maximumFractionDigits: 0 }).format(n);
+  // Los precios están en centavos: 300 -> "US$3" (sin decimales si es exacto, "US$3,50" si no).
+  const money = (cents) =>
+    new Intl.NumberFormat(C.locale, { style: 'currency', currency: C.currency, minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 }).format(cents / 100);
 
   /** Plan mínimo que necesita lo elegido en "estilo". */
   function requiredPlan(style) {

@@ -6,8 +6,8 @@
  * Estado actual:
  *  - Con SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY: guarda el pedido en la tabla `orders` (estado 'pending').
  *  - Sin esas variables: modo demostración (no guarda nada).
- *  - Con además PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET y PAYPAL_CLP_PER_USD: crea el cobro en PayPal
- *    (en USD, porque PayPal no acepta CLP) y devuelve `paymentUrl`. Al volver, api/paypal-return.js captura
+ *  - Con además PAYPAL_CLIENT_ID y PAYPAL_CLIENT_SECRET: crea el cobro en PayPal
+ *    (en USD, la moneda del catálogo) y devuelve `paymentUrl`. Al volver, api/paypal-return.js captura
  *    el pago y emite la licencia en el servidor, nunca desde el navegador.
  *  - Sin PayPal configurado el pedido queda 'pending' y `paymentUrl` es null.
  */
@@ -78,7 +78,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const amount = paypal.clpToUsd(q.total);
+    const amount = paypal.centsToUsd(q.total);
     const site = siteUrl(req);
     const pp = await paypal.createOrder({
       orderId,

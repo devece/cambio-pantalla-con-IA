@@ -80,7 +80,7 @@ const ACTIONS = {
         plan: plan.id,
         addons: {},
         total: plan.price,
-        currency: 'CLP',
+        currency: 'USD',
         contact_kind: 'whatsapp',
         contact_value: text(body.note, 120) || 'venta manual',
         config: { manual: true },

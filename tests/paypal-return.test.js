@@ -14,7 +14,6 @@ function setup({ captureStatus = 'COMPLETED', captureValue = '10.52' } = {}) {
     SUPABASE_SERVICE_ROLE_KEY: 'k',
     PAYPAL_CLIENT_ID: 'id',
     PAYPAL_CLIENT_SECRET: 's',
-    PAYPAL_CLP_PER_USD: '950',
   });
   const reply = (status, body) => ({ ok: status < 400, status, text: async () => JSON.stringify(body) });
 

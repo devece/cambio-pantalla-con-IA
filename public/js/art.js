@@ -28,55 +28,214 @@
     check: '<path d="M5 12.500l4.500 4.500L19 7.500"/>',
   };
 
+  /* ---------- Ilustraciones del paso "¿Cómo es tu radio?" ---------- */
+  const dots = ['#ff6b6b', '#ffd166', '#06d6a0', '#4cc9f0', '#a78bfa', '#ff9f68', '#5eead4', '#f472b6'];
+  TB.radioThumbs = {
+    android:
+      '<svg viewBox="0 0 120 72" aria-hidden="true"><rect width="120" height="72" rx="8" fill="#1d1f3a"/><rect x="6" y="6" width="108" height="60" rx="5" fill="#3b3fb5"/><rect x="6" y="6" width="108" height="9" rx="4" fill="rgba(0,0,0,.28)"/>' +
+      dots.map((c, i) => `<circle cx="${22 + (i % 4) * 25}" cy="${i < 4 ? 30 : 50}" r="8" fill="${c}"/>`).join('') +
+      '</svg>',
+    original:
+      '<svg viewBox="0 0 120 72" aria-hidden="true"><rect width="120" height="72" rx="8" fill="#23262e"/><rect x="31" y="12" width="58" height="22" rx="3" fill="#6f8fb0"/><rect x="35" y="16" width="30" height="4" rx="1" fill="rgba(255,255,255,.55)"/>' +
+      '<circle cx="14" cy="36" r="9" fill="#12141a" stroke="#4b505c" stroke-width="2"/><circle cx="106" cy="36" r="9" fill="#12141a" stroke="#4b505c" stroke-width="2"/>' +
+      [0, 1, 2, 3, 4].map((i) => `<rect x="${31 + i * 12}" y="42" width="9" height="6" rx="1.5" fill="#3a3f49"/>`).join('') +
+      '<rect x="31" y="54" width="58" height="5" rx="2" fill="#3a3f49"/></svg>',
+    nose:
+      '<svg viewBox="0 0 120 72" aria-hidden="true"><rect width="120" height="72" rx="8" fill="#23253a"/><text x="60" y="55" text-anchor="middle" font-family="Rubik, sans-serif" font-size="52" font-weight="700" fill="#8c90b8">?</text></svg>',
+  };
+
+  /* ---------- Miniaturas de los diseños (esquemas) ---------- */
+  const mini = (body) => `<svg viewBox="0 0 120 72" aria-hidden="true"><rect width="120" height="72" rx="8" fill="#24264a"/>${body}</svg>`;
+  const blk = (x, y, w, h, o) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="#fff" opacity="${o || 0.22}"/>`;
+  const dockMini = blk(8, 62, 104, 5, 0.3);
+  TB.layoutThumbs = {
+    estelar: mini(blk(8, 10, 24, 30, 0.12) + '<rect x="12" y="14" width="16" height="8" rx="3" fill="#ffd166" opacity=".85"/>' + '<path d="M38 40 L46 30 L60 28 L72 30 L80 40Z" fill="#fff" opacity=".7"/><path d="M38 44 L80 44" stroke="#fff" stroke-width="3" opacity=".25"/>' + blk(88, 8, 24, 32) + blk(88, 44, 24, 12) + dockMini),
+    tarjetas: mini(blk(8, 8, 44, 48) + blk(56, 8, 24, 22) + blk(56, 34, 24, 22) + blk(84, 8, 28, 48) + dockMini),
+    centro: mini(blk(8, 8, 26, 22) + blk(8, 34, 26, 22) + blk(38, 8, 44, 48, 0.12) + blk(86, 8, 26, 22) + blk(86, 34, 26, 22) + '<rect x="44" y="30" width="32" height="12" rx="5" fill="#ffd166" opacity=".85"/>' + dockMini),
+    manejo: mini('<rect x="10" y="12" width="52" height="40" rx="6" fill="#ffd166" opacity=".8"/>' + blk(68, 8, 44, 20) + blk(68, 32, 44, 12) + blk(68, 48, 44, 10) + dockMini),
+    minimal: mini('<rect x="26" y="12" width="68" height="22" rx="6" fill="#fff" opacity=".7"/>' + blk(26, 40, 32, 16) + blk(62, 40, 32, 16) + dockMini),
+    tablero: mini(blk(8, 8, 56, 48, 0.16) + '<rect x="14" y="14" width="24" height="12" rx="3" fill="#ffd166" opacity=".85"/>' + blk(68, 8, 44, 14) + blk(68, 26, 44, 30, 0.14) + '<path d="M70 50 L84 40 L92 44 L108 32" stroke="#ffd166" stroke-width="3" fill="none" stroke-linecap="round"/>' + dockMini),
+    lateral: mini(blk(8, 8, 18, 48, 0.28) + blk(30, 8, 38, 22) + blk(30, 34, 38, 22) + blk(72, 8, 40, 48) + dockMini),
+    todoterreno: mini('<rect x="10" y="8" width="44" height="18" rx="4" fill="#ffd166" opacity=".85"/>' + blk(80, 8, 30, 14) + '<path d="M10 52 L20 38 L36 36 L44 28 L82 28 L92 38 L108 42 L108 52Z" fill="#fff" opacity=".4"/>' + blk(8, 54, 104, 8, 0.2)),
+  };
+
   /* ---------- Autos (vista lateral, de frente a la derecha) ---------- */
   const CARS = {
     auto: {
       body: 'M14 106 L14 90 Q14 82 26 80 L74 74 L108 48 Q116 42 130 42 L238 42 Q252 42 262 52 L292 74 L358 82 Q386 86 386 102 L386 108 Q386 112 380 112 L14 112 Z',
       glass: ['M118 52 Q124 48 134 48 L198 48 L198 74 L96 74 Z', 'M206 48 L238 48 Q246 48 252 55 L274 74 L206 74 Z'],
       wheels: [102, 300],
+      glassBottom: 74,
+      doors: [112, 202, 286],
+      streak: [[150, 168], [226, 244]],
     },
     suv: {
       body: 'M14 106 L14 86 Q14 78 26 76 L66 72 L100 42 Q106 36 120 36 L284 36 Q296 36 302 44 L330 74 L362 80 Q386 84 386 100 L386 108 Q386 112 380 112 L14 112 Z',
       glass: ['M112 46 Q116 42 124 42 L190 42 L190 72 L90 72 Z', 'M198 42 L284 42 Q290 42 294 48 L314 72 L198 72 Z'],
       wheels: [100, 304],
+      glassBottom: 72,
+      doors: [104, 194, 300],
+      streak: [[140, 160], [220, 244]],
     },
     camioneta: {
       body: 'M14 108 L14 62 L150 62 L162 42 Q168 36 180 36 L262 36 Q272 36 278 44 L300 72 L360 78 Q386 82 386 100 L386 108 Q386 112 380 112 L14 112 Z',
       glass: ['M170 44 L226 44 L226 70 L156 70 Z', 'M234 44 L262 44 Q268 44 272 50 L288 70 L234 70 Z'],
       wheels: [96, 306],
+      glassBottom: 70,
+      doors: [160, 230, 292],
+      streak: [[190, 204], [246, 260]],
       extra: '<rect x="22" y="66" width="122" height="6" rx="2" fill="rgba(0,0,0,.28)"/>',
     },
   };
 
+  /* Mezcla un color #rrggbb con blanco (amt > 0) o con negro (amt < 0). */
+  function shade(hex, amt) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+    const n = parseInt(m ? m[1] : '888888', 16);
+    const t = amt < 0 ? 0 : 255;
+    const p = Math.abs(amt);
+    const ch = (v) => Math.round(v + (t - v) * p);
+    return '#' + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => ch(v).toString(16).padStart(2, '0')).join('');
+  }
+
+  /* ---------- Camioneta con imagen real, repintada al color elegido ---------- */
+  /* Autos con imagen real. `lamp`: zona (fracciones del ancho/alto) que no se repinta, como la luz trasera. */
+  const CAR_IMAGES = {
+    camioneta: { src: 'img/camioneta.png', lamp: [0, 0.056, 0.33, 0.57] },
+    '4x4': { src: 'img/camioneta.png', lamp: [0, 0.056, 0.33, 0.57] },
+    auto: { src: 'img/auto.png', lamp: null, flip: true },
+  };
+  const tinted = {};
+  const carImgs = {};
+  function hsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+    let h = 0, s = 0;
+    if (d) {
+      s = d / (1 - Math.abs(2 * l - 1));
+      h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      h = (h * 60 + 360) % 360;
+    }
+    return [h, s, l];
+  }
+  function rgb(h, s, l) {
+    const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = l - c / 2;
+    const [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+    return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
+  }
+  /** Cambia solo la pintura roja de la foto al color elegido; vidrios, llantas y faros no se tocan. */
+  function tintPickup(img, color, lamp) {
+    const cv = document.createElement('canvas');
+    cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+    const cx = cv.getContext('2d', { willReadFrequently: true });
+    cx.drawImage(img, 0, 0);
+    const data = cx.getImageData(0, 0, cv.width, cv.height);
+    const px = data.data;
+    const m = /^#?([0-9a-f]{6})$/i.exec(color || '');
+    const n = parseInt(m ? m[1] : 'b3261e', 16);
+    const [th, ts, tl] = hsl((n >> 16) & 255, (n >> 8) & 255, n & 255);
+    const lampX = lamp ? cv.width * lamp[1] : 0, lampY0 = lamp ? cv.height * lamp[2] : 0, lampY1 = lamp ? cv.height * lamp[3] : 0;
+    for (let i = 0; i < px.length; i += 4) {
+      if (px[i + 3] < 8) continue;
+      const x = (i / 4) % cv.width, y = Math.floor(i / 4 / cv.width);
+      if (lamp && x < lampX && y > lampY0 && y < lampY1) continue;
+      const [h, s, l] = hsl(px[i], px[i + 1], px[i + 2]);
+      if (s < 0.12 || l < 0.015 || l > 0.9 || !(h >= 335 || h <= 42)) continue;
+      const ns = Math.min(1, s * (ts / 0.6));
+      const nl = tl > 0.55 ? Math.min(0.97, tl * (0.5 + l * 1.5)) : Math.min(0.96, Math.max(0.03, l * (tl / 0.3)));
+      const [r, g, b] = rgb(th, ts < 0.12 ? ts * 0.5 : ns, nl);
+      px[i] = r; px[i + 1] = g; px[i + 2] = b;
+    }
+    cx.putImageData(data, 0, 0);
+    return cv.toDataURL('image/png');
+  }
+  /** Repinta los autos con imagen ya dibujados dentro de `root` (se llama después de cada render). */
+  TB.tintCars = function (root) {
+    root.querySelectorAll('img[data-car]').forEach((el) => {
+      const info = CAR_IMAGES[el.dataset.car];
+      const color = el.dataset.color;
+      const key = info.src + '|' + color;
+      const apply = () => {
+        if (!tinted[key]) { try { tinted[key] = tintPickup(carImgs[info.src], color, info.lamp); } catch (e) { tinted[key] = info.src; } }
+        el.src = tinted[key];
+      };
+      let img = carImgs[info.src];
+      if (img && img.complete && img.naturalWidth) return apply();
+      if (!img) { img = new Image(); img.src = info.src; carImgs[info.src] = img; }
+      img.addEventListener('load', apply, { once: true });
+    });
+  };
+
   /** Auto en SVG. `uid` evita choques de ids cuando hay más de un auto en pantalla. */
   TB.carSVG = function (type, color, night, uid) {
+    const real = CAR_IMAGES[type];
+    if (real) {
+      const lights = night ? '<div class="pickup-beam"></div>' : '';
+      return `<div class="pickup${type === '4x4' ? ' lift' : ''}${real.flip ? ' flip' : ''}">${lights}<img class="pickup-img" data-car="${type}" data-color="${color}" src="${tinted[real.src + '|' + color] || real.src}" alt="" aria-hidden="true"></div>`;
+    }
     const c = CARS[type] || CARS.auto;
     const id = 'c' + (uid || '0');
-    const glass = night ? '#1a2531' : '#d4e8f4';
+    const hi = shade(color, 0.38);
+    const lo = shade(color, -0.42);
+    const doors = (c.doors || [])
+      .map((x) => `<path d="M${x} ${c.glassBottom} L${x + 2} 104" stroke="rgba(0,0,0,.32)" stroke-width="1.4" fill="none"/><rect x="${x - 15}" y="${c.glassBottom + 8}" width="11" height="2.8" rx="1.4" fill="rgba(255,255,255,.55)"/>`)
+      .join('');
     const wheels = c.wheels
-      .map(
-        (cx) =>
-          `<circle cx="${cx}" cy="108" r="29" fill="rgba(0,0,0,.55)"/><circle cx="${cx}" cy="108" r="25" fill="#101214"/><circle cx="${cx}" cy="108" r="13" fill="#a3acb3"/><circle cx="${cx}" cy="108" r="5" fill="#3a4047"/>`
-      )
+      .map((cx) => {
+        let spokes = '';
+        for (let k = 0; k < 5; k++) {
+          const ang = (k * 72 + 18) * (Math.PI / 180);
+          spokes += `<path d="M${cx} 108 L${(cx + Math.cos(ang) * 17).toFixed(1)} ${(108 + Math.sin(ang) * 17).toFixed(1)}" stroke="#cfd6db" stroke-width="4.2" stroke-linecap="round"/>`;
+        }
+        return (
+          `<circle cx="${cx}" cy="108" r="33" fill="#05070a"/>` +
+          `<circle cx="${cx}" cy="108" r="27" fill="#14171a"/>` +
+          `<circle cx="${cx}" cy="108" r="27" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.5"/>` +
+          `<circle cx="${cx}" cy="108" r="19.500" fill="#2a3036"/>` +
+          `<circle cx="${cx}" cy="108" r="18" fill="url(#${id}r)"/>` +
+          spokes +
+          `<circle cx="${cx}" cy="108" r="5" fill="#eef1f3"/><circle cx="${cx}" cy="108" r="2" fill="#4a5158"/>`
+        );
+      })
       .join('');
     const beam = night
-      ? `<polygon points="384,92 560,56 560,132" fill="url(#${id}b)"/><ellipse cx="388" cy="94" rx="44" ry="20" fill="url(#${id}g)"/>`
+      ? `<polygon points="384,92 600,40 600,150" fill="url(#${id}b)"/><ellipse cx="388" cy="94" rx="50" ry="22" fill="url(#${id}g)"/>`
       : '';
+    const sky = night ? ['#33465c', '#0b121b'] : ['#e9f5fc', '#6f9db8'];
+    const glassFill = c.glass.map((g) => `<path d="${g}" fill="url(#${id}w)"/>`).join('');
+    const streaks = c.glass
+      .map((g, i) => `<clipPath id="${id}k${i}"><path d="${g}"/></clipPath><g clip-path="url(#${id}k${i})"><polygon points="${c.streak[i][0]} 40 ${c.streak[i][0] + 26} 40 ${c.streak[i][0] - 12} 84 ${c.streak[i][0] - 38} 84" fill="rgba(255,255,255,${night ? 0.1 : 0.42})"/><polygon points="${c.streak[i][1]} 40 ${c.streak[i][1] + 8} 40 ${c.streak[i][1] - 30} 84 ${c.streak[i][1] - 38} 84" fill="rgba(255,255,255,${night ? 0.07 : 0.3})"/></g>`)
+      .join('');
     return `<svg class="car-svg" viewBox="0 0 400 150" style="overflow:visible" aria-hidden="true">
       <defs>
-        <linearGradient id="${id}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".32"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".34"/></linearGradient>
-        <linearGradient id="${id}b" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff6c8" stop-opacity=".55"/><stop offset="1" stop-color="#fff6c8" stop-opacity="0"/></linearGradient>
-        <radialGradient id="${id}g"><stop offset="0" stop-color="#fff6c8" stop-opacity=".9"/><stop offset="1" stop-color="#fff6c8" stop-opacity="0"/></radialGradient>
+        <linearGradient id="${id}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${hi}"/><stop offset=".38" stop-color="${color}"/><stop offset=".78" stop-color="${lo}"/><stop offset="1" stop-color="${shade(color, -0.6)}"/></linearGradient>
+        <linearGradient id="${id}h" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".28"/><stop offset=".22" stop-color="#fff" stop-opacity="0"/><stop offset=".62" stop-color="#fff" stop-opacity=".16"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></linearGradient>
+        <linearGradient id="${id}w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient>
+        <radialGradient id="${id}r"><stop offset="0" stop-color="#6b747c"/><stop offset="1" stop-color="#1c2025"/></radialGradient>
+        <linearGradient id="${id}b" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff6c8" stop-opacity=".6"/><stop offset="1" stop-color="#fff6c8" stop-opacity="0"/></linearGradient>
+        <radialGradient id="${id}g"><stop offset="0" stop-color="#fff6c8" stop-opacity=".95"/><stop offset="1" stop-color="#fff6c8" stop-opacity="0"/></radialGradient>
+        <radialGradient id="${id}e"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <clipPath id="${id}c"><path d="${c.body}"/></clipPath>
       </defs>
-      <ellipse cx="200" cy="118" rx="190" ry="9" fill="rgba(0,0,0,.38)"/>
+      <ellipse cx="200" cy="120" rx="205" ry="13" fill="url(#${id}e)"/>
       ${beam}
-      <path d="${c.body}" fill="${color}"/>
       <path d="${c.body}" fill="url(#${id}s)"/>
-      ${c.extra || ''}
-      ${c.glass.map((g) => `<path d="${g}" fill="${glass}"/>`).join('')}
+      <g clip-path="url(#${id}c)">
+        <rect x="0" y="${c.glassBottom + 6}" width="400" height="20" fill="url(#${id}h)"/>
+        <path d="M0 ${c.glassBottom + 3} H400" stroke="rgba(255,255,255,.5)" stroke-width="1.6"/>
+        <path d="M0 ${c.glassBottom + 22} H400" stroke="rgba(0,0,0,.22)" stroke-width="1.4"/>
+        <rect x="0" y="100" width="400" height="14" fill="rgba(0,0,0,.28)"/>
+        ${c.extra || ''}
+      </g>
+      ${doors}
+      ${glassFill}${streaks}
+      ${c.glass.map((g) => `<path d="${g}" fill="none" stroke="rgba(10,14,18,.65)" stroke-width="2.4" stroke-linejoin="round"/>`).join('')}
+      ${c.wheels.map((cx) => `<circle cx="${cx}" cy="108" r="35" fill="#06080b" clip-path="url(#${id}c)" opacity=".9"/>`).join('')}
       ${wheels}
-      <path d="M368 88 L384 90 L384 98 L366 96 Z" fill="${night ? '#fff6c8' : '#e6edf0'}"/>
-      <rect x="14" y="88" width="6" height="10" rx="1.500" fill="${night ? '#ff3b2f' : '#9c2a24'}"/>
+      <path d="M364 86 Q378 85 387 92 L387 100 L368 98 Q362 96 364 86 Z" fill="${night ? '#fffbe6' : '#f3f6f8'}" stroke="rgba(0,0,0,.35)" stroke-width="1"/>
+      <path d="M370 90 Q379 90 384 94" stroke="rgba(120,130,140,.6)" stroke-width="1.6" fill="none"/>
+      <rect x="14" y="86" width="9" height="12" rx="2.500" fill="${night ? '#ff3b2f' : '#b3261e'}" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
+      <path d="M16 112 H384" stroke="rgba(0,0,0,.5)" stroke-width="3" opacity=".6"/>
     </svg>`;
   };
 
@@ -100,6 +259,17 @@
 
   TB.scene = function (id) {
     switch (id) {
+      case 'aurora':
+        // Manchas de luz difusas: dan profundidad al degradado y algo que el vidrio pueda desenfocar.
+        return (
+          '<defs><filter id="aur-b" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="70"/></filter></defs>' +
+          '<g filter="url(#aur-b)">' +
+          '<circle cx="150" cy="120" r="190" style="fill:var(--orb1);opacity:.85"/>' +
+          '<circle cx="880" cy="90" r="170" style="fill:var(--orb2);opacity:.8"/>' +
+          '<circle cx="760" cy="520" r="230" style="fill:var(--orb3);opacity:.75"/>' +
+          '<circle cx="220" cy="560" r="170" style="fill:var(--orb2);opacity:.55"/>' +
+          '</g>'
+        );
       case 'cordillera':
         return (
           layer(`<polygon points="${ridge(11, 400, 190, 12)}"/>`, 0.1) +
@@ -145,6 +315,43 @@
         }
         return layer(b, 0.08) + '<g style="fill:var(--accent);opacity:.2">' + w + '</g>';
       }
+      case 'montana':
+        return (
+          layer(`<polygon points="${ridge(5, 330, 220, 9)}"/>`, 0.1) +
+          layer(`<polygon points="${ridge(17, 400, 200, 11)}"/>`, 0.17) +
+          layer(`<polygon points="${ridge(29, 470, 130, 13)}"/>`, 0.26) +
+          '<polygon points="0,600 0,545 220,520 480,552 760,512 1024,548 1024,600" style="fill:rgba(0,0,0,.2)"/>'
+        );
+      case 'nieve': {
+        let flakes = '';
+        const q = rng(41);
+        for (let i = 0; i < 46; i++) flakes += `<circle cx="${Math.round(q() * 1024)}" cy="${Math.round(60 + q() * 440)}" r="${(1.2 + q() * 2.6).toFixed(1)}"/>`;
+        return (
+          layer(`<polygon points="${ridge(8, 340, 230, 9)}"/>`, 0.14) +
+          layer(`<polygon points="${ridge(21, 420, 170, 12)}"/>`, 0.22) +
+          '<polygon points="0,600 0,520 260,500 560,530 820,498 1024,520 1024,600" style="fill:rgba(255,255,255,.26)"/>' +
+          '<g style="fill:#fff;opacity:.5">' + flakes + '</g>'
+        );
+      }
+      case 'rocas': {
+        const q = rng(13);
+        let rocks = '';
+        for (let i = 0; i < 9; i++) {
+          const x = Math.round(q() * 960);
+          const w = 70 + Math.round(q() * 120);
+          const h = 36 + Math.round(q() * 70);
+          const y = 600 - h - Math.round(q() * 30);
+          rocks += `<polygon points="${x},${y + h} ${x + w * 0.18},${y + h * 0.3} ${x + w * 0.5},${y} ${x + w * 0.85},${y + h * 0.38} ${x + w},${y + h}"/>`;
+        }
+        return layer(`<polygon points="${ridge(6, 400, 150, 10)}"/>`, 0.12) + layer(rocks, 0.2) + '<polygon points="0,600 0,560 1024,556 1024,600" style="fill:rgba(0,0,0,.22)"/>';
+      }
+      case 'barro':
+        return (
+          layer(`<polygon points="${ridge(9, 430, 90, 9)}"/>`, 0.1) +
+          '<path d="M0 600 V500 Q 200 470 420 505 T 820 490 T 1024 510 V600Z" style="fill:rgba(60,35,15,.42)"/>' +
+          '<g style="fill:none;stroke:rgba(0,0,0,.28);stroke-width:7;stroke-linecap:round"><path d="M300 600 Q 380 540 520 520"/><path d="M360 600 Q 450 548 560 528"/><path d="M640 600 Q 700 560 820 536"/></g>' +
+          '<ellipse cx="760" cy="566" rx="90" ry="12" style="fill:rgba(var(--scene-rgb),.16)"/><ellipse cx="180" cy="580" rx="70" ry="9" style="fill:rgba(var(--scene-rgb),.12)"/>'
+        );
       case 'carretera': {
         let dashes = '';
         for (let k = 0; k < 6; k++) {

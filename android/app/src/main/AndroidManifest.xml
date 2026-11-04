@@ -5,11 +5,17 @@
     <!-- Velocidad y alerta de velocidad (solo mientras la pantalla de inicio está abierta). -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <!-- Ver todas las apps instaladas (el APK no se publica en Play Store): así las reconoce aunque la radio use otro tipo de icono. -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
     <!-- Desde Android 11 hay que declarar qué apps queremos poder abrir desde el launcher. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
         </intent>
     </queries>
 
@@ -20,6 +26,17 @@
         android:theme="@style/Theme.Tablero">
 
         <!-- HOME: es lo que permite elegir Tablero como pantalla de inicio de la radio. -->
+        <!-- Permite mostrar la canción que suena (nombre, artista y carátula). El cliente lo autoriza una sola vez. -->
+        <service
+            android:name=".MediaListener"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -4,6 +4,7 @@ package cl.tablero.core
 data class LauncherConfig(
     val name: String = "",
     val greeting: String = "Hola",
+    val phrase: String = "",
     val carType: String = "suv",
     val carColor: String = "#b3261e",
     val theme: String = "ruta",
@@ -25,6 +26,8 @@ data class LauncherConfig(
     val speedAlert: String = "auto",
     val manualLimit: Int = 60,
     val restrOn: Boolean = false,
+    val restrType: String = "sello",
+    val restrDigit: String = "",
     val restrDays: List<String> = emptyList(),
     val voice: Boolean = false,
 )

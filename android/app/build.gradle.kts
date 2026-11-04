@@ -31,9 +31,23 @@ android {
         jvmTarget = "17"
     }
 
+    // Firma de release: solo si CI entrega la clave (secretos TB_KEYSTORE_*). Sin ella se compila el APK de prueba (debug).
+    val keystorePath = System.getenv("TB_KEYSTORE_FILE")
+    signingConfigs {
+        if (keystorePath != null && file(keystorePath).exists()) {
+            create("tablero") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("TB_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("TB_KEY_ALIAS")
+                keyPassword = System.getenv("TB_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfigs.findByName("tablero")?.let { signingConfig = it }
         }
     }
 }
@@ -44,9 +58,25 @@ dependencies {
 
 // Estos JSON viven en public/shared/ (los comparte el sitio): se copian a los assets al compilar.
 val copyEditions = tasks.register<Copy>("copyEditions") {
-    from(rootProject.file("../public/shared/editions.json"), rootProject.file("../public/shared/maintenance.json"))
+    from(rootProject.file("../public/shared/editions.json"), rootProject.file("../public/shared/maintenance.json"), rootProject.file("../public/shared/restriction.json"))
     into(layout.buildDirectory.dir("generated/editions"))
 }
 android.sourceSets.getByName("main").assets.srcDir(
     files(layout.buildDirectory.dir("generated/editions")).builtBy(copyEditions)
 )
+
+// La pantalla de inicio con el diseño del cliente es el mismo motor del sitio: se empaqueta dentro de la app (assets/web/)
+// para que funcione sin internet y siempre dibuje igual que la vista previa.
+val copyWeb = tasks.register<Copy>("copyWeb") {
+    from(rootProject.file("../public")) {
+        include("launcher.html", "css/preview.css", "js/art.js", "js/themes.js", "js/fx.js", "js/preview.js", "js/launcher.js", "shared/catalog.js", "img/auto.png", "img/camioneta.png")
+    }
+    into(layout.buildDirectory.dir("generated/web/web"))
+}
+android.sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("generated/web"))
+
+// El srcDir de arriba no arrastra la dependencia de la tarea: sin esto `copyEditions` nunca corre
+// y el APK queda sin sus JSON (la app se cerraría al abrir). Se verifica además en el flujo de GitHub.
+tasks.configureEach {
+    if (name.startsWith("merge") && name.endsWith("Assets")) dependsOn(copyEditions, copyWeb)
+}

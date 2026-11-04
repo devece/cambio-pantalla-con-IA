@@ -14,14 +14,14 @@
 
   /* ---------- estado ---------- */
   const defaults = () => ({
-    radio: { type: null, model: '' },
-    car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', photo: null },
-    style: { theme: 'ruta', layout: 'tarjetas', scene: 'tema', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
+    radio: { type: null, model: '', screen: null, analysis: null },
+    car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', phrase: '', plate: '', photo: null, photoCut: false, photoNight: null },
+    style: { theme: 'ruta', layout: 'tarjetas', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
       oilOn: true, odometer: 45000, lastOil: 42000, oilEvery: 5000,
       others: ['neumaticos'], docsOn: true, rtMonth: 6,
       fuelOn: false, tankL: 45, kmPerL: 12,
-      speedShow: true, speedAlert: 'auto', manualLimit: 60, restrOn: false, restrDays: [], voice: true,
+      speedShow: true, speedAlert: 'auto', manualLimit: 60, restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: true, miles: false, gallons: false,
     },
     plan: 'esencial',
     addons: {},
@@ -50,11 +50,16 @@
       if (raw) state = merge(defaults(), JSON.parse(raw));
     } catch (_) { /* sin almacenamiento: seguimos con los valores por defecto */ }
     state.car.photo = null;
+    state.car.photoCut = false;
+    state.car.photoNight = null;
+    state.style.bg = null;
   }
   function save() {
     try {
       const copy = JSON.parse(JSON.stringify(state));
       copy.car.photo = null; // la foto no se guarda
+      copy.car.photoNight = null;
+      copy.style.bg = null;
       delete copy.contact; // no guardamos datos de contacto en el navegador
       delete copy.terms;
       localStorage.setItem(STORE, JSON.stringify(copy));
@@ -71,21 +76,27 @@
   /* ---------- catálogos para las opciones ---------- */
   const CHOICES = {
     'radio.type': () => [
-      { id: 'android', name: 'Pantalla grande con apps', desc: 'Se instaló después. Tiene Play Store, YouTube, Waze o similares.' },
-      { id: 'original', name: 'La original del auto', desc: 'Vino de fábrica, con la marca del auto.' },
-      { id: 'nose', name: 'No sé', desc: 'Te mostramos cómo saberlo en 10 segundos.' },
+      { id: 'android', thumb: TB.radioThumbs.android, name: 'Pantalla grande con apps', desc: 'Se instaló después. Tiene Play Store, YouTube, Waze o similares.' },
+      { id: 'original', thumb: TB.radioThumbs.original, name: 'La original del auto', desc: 'Vino de fábrica, con la marca del auto.' },
+      { id: 'nose', thumb: TB.radioThumbs.nose, name: 'No sé', desc: 'Te mostramos cómo saberlo en 10 segundos.' },
     ],
     'car.type': () => TB.vehicles,
-    'car.greeting': () => TB.greetings.map((g) => ({ id: g, name: g })),
     'style.theme': () => TB.themes.map((t) => ({ id: t.id, name: t.name, desc: t.desc, tier: t.tier, swatch: t.swatch })),
-    'style.layout': () => TB.layouts,
+    'style.layout': () => TB.layouts.map((l) => ({ id: l.id, name: l.name, desc: l.desc, thumb: TB.layoutThumbs[l.id], tag4x4: l.only4x4 })),
     'style.scene': () => TB.scenes,
+    'style.sceneTime': () => TB.sceneTimes,
+    'style.bgMode': () => [
+      { id: 'photo', name: 'Foto completa', desc: 'Llena la pantalla' },
+      { id: 'logo', name: 'Logo de fondo', desc: 'Centrado y suave' },
+      { id: 'badge', name: 'Logo pequeño', desc: 'En la barra de arriba' },
+    ],
     'style.season': () => TB.seasons.map((s) => ({ id: s.id, name: s.name, desc: s.desc, tier: s.id === 'ninguna' ? 'base' : 'plus' })),
     'features.speedAlert': () => [
       { id: 'auto', name: 'Automático' },
       { id: 'manual', name: 'Manual' },
       { id: 'off', name: 'Sin aviso' },
     ],
+    'features.restrType': () => C.restriction.types,
     plan: () => C.plans.map((p) => ({ id: p.id, name: p.name, desc: p.blurb, price: p.price })),
     'contact.kind': () => [
       { id: 'whatsapp', name: 'WhatsApp' },
@@ -95,7 +106,6 @@
   const MULTI = {
     'style.apps': () => TB.apps,
     'features.others': () => C.maintenance.map((m) => ({ id: m.id, name: m.name, desc: 'cada ' + fmt(m.every) + ' km' })),
-    'features.restrDays': () => TB.weekdays,
   };
   const STEPS = ['Radio', 'Auto', 'Diseño', 'Funciones', 'Pago'];
   const SCREENS = [
@@ -108,11 +118,12 @@
 
   /* ---------- construcción de la interfaz ---------- */
   function choiceHtml(it, role, extra) {
+    const th = it.thumb ? `<span class="thumb">${it.thumb}</span>` : '';
     const sw = it.swatch ? `<span class="sw" style="background:linear-gradient(135deg,${it.swatch[0]} 0 55%,${it.swatch[1]} 55%)"></span>` : '';
-    const tag = it.tier === 'plus' ? '<span class="tag">Completo</span>' : '';
+    const tag = it.tier === 'plus' ? '<span class="tag">Completo</span>' : it.tag4x4 ? '<span class="tag">4x4</span>' : '';
     const price = it.price ? `<span class="price">${O.money(it.price)}</span>` : '';
     const attr = role === 'radio' ? 'role="radio" aria-checked="false"' : 'role="checkbox" aria-pressed="false"';
-    return `<button type="button" class="choice" ${attr} data-id="${esc(it.id)}"${extra || ''}>${sw}<b>${esc(it.name)}${tag}</b>${it.desc ? `<small>${esc(it.desc)}</small>` : ''}${price}</button>`;
+    return `<button type="button" class="choice" ${attr} data-id="${esc(it.id)}"${extra || ''}>${th}${sw}<b>${esc(it.name)}${tag}</b>${it.desc ? `<small>${esc(it.desc)}</small>` : ''}${price}</button>`;
   }
 
   function build() {
@@ -123,12 +134,15 @@
     $$('[data-multi]').forEach((el) => {
       el.innerHTML = MULTI[el.dataset.multi]().map((it) => choiceHtml(it, 'checkbox')).join('');
     });
+    $('#accent-swatches').innerHTML = TB.accents.map((c) => `<button type="button" class="swatch" role="radio" aria-checked="false" data-accent="${c}" style="background:${c}" aria-label="Acento ${c}"></button>`).join('');
+    $('#greet-slots').innerHTML = TB.greetings.map((g) => `<button type="button" class="slot" data-greet="${esc(g)}">${esc(g)}</button>`).join('');
+    $('#phrase-slots').innerHTML = TB.phrases.map((p) => `<button type="button" class="slot" data-phrase="${esc(p)}">${esc(p)}</button>`).join('');
     $('#car-colors').innerHTML = TB.carColors
       .map((c) => `<button type="button" class="swatch" role="radio" aria-checked="false" data-color="${c}" style="background:${c}" aria-label="Color ${c}"></button>`)
       .join('');
     $('#rt-month').innerHTML = TB.months.map((m, i) => `<option value="${i + 1}">${m[0].toUpperCase() + m.slice(1)}</option>`).join('');
     $('#screen-tabs').innerHTML = SCREENS.map((s) => `<button type="button" class="tab" role="tab" data-screen="${s.id}" aria-selected="false">${s.name}</button>`).join('');
-    $('#route').innerHTML = STEPS.map((n, i) => `<li data-n="${i + 1}"><button type="button" data-n="${i + 1}" aria-label="Paso ${i + 1}: ${n}"><span class="km">${i + 1}</span><small>${n}</small></button></li>`).join('');
+    $('#route').innerHTML = STEPS.map((n, i) => `<li data-n="${i + 1}"><button type="button" data-n="${i + 1}" aria-label="Paso ${i + 1}: ${n}"><span class="km"></span><small>${i + 1}. ${n}</small></button></li>`).join('');
 
     const addons = C.addons.filter((a) => a.available !== false);
     $('#addons').innerHTML = addons
@@ -151,6 +165,29 @@
     }
   }
 
+  const vehicleLevel = () => TB.vehicleLevel[state.car.type] || 0;
+  const VEHICLE_HINT = {
+    '4x4': 'Te armamos un estilo 4x4: diseño Todoterreno y escena de barro. Puedes cambiar todo abajo.',
+    suv: 'Te pusimos la escena de montaña. Puedes cambiarla abajo.',
+    camioneta: 'Con camioneta se desbloquea la escena de montaña.',
+  };
+  function applyVehicle() {
+    const lv = vehicleLevel();
+    const t = state.car.type;
+    if (t === '4x4') { state.style.layout = 'todoterreno'; state.style.scene = 'barro'; }
+    else if (t === 'suv' || t === 'camioneta') {
+      if (state.style.layout === 'todoterreno') state.style.layout = 'tarjetas';
+      state.style.scene = 'montana';
+    } else {
+      if (state.style.layout === 'todoterreno') state.style.layout = 'tarjetas';
+      const sc = TB.scenes.find((s) => s.id === state.style.scene);
+      if (sc && sc.level > lv) state.style.scene = 'tema';
+    }
+    const hint = $('#vt-hint');
+    hint.textContent = VEHICLE_HINT[t] || '';
+    hint.hidden = !VEHICLE_HINT[t];
+  }
+
   function syncChoices() {
     const need = O.requiredPlan(state.style);
     $$('[data-choices]').forEach((el) => {
@@ -159,6 +196,8 @@
       $$('.choice', el).forEach((b) => {
         b.setAttribute('aria-checked', String(cur === b.dataset.id));
         if (path === 'plan' && b.dataset.id === 'esencial') b.disabled = need === 'completo';
+        if (path === 'style.layout' && b.dataset.id === 'todoterreno') b.disabled = vehicleLevel() < 2;
+        if (path === 'style.scene') { const sc = TB.scenes.find((s) => s.id === b.dataset.id); b.disabled = !!(sc && sc.level && sc.level > vehicleLevel()); }
       });
     });
     $$('[data-multi]').forEach((el) => {
@@ -166,6 +205,9 @@
       const cur = get(state, path) || [];
       $$('.choice', el).forEach((b) => b.setAttribute('aria-pressed', String(cur.includes(b.dataset.id))));
     });
+    $$('#accent-swatches .swatch').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.accent === state.style.accent)));
+    $$('.slot[data-phrase]').forEach((b) => b.classList.toggle('on', b.dataset.phrase === state.car.phrase));
+    $$('.slot[data-greet]').forEach((b) => b.classList.toggle('on', b.dataset.greet === state.car.greeting));
     $$('#car-colors .swatch').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.color === state.car.color)));
     $('#apps-count').textContent = `${state.style.apps.length} de 4`;
   }
@@ -199,11 +241,44 @@
     nose: ['warn', 'Para saberlo, abre los ajustes de tu radio y busca “Acerca del dispositivo”, “Sistema” o “Información”. Si ves una versión de Android y puedes abrir la Play Store, es compatible. Puedes diseñar igual, pero necesitamos que confirmes el tipo antes de pagar.'],
   };
 
+  function syncRestriction() {
+    const f = state.features;
+    const r = C.restriction;
+    const sel = $('#restr-digit');
+    if (!sel.options.length) sel.innerHTML = '<option value="">Elige un dígito</option>' + [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => `<option value="${d}">${d}</option>`).join('');
+    sel.value = f.restrDigit;
+    $('#restr-year').textContent = r.year;
+    $$('[data-show-not]').forEach((el) => {
+      const [p, v] = el.dataset.showNot.split('=');
+      el.hidden = String(get(state, p)) === v;
+    });
+    const n = $('#restr-note');
+    const win = `Rige del ${r.season.from} al ${r.season.to}, ${r.season.days}, de ${r.season.hours}.`;
+    let cls = '';
+    let text = '';
+    if (f.restrType === 'nuevo') {
+      text = 'Tu auto no tiene restricción permanente. Solo puede afectarle una preemergencia o emergencia ambiental, que se anuncia el día anterior.';
+    } else if (f.restrDigit === '') {
+      cls = 'warn';
+      text = 'Elige el último dígito de tu patente para calcular tu día.';
+    } else {
+      const names = TB.weekdays.filter((d) => f.restrDays.includes(d.id)).map((d) => d.name.toLowerCase());
+      text = `Con patente terminada en ${f.restrDigit}, te toca el ${names.join(' y ')}. ${win}${f.restrType === 'sin' ? ' Además, sin sello verde no puedes circular dentro del anillo Américo Vespucio, cualquier día de la semana.' : ''} Fuera de esas fechas no hay restricción. Al entrar a Santiago, la radio te avisa en pantalla y por voz.`;
+    }
+    n.className = 'note' + (cls ? ' ' + cls : '');
+    n.textContent = text;
+  }
+
   function syncNotes() {
     const n = $('#radio-note');
     const r = radioNotes[state.radio.type];
     n.className = 'note' + (r && r[0] ? ' ' + r[0] : '');
     n.textContent = r ? r[1] : '';
+
+    $('#nose-test').hidden = state.radio.type !== 'nose';
+    $('#shot').hidden = state.radio.type !== 'android' && !state.radio.screen && !state.radio.analysis;
+
+    syncRestriction();
 
     const f = state.features;
     const left = f.lastOil + f.oilEvery - f.odometer;
@@ -239,13 +314,15 @@
       ['Radio', radio + (state.radio.model ? ` · ${esc(state.radio.model)}` : '')],
       ['Vehículo', `${veh.name}${state.car.name ? ' de ' + esc(state.car.name) : ''}${state.car.photo ? ' · con tu foto' : ''}`],
       ['Diseño', `${th.name} · ${lay.name}${season.id !== 'ninguna' ? ' · ' + season.name : ''}`],
+      ['Fondo', state.style.bg ? { photo: 'Tu foto', logo: 'Tu logo de fondo', badge: 'Tu logo en la barra' }[state.style.bgMode] : `${(TB.scenes.find((s) => s.id === state.style.scene) || {}).name || 'Del diseño'} · ${(TB.sceneTimes.find((s) => s.id === state.style.sceneTime) || {}).name || 'Automática'}`],
+      ['Saludo', `${state.features.voice ? 'Por voz' : 'Solo en pantalla'} · “${esc(state.car.greeting)}, ${esc(state.car.name || 'amigo')}”${state.car.phrase ? ' · “' + esc(state.car.phrase) + '”' : ''}`],
       ['Apps', apps.length ? esc(apps.join(', ')) : 'Sin apps en la barra'],
       ['Funciones', feats.length ? feats.join(', ') : 'Ninguna activada'],
     ];
     $('#summary').innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
     const q = O.quote(state);
     $('#total').textContent = O.money(q.total);
-    $('#pay').textContent = `Pagar ${O.money(q.total)}`;
+    $('#pay').textContent = (TB.site || {}).payment === 'transfer' ? `Pagar ${O.money(q.total)} por transferencia` : (TB.site || {}).payment === 'contact' ? `Pedir mi pantalla · ${O.money(q.total)}` : `Pagar ${O.money(q.total)}`;
   }
 
   function syncSteps() {
@@ -268,9 +345,15 @@
     $('#mode-day').setAttribute('aria-pressed', String(!ui.night));
     $('#mode-night').setAttribute('aria-pressed', String(ui.night));
     $('#photo-clear').hidden = !state.car.photo;
+    // El color es solo del auto de ejemplo: con la foto del cliente no se usa.
+    $('#car-color-group').hidden = !!state.car.photo;
+    $('#photo-sample').hidden = !!state.car.photo;
+    $('#bg-clear').hidden = !state.style.bg;
+    $('#bg-mode').hidden = !state.style.bg;
   }
 
   function update() {
+    state.features.restrDays = O.restrDaysFor(state.features);
     applyConstraints();
     TB.preview.render(state, ui);
     syncChoices();
@@ -303,6 +386,24 @@
     }
   }
 
+  /** Lo que diría la radio al encender: saludo, nombre y la frase (o el saludo del momento del día). */
+  function greetingLine() {
+    const c = state.car;
+    const h = new Date().getHours();
+    const tod = h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
+    return `${(c.greeting || 'Hola').trim()}, ${(c.name || 'amigo').trim()}. ${(c.phrase || tod).trim()}`;
+  }
+  function listenGreeting() {
+    const synth = window.speechSynthesis;
+    if (!synth || typeof SpeechSynthesisUtterance === 'undefined') { $('#greet-listen').hidden = true; return; }
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(greetingLine());
+    u.lang = 'es-CL';
+    const voice = synth.getVoices().find((v) => /^es[-_](CL|MX|419|US|AR|CO)/i.test(v.lang)) || synth.getVoices().find((v) => /^es/i.test(v.lang));
+    if (voice) u.voice = voice;
+    synth.speak(u);
+  }
+
   /* ---------- eventos ---------- */
   function wire() {
     document.addEventListener('click', (e) => {
@@ -316,6 +417,7 @@
           if (path === 'plan') flags.autoPlan = false;
           if (path === 'contact.kind') state.contact.value = '';
           if (path === 'style.theme') state.style.accent = null; // cada tema trae su acento
+          if (path === 'car.type') applyVehicle();
         } else if (multi) {
           const path = multi.dataset.multi;
           const max = Number(multi.dataset.max) || Infinity;
@@ -348,7 +450,23 @@
       update();
     });
 
+    $('#restr-demo').addEventListener('click', () => {
+      const f = state.features;
+      // Ejemplo: un día de tu restricción, en plena temporada y a media mañana.
+      const ctx = { weekday: f.restrDays[0] || 'lun', month: 6, minutes: 9 * 60 };
+      const n = O.restrictionNotice(f, ctx);
+      const box = $('#restr-note');
+      if (!n) { box.className = 'note warn'; box.textContent = f.restrType === 'nuevo' ? 'Con tu auto no hay aviso permanente: no hay nada que mostrar.' : 'Elige el último dígito de tu patente para ver el aviso.'; return; }
+      TB.preview.showZoneNotice(n);
+      ui.screen = 'inicio';
+      update();
+      TB.preview.showZoneNotice(n);
+    });
     $('#accent-input').addEventListener('input', (e) => { state.style.accent = e.target.value; update(); });
+    $('#accent-swatches').addEventListener('click', (e) => { const b = e.target.closest('[data-accent]'); if (b) { state.style.accent = b.dataset.accent; update(); } });
+    $('#greet-slots').addEventListener('click', (e) => { const b = e.target.closest('[data-greet]'); if (b) { state.car.greeting = b.dataset.greet; update(); } });
+    $('#greet-listen').addEventListener('click', listenGreeting);
+    $('#phrase-slots').addEventListener('click', (e) => { const b = e.target.closest('[data-phrase]'); if (b) { state.car.phrase = b.dataset.phrase; update(); } });
     $('#accent-reset').addEventListener('click', () => { state.style.accent = null; update(); });
     $('#next').addEventListener('click', () => go(ui.step + 1));
     $('#back').addEventListener('click', () => go(ui.step - 1));
@@ -357,34 +475,296 @@
     TB.preview.onGo = (id) => { ui.screen = id; update(); };
 
     $('#photo').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadPhoto(f); e.target.value = ''; });
-    $('#photo-clear').addEventListener('click', () => {
-      if (state.car.photo) URL.revokeObjectURL(state.car.photo);
-      state.car.photo = null;
-      update();
+    $('#photo-clear').addEventListener('click', clearPhoto);
+    $('#lights-stage').addEventListener('click', (e) => {
+      if (!cutCanvas || lightPts.length >= MAX_LIGHTS) return;
+      const r = $('#lights-cv').getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width;
+      const y = (e.clientY - r.top) / r.height;
+      if (x < 0 || x > 1 || y < 0 || y > 1) return;
+      lightPts.push({ kind: 'faro', x: Math.round(x * 1000) / 1000, y: Math.round(y * 1000) / 1000, size: 1 });
+      $('#lights-status').textContent = `${lightPts.length} ${lightPts.length > 1 ? 'luces marcadas' : 'luz marcada'}. Mira cómo queda de noche con el botón “Luces encendidas” de la pantalla.`;
+      drawLights();
     });
+    $('#lights-undo').addEventListener('click', () => { lightPts.pop(); drawLights(); });
+    $('#lights-clear').addEventListener('click', () => { lightPts = []; $('#lights-status').textContent = 'Luces borradas.'; drawLights(); });
+    $('#lights-auto').addEventListener('click', detectLights);
+    $('#bg-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadBg(f); e.target.value = ''; });
+    $('#bg-clear').addEventListener('click', () => { if (state.style.bg) URL.revokeObjectURL(state.style.bg); state.style.bg = null; update(); });
+    $('#photo-mode').addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) showPhoto(b.dataset.mode); });
     $('#pay').addEventListener('click', pay);
+    $('#pay-done').addEventListener('click', (e) => {
+      const order = e.target.closest('[data-copy-order]');
+      if (order) {
+        const text = $('#pay-done').dataset.order || '';
+        const ok = () => { $('#copy-note').textContent = '¡Copiado! Pégalo en el mensaje de contacto.'; };
+        if (navigator.clipboard) navigator.clipboard.writeText(text).then(ok, () => { $('#copy-note').textContent = 'No pudimos copiar. Usa el botón de enviar.'; }); else ok();
+        return;
+      }
+      const b = e.target.closest('[data-copy]');
+      if (!b) return;
+      const done = () => { const t = b.textContent; b.textContent = '¡Copiado!'; setTimeout(() => { b.textContent = t; }, 1500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(b.dataset.copy).then(done, () => {}); else done();
+    });
+    $('#nose-test').addEventListener('click', (e) => { const b = e.target.closest('[data-test]'); if (!b) return; state.radio.type = b.dataset.test; update(); });
+    $('#shot-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadShot(f); e.target.value = ''; });
+    $('#shot-clear').addEventListener('click', () => { state.radio.screen = null; state.radio.analysis = null; $('#shot-error').hidden = true; renderShot(); update(); });
+    $('#shot-result').addEventListener('click', (e) => { if (e.target.closest('#shot-apply')) applyRecommendation(); });
+    renderShot();
   }
 
-  /* ---------- foto (queda en el navegador) ---------- */
-  async function loadPhoto(file) {
-    const err = $('#photo-error');
+  /* ---------- captura de la radio: análisis ---------- */
+  const COMPAT = { si: ['', 'Compatible'], quizas: ['warn', 'Posiblemente compatible'], no: ['bad', 'No parece compatible'] };
+  const ratioText = (w, h) => {
+    const r = Math.max(w, h) / Math.min(w, h);
+    const known = [[16 / 9, '16:9'], [16 / 10, '16:10'], [2, '2:1'], [4 / 3, '4:3'], [15 / 9, '15:9'], [3, '3:1']];
+    const best = known.reduce((a, b) => (Math.abs(b[0] - r) < Math.abs(a[0] - r) ? b : a));
+    return Math.abs(best[0] - r) < 0.08 ? best[1] : r.toFixed(2) + ':1';
+  };
+
+  function renderShot() {
+    const box = $('#shot-result');
+    const { screen, analysis: a } = state.radio;
+    $('#shot-clear').hidden = !screen && !a;
+    if (!screen && !a) { box.hidden = true; box.innerHTML = ''; return; }
+    const parts = [];
+    if (screen && !a) parts.push(`<dl class="specs"><dt>Pantalla</dt><dd>${screen.w} × ${screen.h} (${esc(ratioText(screen.w, screen.h))}${screen.h > screen.w ? ', vertical' : ''})</dd></dl>`);
+    if (a) {
+      const c = COMPAT[a.compatible] || COMPAT.quizas;
+      parts.push(`<p class="verdict ${c[0]}"><b>${c[1]}.</b> ${esc(a.reason)}</p>`);
+      const specs = [];
+      if (a.brand_guess) specs.push(['Modelo', a.brand_guess]);
+      if (a.android_version) specs.push(['Android', a.android_version]);
+      if (screen) specs.push(['Pantalla', `${screen.w} × ${screen.h} (${ratioText(screen.w, screen.h)}${screen.h > screen.w ? ', vertical' : ''})`]);
+      if (specs.length) parts.push(`<dl class="specs">${specs.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`);
+      const rows = [];
+      if (a.current_launcher) rows.push(`<li>Pantalla actual: ${esc(a.current_launcher)}</li>`);
+      if (a.visible_apps.length) rows.push(`<li>Apps que vimos: ${esc(a.visible_apps.join(', '))}</li>`);
+      a.notes.forEach((n) => rows.push(`<li>${esc(n)}</li>`));
+      if (rows.length) parts.push(`<ul>${rows.join('')}</ul>`);
+      if (a.compatible !== 'no') {
+        const lay = (TB.layouts.find((l) => l.id === a.recommended.layout) || {}).name || a.recommended.layout;
+        const th = (TB.themes.find((t) => t.id === a.recommended.theme) || {}).name || a.recommended.theme;
+        parts.push(`<p class="rec">Te recomendamos: distribución <b>${esc(lay)}</b>, tema <b>${esc(th)}</b> y ${a.recommended.dock_apps.length} apps en la barra.</p><button type="button" class="btn ghost" id="shot-apply">Aplicar esta recomendación</button>`);
+      }
+    }
+    box.innerHTML = parts.join('');
+    box.hidden = false;
+  }
+
+  function setShotBusy(on) {
+    const lab = $('label[for="shot-file"]');
+    lab.textContent = on ? 'Analizando tu captura…' : 'Subir captura de mi radio';
+    lab.setAttribute('aria-disabled', String(on));
+    $('#shot-file').disabled = on;
+  }
+
+  async function loadShot(file) {
+    const err = $('#shot-error');
     err.hidden = true;
     const fail = (m) => { err.textContent = m; err.hidden = false; };
     if (!file.type.startsWith('image/')) return fail('Elige un archivo de imagen.');
-    if (file.size > 15 * 1024 * 1024) return fail('La foto pesa más de 15 MB. Elige una más liviana.');
+    if (file.size > 20 * 1024 * 1024) return fail('La imagen pesa más de 20 MB. Elige una más liviana.');
+    let dataUrl;
     try {
       const bmp = await createImageBitmap(file);
-      const k = Math.min(1, 1100 / Math.max(bmp.width, bmp.height));
+      state.radio.screen = { w: bmp.width, h: bmp.height };
+      state.radio.analysis = null;
+      const k = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
       const c = document.createElement('canvas');
       c.width = Math.round(bmp.width * k);
       c.height = Math.round(bmp.height * k);
       c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
-      const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.85));
-      if (state.car.photo) URL.revokeObjectURL(state.car.photo);
-      state.car.photo = URL.createObjectURL(blob);
+      dataUrl = c.toDataURL('image/jpeg', 0.82);
+      bmp.close && bmp.close();
+    } catch (_) {
+      return fail('No pudimos leer esa imagen. Prueba con un PNG o JPG.');
+    }
+    renderShot();
+    update();
+    setShotBusy(true);
+    try {
+      const r = await fetch('/api/analyze-radio', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: dataUrl }) });
+      const data = await r.json().catch(() => ({}));
+      if (r.ok && data.ok) {
+        state.radio.analysis = data.analysis;
+        const a = data.analysis;
+        if (state.radio.type === 'nose' || !state.radio.type) {
+          if (a.compatible === 'si') state.radio.type = 'android';
+          else if (a.compatible === 'no' && a.shows_head_unit && !a.android_detected) state.radio.type = 'original';
+        }
+        if (!state.radio.model && a.brand_guess) state.radio.model = a.brand_guess.slice(0, 40);
+      } else if (r.status === 503) {
+        fail('El análisis automático aún no está disponible. Guardamos las medidas de tu pantalla para adaptar el diseño.');
+      } else {
+        fail((data && data.error) || 'No pudimos analizar la captura. Inténtalo de nuevo.');
+      }
+    } catch (_) {
+      fail('No hay conexión para analizar la captura. Guardamos las medidas de tu pantalla.');
+    }
+    setShotBusy(false);
+    renderShot();
+    update();
+  }
+
+  function applyRecommendation() {
+    const a = state.radio.analysis;
+    if (!a) return;
+    state.style.layout = a.recommended.layout;
+    state.style.theme = a.recommended.theme;
+    state.style.apps = a.recommended.dock_apps.slice(0, 4);
+    update();
+  }
+
+  /* ---------- foto (queda en el navegador) ---------- */
+  /* ---------- luces encendidas (versión nocturna de la foto) ---------- */
+  let cutCanvas = null; // el auto recortado, para dibujar su versión de noche
+  let lightPts = []; // [{ kind, x, y, size }] con x e y entre 0 y 1
+  let nightUrl = null;
+  const MAX_LIGHTS = 8;
+
+  function drawLights() {
+    const box = $('#lights-box');
+    box.hidden = !cutCanvas;
+    if (!cutCanvas) return;
+    const night = TB.lights.night(cutCanvas, lightPts);
+    const cv = $('#lights-cv');
+    cv.width = night.width;
+    cv.height = night.height;
+    cv.getContext('2d').drawImage(night, 0, 0);
+    $('#lights-marks').innerHTML = lightPts.map((p) => `<i class="mark ${p.kind === 'luz_trasera' ? 'rear' : ''}" style="left:${p.x * 100}%;top:${p.y * 100}%"></i>`).join('');
+    $('#lights-undo').disabled = !lightPts.length;
+    $('#lights-clear').disabled = !lightPts.length;
+    night.toBlob((b) => {
+      if (!b) return;
+      if (nightUrl) URL.revokeObjectURL(nightUrl);
+      nightUrl = URL.createObjectURL(b);
+      state.car.photoNight = nightUrl;
+      update();
+    }, 'image/png');
+  }
+
+  function setCut(canvas) {
+    cutCanvas = canvas;
+    lightPts = [];
+    $('#lights-status').textContent = canvas ? 'Aún no marcaste ningún faro: de noche tu auto se verá apagado.' : '';
+    if (!canvas && nightUrl) { URL.revokeObjectURL(nightUrl); nightUrl = null; state.car.photoNight = null; }
+    drawLights();
+  }
+
+  async function detectLights() {
+    if (!cutCanvas) return;
+    const status = $('#lights-status');
+    const btn = $('#lights-auto');
+    btn.disabled = true;
+    status.textContent = 'Buscando los faros de tu auto…';
+    try {
+      const k = Math.min(1, 800 / Math.max(cutCanvas.width, cutCanvas.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(cutCanvas.width * k);
+      c.height = Math.round(cutCanvas.height * k);
+      const x = c.getContext('2d');
+      x.fillStyle = '#808080';
+      x.fillRect(0, 0, c.width, c.height);
+      x.drawImage(cutCanvas, 0, 0, c.width, c.height);
+      const r = await fetch('/api/detect-lights', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: c.toDataURL('image/jpeg', 0.85) }) });
+      const data = await r.json().catch(() => ({}));
+      if (r.ok && data.ok) {
+        lightPts = data.lights.slice(0, MAX_LIGHTS);
+        status.textContent = lightPts.length ? `Encontramos ${lightPts.length} ${lightPts.length > 1 ? 'luces' : 'luz'}. Si falta alguna, tócala en la foto; si sobra, usa “Deshacer”.` : 'No vimos faros claros en esta foto. Tócalos tú en la imagen.';
+      } else {
+        status.textContent = (data && data.error) || 'No pudimos detectar los faros. Tócalos tú en la foto.';
+      }
+    } catch (_) {
+      status.textContent = 'No hay conexión para detectar los faros. Tócalos tú en la foto.';
+    }
+    btn.disabled = false;
+    drawLights();
+  }
+
+  const photoUrls = { cut: null, orig: null };
+  function showPhoto(mode) {
+    const url = mode === 'cut' && photoUrls.cut ? photoUrls.cut : photoUrls.orig;
+    state.car.photo = url || null;
+    state.car.photoCut = mode === 'cut' && !!photoUrls.cut;
+    $$('#photo-mode [data-mode]').forEach((b) => b.setAttribute('aria-checked', String((b.dataset.mode === 'cut') === state.car.photoCut)));
+    update();
+  }
+  function clearPhoto() {
+    Object.keys(photoUrls).forEach((k) => { if (photoUrls[k]) URL.revokeObjectURL(photoUrls[k]); photoUrls[k] = null; });
+    state.car.photo = null;
+    state.car.photoCut = false;
+    $('#photo-mode').hidden = true;
+    $('#photo-status').hidden = true;
+    setCut(null);
+    update();
+  }
+  async function loadPhoto(file) {
+    const err = $('#photo-error');
+    const status = $('#photo-status');
+    err.hidden = true;
+    const fail = (m) => { err.textContent = m; err.hidden = false; status.hidden = true; };
+    if (!file.type.startsWith('image/')) return fail('Elige un archivo de imagen.');
+    if (file.size > 15 * 1024 * 1024) return fail('La foto pesa más de 15 MB. Elige una más liviana.');
+    let c;
+    try {
+      const bmp = await createImageBitmap(file);
+      const k = Math.min(1, 1100 / Math.max(bmp.width, bmp.height));
+      c = document.createElement('canvas');
+      c.width = Math.round(bmp.width * k);
+      c.height = Math.round(bmp.height * k);
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    } catch (_) {
+      return fail('No pudimos leer esa foto. Prueba con otra.');
+    }
+    const toUrl = (cv, type, q) => new Promise((r) => cv.toBlob((b) => r(URL.createObjectURL(b)), type, q));
+    Object.keys(photoUrls).forEach((k) => { if (photoUrls[k]) URL.revokeObjectURL(photoUrls[k]); photoUrls[k] = null; });
+    photoUrls.orig = await toUrl(c, 'image/jpeg', 0.85);
+    showPhoto('orig');
+    status.textContent = 'Quitando el fondo de tu foto… la primera vez puede tardar unos segundos.';
+    status.hidden = false;
+    $('#photo-mode').hidden = true;
+    setCut(null);
+    let res = null;
+    try { res = TB.cutout ? await TB.cutout(c) : null; } catch (_) { res = null; }
+    if (res) {
+      photoUrls.cut = await toUrl(res.canvas, 'image/png');
+      showPhoto('cut');
+      setCut(res.canvas);
+      status.textContent = res.method === 'ia'
+        ? 'Listo: le quitamos el fondo a tu foto. Si no se ve bien, elige “Foto original”.'
+        : 'Le quitamos el fondo con un método simple (sin conexión). Si no se ve bien, elige “Foto original”.';
+      $('#photo-mode').hidden = false;
+    } else {
+      status.textContent = 'No pudimos separar el auto del fondo en esta foto. Usamos la foto tal cual; prueba con otra en que se vea el auto completo.';
+    }
+  }
+
+  /* ---------- imagen de fondo propia (queda en el navegador) ---------- */
+  async function loadBg(file) {
+    const err = $('#bg-error');
+    err.hidden = true;
+    const fail = (m) => { err.textContent = m; err.hidden = false; };
+    if (!file.type.startsWith('image/')) return fail('Elige un archivo de imagen.');
+    if (file.size > 15 * 1024 * 1024) return fail('La imagen pesa más de 15 MB. Elige una más liviana.');
+    try {
+      const bmp = await createImageBitmap(file);
+      const k = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(bmp.width * k);
+      c.height = Math.round(bmp.height * k);
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      // PNG si tiene transparencia (logos); si no, JPG liviano.
+      const px = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+      let alpha = false;
+      for (let i = 3; i < px.length; i += 4 * 97) if (px[i] < 250) { alpha = true; break; }
+      const blob = await new Promise((r) => c.toBlob(r, alpha ? 'image/png' : 'image/jpeg', 0.85));
+      if (state.style.bg) URL.revokeObjectURL(state.style.bg);
+      state.style.bg = URL.createObjectURL(blob);
+      if (alpha && state.style.bgMode === 'photo') state.style.bgMode = 'logo';
       update();
     } catch (_) {
-      fail('No pudimos leer esa foto. Prueba con otra.');
+      fail('No pudimos leer esa imagen. Prueba con otra.');
     }
   }
 
@@ -392,6 +772,8 @@
   function payload() {
     const copy = JSON.parse(JSON.stringify(state));
     delete copy.car.photo; // la foto nunca viaja en el pedido
+    delete copy.car.photoNight;
+    delete copy.style.bg;
     return copy;
   }
 
@@ -400,6 +782,108 @@
     ul.innerHTML = list.map((m) => `<li>${esc(m)}</li>`).join('');
     ul.hidden = !list.length;
     if (list.length) ul.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
+  /* ---------- foto del pedido (se envía solo al hacer el pedido) ---------- */
+  const blobToDataUrl = (url) => fetch(url).then((r) => r.blob()).then((b) => new Promise((ok, fail) => {
+    const f = new FileReader();
+    f.onload = () => ok(f.result);
+    f.onerror = fail;
+    f.readAsDataURL(b);
+  }));
+
+  /** Sube la foto del auto (y su versión de noche) junto al pedido. Devuelve 'ok', 'none' (no hay foto) o 'fail'. */
+  async function uploadOrderPhotos(orderId, token) {
+    if (!state.car.photo) return 'none';
+    const send = async (kind, url) => {
+      const image = await blobToDataUrl(url);
+      const r = await fetch('/api/order-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, token, kind, image, cut: state.car.photoCut === true, lights: lightPts }),
+      });
+      const d = await r.json().catch(() => ({}));
+      return r.ok && d.ok;
+    };
+    try {
+      if (!(await send('day', state.car.photo))) return 'fail';
+      if (state.car.photoCut && nightUrl) await send('night', nightUrl); // la de noche es un extra: si falla, igual queda la de día
+      return 'ok';
+    } catch (_) {
+      return 'fail';
+    }
+  }
+
+  /* ---------- pago por transferencia bancaria ---------- */
+  const waNumber = (raw) => {
+    const d = String(raw || '').replace(/\D/g, '');
+    return d.length === 9 && d[0] === '9' ? '56' + d : d;
+  };
+
+  /** Texto del pedido para mandárselo a quien arma la pantalla: resumen legible y los datos para armarla. */
+  function orderMessage(orderId, total, photo) {
+    const rows = $$('#summary div').map((d) => `${$('dt', d).textContent}: ${$('dd', d).textContent}`);
+    const q = O.quote(state);
+    const clean = O.validateOrder(payload()).clean;
+    return [
+      `Hola, soy ${state.car.name || 'cliente'}. Hice el pedido ${orderId} en Tablero y ya transferí ${O.money(total)}.`,
+      `Plan: ${q.lines.map((l) => l.name).join(' + ')}`,
+      ...rows,
+      `Contacto: ${state.contact.kind === 'email' ? 'correo' : 'WhatsApp'} ${state.contact.value}`,
+      photo === 'ok' ? 'Mi foto ya quedó guardada con el pedido.' : state.car.photo ? 'No pude subir mi foto: te la envío por aquí.' : 'Te adjunto el comprobante y la foto de mi auto.',
+      '',
+      'Datos para armarlo (no lo borres):',
+      JSON.stringify(clean),
+    ].join('\n');
+  }
+
+  /** Pago coordinado en el contacto de Daniexpress: el cliente copia su pedido y lo pega allá. */
+  function showContactOrder(data) {
+    const site = TB.site || {};
+    const web = site.web || {};
+    const msg = orderMessage(data.orderId, data.total, data.photo).replace(' y ya transferí ', ' por ');
+    const wa = waNumber(site.whatsapp);
+    let go = '';
+    if (wa) go = `<a class="btn cta" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Enviar mi pedido por WhatsApp</a>`;
+    else if (site.supportEmail) go = `<a class="btn cta" href="mailto:${esc(site.supportEmail)}?subject=${encodeURIComponent('Pedido ' + data.orderId)}&body=${encodeURIComponent(msg)}">Enviar mi pedido por correo</a>`;
+    else if (web.url) go = `<a class="btn cta" href="${esc(web.url)}" target="_blank" rel="noopener">Ir al contacto de ${esc(web.name || 'Daniexpress')}</a>`;
+    const done = $('#pay-done');
+    done.hidden = false;
+    done.innerHTML = `<b>Pedido ${esc(data.orderId)}</b>
+      <p>Tu pedido está listo por <b>${esc(O.money(data.total))}</b>. El pago se coordina en el contacto de <b>${esc(web.name || 'Daniexpress')}</b>: allá te indican cómo pagar y, cuando confirman el pago, te mandan tu código.</p>
+      <ol class="mini-steps">
+        <li>Copia tu pedido (botón de abajo).</li>
+        <li>Ábrelo en ${esc(web.name || 'Daniexpress')} y pégalo en el mensaje de contacto.</li>
+        ${data.photo === 'ok' ? '<li>Tu foto ya quedó guardada con tu pedido: no tienes que enviarla.</li>' : '<li>Envía también la foto de tu auto.</li>'}
+      </ol>
+      <div class="codebtns"><button type="button" class="btn primary" data-copy-order>Copiar mi pedido</button>${go}</div>
+      <p class="hint" id="copy-note">Tu pedido incluye todo lo que elegiste, así que no tienes que explicar nada.</p>
+      ${data.photo === 'fail' ? '<p class="error">No pudimos guardar tu foto. Envíasela a Daniexpress junto con tu pedido.</p>' : ''}`;
+    done.dataset.order = msg;
+    done.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
+  function showTransfer(data) {
+    const site = TB.site || {};
+    const bank = site.bank || {};
+    const total = data.total;
+    const done = $('#pay-done');
+    const bankOk = ['bank', 'type', 'number', 'holder', 'rut'].every((k) => String(bank[k] || '').trim());
+    const row = (label, value) => `<div class="brow"><span>${esc(label)}</span><b>${esc(value)}</b><button type="button" class="btn ghost sm" data-copy="${esc(value)}">Copiar</button></div>`;
+    const msg = orderMessage(data.orderId, total);
+    const wa = waNumber(site.whatsapp);
+    let send = '';
+    if (wa) send = `<a class="btn cta" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Enviar mi pedido y comprobante por WhatsApp</a>`;
+    else if (site.supportEmail) send = `<a class="btn cta" href="mailto:${esc(site.supportEmail)}?subject=${encodeURIComponent('Pedido ' + data.orderId)}&body=${encodeURIComponent(msg)}">Enviar mi pedido y comprobante por correo</a>`;
+    else if (site.web && site.web.url) send = `<a class="btn cta" href="${esc(site.web.url)}" target="_blank" rel="noopener">Escríbenos en ${esc(site.web.name || 'nuestra web')} con tu pedido ${esc(data.orderId)}</a>`;
+    done.hidden = false;
+    done.innerHTML = `<b>Pedido ${esc(data.orderId)}</b>
+      <p>${bankOk ? 'Desde la app de tu banco, transfiere <b>exactamente ' + esc(O.money(total)) + '</b> a esta cuenta:' : 'Aún no están cargados los datos de la cuenta en el sitio. Escríbenos con tu número de pedido y te los enviamos.'}</p>
+      ${bankOk ? `<div class="bank">${row('Banco', bank.bank)}${row('Tipo de cuenta', bank.type)}${row('Número de cuenta', bank.number)}${row('Titular', bank.holder)}${row('RUT', bank.rut)}${row('Monto', String(Math.round(total)))}${row('Referencia', data.orderId)}</div><p class="hint">Escribe <b>${esc(data.orderId)}</b> como referencia o comentario para reconocer tu pago más rápido.</p>` : ''}
+      <p><b>Después:</b> envíanos el comprobante y la foto de tu auto. Te mandamos tu código apenas confirmamos el pago.</p>
+      <div class="codebtns">${send}</div>
+      ${!send ? '<p class="hint">Escríbenos en la sección de contacto con tu número de pedido.</p>' : '<p class="hint">Se abre un mensaje ya escrito con tu pedido: solo adjunta el comprobante y la foto de tu auto.</p>'}`;
+    done.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
 
   async function pay() {
@@ -418,6 +902,13 @@
       try { data = await res.json(); } catch (_) { /* respuesta sin JSON */ }
       if (!data) { showErrors(['No pudimos conectar con el servidor. Revisa tu internet e intenta de nuevo.']); return; }
       if (!data.ok) { showErrors(data.errors || [data.error || 'No pudimos procesar tu pedido.']); return; }
+      if ((TB.site || {}).payment === 'contact') {
+        if (state.car.photo) btn.textContent = 'Guardando tu foto…';
+        data.photo = await uploadOrderPhotos(data.orderId, data.photoToken);
+        showContactOrder(data);
+        return;
+      }
+      if ((TB.site || {}).payment === 'transfer') { showTransfer(data); return; }
       if (data.paymentUrl) { window.location.href = data.paymentUrl; return; }
       const done = $('#pay-done');
       done.hidden = false;
@@ -434,14 +925,31 @@
   /* ---------- arranque ---------- */
   function init() {
     const site = TB.site || {};
-    if (site.prototype) $('#ribbon').hidden = false;
     $('#brand-name').textContent = site.name || 'Tablero';
     $('#foot-name').textContent = site.name || 'Tablero';
     $('#year').textContent = new Date().getFullYear();
+    const web = site.web && site.web.name ? site.web : null;
+    const webUrl = web && /^https?:\/\//i.test(web.url || '') ? web.url : web && web.url ? 'https://' + web.url : '';
+    const ig = site.instagram ? `<a href="https://instagram.com/${esc(site.instagram)}" rel="noopener">Instagram @${esc(site.instagram)}</a>` : '';
     const contact = [];
     if (site.supportEmail) contact.push(`<a href="mailto:${esc(site.supportEmail)}">${esc(site.supportEmail)}</a>`);
     if (site.whatsapp) contact.push(`WhatsApp ${esc(site.whatsapp)}`);
+    if (ig) contact.push(ig);
+    if (web) contact.push(webUrl ? `<a href="${esc(webUrl)}" rel="noopener">${esc(web.name)}</a>` : esc(web.name));
     $('#foot-contact').innerHTML = contact.join(' · ');
+
+    const links = [];
+    if (site.supportEmail) links.push(`<a class="btn cta" href="mailto:${esc(site.supportEmail)}">${esc(site.supportEmail)}</a>`);
+    if (web) links.push(webUrl ? `<a class="btn cta" href="${esc(webUrl)}" rel="noopener">Contáctanos en ${esc(web.name)}</a>` : `<span class="contact-name">${esc(web.name)}</span>`);
+    if (site.instagram) links.push(`<a class="btn ghost" href="https://instagram.com/${esc(site.instagram)}" rel="noopener">Instagram @${esc(site.instagram)}</a>`);
+    $('#contact-links').innerHTML = links.join('') || 'Pronto publicaremos aquí nuestros datos de contacto.';
+    const extra = [site.supportEmail && 'por correo', site.instagram && 'por Instagram'].filter(Boolean).join(' o ');
+    const how = web ? `Contáctanos en ${web.name}${extra ? ' o ' + extra : ''}` : extra ? `Escríbenos ${extra}` : '';
+    if (how) $('#contact-text').textContent = `${how} y te respondemos. Cuando se apruebe tu pago te damos un WhatsApp de soporte.`;
+    if (site.freeUrl) { $('#free-link').href = site.freeUrl; $('#free-option').hidden = false; }
+    const plans = C.plans;
+    const prices = plans ? Object.values(plans).map((p) => p.price).filter((n) => typeof n === 'number') : [];
+    if (prices.length) $('#price-from').textContent = 'Desde ' + O.money(Math.min(...prices));
 
     load();
     build();

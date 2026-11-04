@@ -6,8 +6,8 @@
  * Estado actual:
  *  - Con SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY: guarda el pedido en la tabla `orders` (estado 'pending').
  *  - Sin esas variables: modo demostración (no guarda nada).
- *  - Con además PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET y PAYPAL_CLP_PER_USD: crea el cobro en PayPal
- *    (en USD, porque PayPal no acepta CLP) y devuelve `paymentUrl`. Al volver, api/paypal-return.js captura
+ *  - Con además PAYPAL_CLIENT_ID y PAYPAL_CLIENT_SECRET: crea el cobro en PayPal
+ *    (en USD, la moneda del catálogo) y devuelve `paymentUrl`. Al volver, api/paypal-return.js captura
  *    el pago y emite la licencia en el servidor, nunca desde el navegador.
  *  - Sin PayPal configurado el pedido queda 'pending' y `paymentUrl` es null.
  */
@@ -29,6 +29,9 @@ module.exports = async function handler(req, res) {
 
   const q = quote(clean);
   const orderId = 'TB-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+  // Llave secreta del pedido: solo quien lo creó puede subir su foto después (se guarda únicamente su hash).
+  const photoToken = crypto.randomBytes(16).toString('hex');
+  const photoTokenHash = crypto.createHash('sha256').update(photoToken).digest('hex');
 
   if (!db.configured()) {
     return res.status(200).json({
@@ -54,7 +57,7 @@ module.exports = async function handler(req, res) {
         currency: q.currency,
         contact_kind: clean.contact.kind,
         contact_value: clean.contact.value,
-        config: { radio: clean.radio, car: clean.car, style: clean.style, features: clean.features },
+        config: { radio: clean.radio, car: clean.car, style: clean.style, features: clean.features, photoTokenHash },
       },
     });
   } catch (err) {
@@ -67,6 +70,7 @@ module.exports = async function handler(req, res) {
       ok: true,
       mode: 'pending-payment',
       orderId,
+      photoToken,
       total: q.total,
       currency: q.currency,
       paymentUrl: null,
@@ -74,7 +78,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const amount = paypal.clpToUsd(q.total);
+    const amount = paypal.centsToUsd(q.total);
     const site = siteUrl(req);
     const pp = await paypal.createOrder({
       orderId,
@@ -92,6 +96,7 @@ module.exports = async function handler(req, res) {
       ok: true,
       mode: 'paypal',
       orderId,
+      photoToken,
       total: q.total,
       currency: q.currency,
       paymentUrl: pp.approveUrl,

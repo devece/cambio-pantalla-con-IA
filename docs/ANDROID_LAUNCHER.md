@@ -4,7 +4,7 @@ El proyecto está en `android/`. Arranca como pantalla de inicio de la radio y y
 
 - Muestra reloj, fecha y saludo según la hora.
 - **Tu auto en 3D** (auto, SUV o camioneta) en el color que elijas, visto en perspectiva con luces y sombras, y con un balanceo suave. Está dibujado por código (`core/Car3D.kt`), sin imágenes.
-- **Avisos de aceite y otras mantenciones, revisión técnica, permiso, SOAP, combustible y restricción vehicular**, con las mismas cuentas que la vista previa del sitio (probadas en `core`).
+- **Avisos de aceite y otras mantenciones, revisión técnica, permiso, SOAP, combustible y restricción vehicular** (con aviso por GPS al entrar a Santiago, ver `RESTRICCION.md`), con las mismas cuentas que la vista previa del sitio (probadas en `core`).
 - **Velocidad en vivo con el GPS** y alerta contra un límite fijo.
 - **Saludo por voz** al abrir la app.
 - **Ajustes** dentro de la radio (sin internet) y **atajos a apps**.

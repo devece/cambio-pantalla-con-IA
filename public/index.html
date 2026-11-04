@@ -5,47 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tablero · Tu auto en la pantalla de tu radio</title>
   <meta name="description" content="Diseña la pantalla de inicio de tu radio Android de auto: elige el tema, mira cómo queda en vivo y paga solo cuando te guste.">
-  <meta name="theme-color" content="#0e6b4a">
+  <meta name="theme-color" content="#d9730d">
   <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/preview.css">
 </head>
 <body>
   <a class="skip" href="#configurador">Ir al configurador</a>
 
-  <div class="ribbon" id="ribbon" hidden>Prototipo: todavía no se vende y los pagos están en modo demostración.</div>
 
-  <header class="masthead">
+  <header class="topbar">
     <div class="wrap bar">
       <a class="brand" href="./" aria-label="Tablero, inicio">
-        <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true"><rect x="2" y="2" width="36" height="36" rx="9" fill="none" stroke="#fff" stroke-width="3"/><path d="M9 28a11 11 0 0 1 22 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M20 28l6-9" stroke="#f5c400" stroke-width="3.4" stroke-linecap="round"/><circle cx="20" cy="28" r="2.6" fill="#f5c400"/></svg>
+        <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" stroke-width="5"/></svg>
         <span id="brand-name">Tablero</span>
       </a>
-      <a class="bar-link" href="#faq">Preguntas</a>
     </div>
-    <div class="roadline" aria-hidden="true"></div>
   </header>
 
   <main>
     <section class="hero wrap">
-      <h1>Tu radio, con tu auto en la pantalla</h1>
-      <p>Tablero es una app que reemplaza la pantalla de inicio de tu radio Android: reloj, tus apps, avisos de aceite y documentos, y alerta de velocidad. Diséñala aquí, mírala andar en vivo y paga solo cuando te guste.</p>
-    </section>
-
-    <section class="how wrap" aria-labelledby="how-h">
-      <h2 id="how-h">Cómo funciona</h2>
-      <ol>
-        <li><b>Diseñas</b><span>Eliges cómo se ve y qué avisos quieres. Es gratis y no necesitas cuenta.</span></li>
-        <li><b>Pagas y recibes un código</b><span>Con el pago te llega un código de activación del tipo <code>TBL-XXXX-XXXX-XXXX</code>, por WhatsApp o correo.</span></li>
-        <li><b>Instalas y activas</b><span>Instalas la app en tu radio, escribes el código en <i>Activar código</i> y se desbloquea tu plan. El código sirve para una sola radio.</span></li>
-      </ol>
+      <h1>Tu auto, en la pantalla de tu radio</h1>
+      <p>Diseña tu pantalla desde el celular (pasos 1 a 4) y mira cómo queda antes de pagar. El paso 5 se hace en la radio: instalas la app y escribes tu código.</p>
+      <div class="options">
+        <a class="option main" href="#configurador">
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span><b>¿Sin ganas de complicarte?</b><small>Aquí mismo: tu auto, tu diseño y todo listo para tu radio, sin computador. <span id="price-from"></span></small></span>
+          <svg class="go" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="option" id="free-option" href="#faq" hidden>
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 4v11m-5-4l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span><b>Versión gratis</b><small>Con funciones básicas. Descargas el APK y lo instalas en tu radio.</small></span>
+          <svg class="go" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+      <a class="btn cta" href="#configurador">Empezar: elegir mi radio ↓</a>
     </section>
 
     <section class="studio wrap" id="configurador" aria-label="Configurador">
       <div class="stage">
+        <div class="stage-top">
+          <p class="stage-title">Así se verá en tu radio (1024 × 600)</p>
+        </div>
         <div class="stage-bar">
           <div class="tabs" role="tablist" aria-label="Pantallas de la radio" id="screen-tabs"></div>
           <div class="daynight" role="group" aria-label="Modo de la pantalla">
@@ -53,23 +57,43 @@
             <button type="button" id="mode-night" aria-pressed="false">Luces encendidas</button>
           </div>
         </div>
+        <div class="choices season-pills" data-choices="style.season" role="radiogroup" aria-label="Decoración de temporada"></div>
         <div class="bezel">
           <span class="knob knob-l" aria-hidden="true"></span>
           <div class="device-screen" id="device" role="img" aria-label="Vista previa de la pantalla de tu radio"></div>
           <span class="knob knob-r" aria-hidden="true"></span>
         </div>
-        <p class="stage-note">Vista previa a 1024 × 600. El clima, la canción y la emisora son de ejemplo. Al prender las luces del auto, la radio pasa sola a modo noche.</p>
+        <p class="stage-note">Al encender las luces del auto, la pantalla pasa sola a modo noche y muestra tu foto con luces. Desliza la pastilla de mantención para ver cada aviso, o tócala para abrir la lista completa. El clima, la canción y la emisora son de ejemplo.</p>
       </div>
 
       <div class="panel" id="panel">
         <ol class="route" id="route" aria-label="Pasos"></ol>
 
         <!-- Paso 1 -->
+        <div class="card">
         <section class="step" data-step="1" aria-labelledby="h1">
           <h2 id="h1">¿Cómo es tu radio?</h2>
           <p class="lead">Funciona en radios Android de pantalla grande.</p>
-          <div class="choices cols-1" data-choices="radio.type" role="radiogroup" aria-labelledby="h1"></div>
+          <div class="choices cols-3 with-thumb" data-choices="radio.type" role="radiogroup" aria-labelledby="h1"></div>
           <div class="note" id="radio-note" role="status"></div>
+          <div class="note warn" id="nose-test" hidden>
+            <b>Haz esta prueba en tu radio</b>
+            <p>Toca el botón de <b>inicio</b> (la casita). ¿Ves íconos de apps como <b>Play Store</b>, <b>Chrome</b> o <b>YouTube</b>?</p>
+            <div class="photo-row"><button type="button" class="btn primary" data-test="android">Sí, veo apps</button><button type="button" class="btn ghost" data-test="original">No, solo radio y música</button></div>
+          </div>
+          <div class="shot" id="shot" hidden>
+            <h3>Siguiente paso: una captura de tu radio</h3>
+            <p class="hint">Busca en los ajustes de la radio la pantalla con la versión. Según la marca se llama:</p>
+            <div class="paths"><span>Ajustes → Sistema → Acerca del dispositivo</span><span>Ajustes → Información</span><span>Ajustes del coche → Versión</span></div>
+            <p class="hint">Si no puedes hacer captura, tómale una foto con el celular. Es opcional, pero la analizamos para evitar sorpresas. No guardamos la imagen.</p>
+            <div class="photo-row">
+              <label class="btn ghost" for="shot-file">Subir captura de mi radio</label>
+              <input type="file" id="shot-file" accept="image/png,image/jpeg,image/webp" hidden>
+              <button type="button" class="btn link" id="shot-clear" hidden>Quitar</button>
+            </div>
+            <p class="error" id="shot-error" role="alert" hidden></p>
+            <div class="shot-result" id="shot-result" role="status" aria-live="polite" hidden></div>
+          </div>
           <label class="field" data-show="radio.type=android">
             <span>Marca y modelo de tu radio (opcional)</span>
             <input type="text" maxlength="40" data-bind="radio.model" placeholder="Ej.: pantalla de 9 pulgadas, Android 10">
@@ -83,58 +107,97 @@
 
         <!-- Paso 2 -->
         <section class="step" data-step="2" aria-labelledby="h2" hidden>
-          <h2 id="h2">Tu auto</h2>
-          <p class="lead">Así se ve en la pantalla de inicio.</p>
+          <h2 id="h2">Tu auto, tal cual</h2>
+          <p class="lead">Sube <b>una foto de tu auto</b>: es la que verás en la pantalla de la radio. Nosotros solo le quitamos el fondo.</p>
           <div class="group">
-            <h3>Tipo de vehículo</h3>
-            <div class="choices cols-3" data-choices="car.type" role="radiogroup" aria-label="Tipo de vehículo"></div>
+            <h3>Tu foto</h3>
+            <div class="photo-row">
+              <label class="btn primary" for="photo">Subir foto de mi auto</label>
+              <input type="file" id="photo" accept="image/*" hidden>
+              <button type="button" class="btn link" id="photo-clear" hidden>Quitar foto</button>
+            </div>
+            <div class="shot-tips" id="photo-tips"><span>El auto completo</span><span>De lado o en diagonal</span><span>De día</span><span>Sin gente delante</span></div>
+            <p class="hint">No importa el fondo: la calle, tu garaje o el estacionamiento sirven. El fondo se quita aquí mismo, en tu celular. Tu foto solo se envía cuando haces tu pedido, para armar tu pantalla.</p>
+            <p class="hint" id="photo-status" role="status" aria-live="polite" hidden></p>
+            <div class="seg2" id="photo-mode" role="radiogroup" aria-label="Cómo mostrar tu foto" hidden>
+              <button type="button" class="choice compact" role="radio" aria-checked="true" data-mode="cut"><b>Sin fondo</b></button>
+              <button type="button" class="choice compact" role="radio" aria-checked="false" data-mode="orig"><b>Foto original</b></button>
+            </div>
+            <p class="error" id="photo-error" role="alert" hidden></p>
+            <div class="lights" id="lights-box" hidden>
+              <h3>Luces encendidas</h3>
+              <p class="hint">Cuando prendes las luces del auto, la radio pasa sola a modo noche y muestra tu foto con los faros encendidos. <b>Toca cada faro</b> (y los neblineros, si tiene) en la foto de abajo.</p>
+              <div class="lights-stage" id="lights-stage"><canvas id="lights-cv" aria-label="Tu auto de noche: toca los faros para encenderlos"></canvas><div id="lights-marks"></div></div>
+              <div class="photo-row">
+                <button type="button" class="btn ghost" id="lights-auto">Detectar los faros con IA</button>
+                <button type="button" class="btn link" id="lights-undo">Deshacer</button>
+                <button type="button" class="btn link" id="lights-clear">Borrar luces</button>
+              </div>
+              <p class="hint" id="lights-status" role="status" aria-live="polite"></p>
+            </div>
+            <p class="hint" id="photo-sample">Mientras no subas tu foto, mostramos un auto de ejemplo.</p>
           </div>
           <div class="group">
-            <h3>Color</h3>
+            <h3>Tipo de vehículo</h3>
+            <p class="hint">Sirve para sugerirte fondos y diseños (por ejemplo, los de camioneta 4x4). Tu foto no cambia.</p>
+            <div class="choices cols-2" data-choices="car.type" role="radiogroup" aria-label="Tipo de vehículo"></div>
+            <p class="hint" id="vt-hint" role="status" hidden></p>
+          </div>
+          <div class="group" id="car-color-group">
+            <h3>Color del auto de ejemplo</h3>
             <div class="swatches" id="car-colors" role="radiogroup" aria-label="Color del auto"></div>
             <label class="field inline"><span>Otro color</span><input type="color" data-bind="car.color" aria-label="Elegir otro color"></label>
           </div>
           <div class="group">
-            <h3>Tu foto (opcional)</h3>
-            <p class="hint">Se queda en tu celular mientras diseñas: no se sube a ningún lado hasta que pagues. Quitar el fondo y agregar las luces llegará en una próxima versión.</p>
-            <div class="photo-row">
-              <label class="btn ghost" for="photo">Subir foto de mi auto</label>
-              <input type="file" id="photo" accept="image/*" hidden>
-              <button type="button" class="btn link" id="photo-clear" hidden>Quitar foto</button>
-            </div>
-            <p class="error" id="photo-error" role="alert" hidden></p>
-          </div>
-          <div class="group">
             <h3>Tu saludo</h3>
             <label class="field"><span>Tu nombre</span><input type="text" maxlength="24" data-bind="car.name" placeholder="Ej.: Daniel" autocomplete="given-name"></label>
-            <div class="choices cols-4 compact" data-choices="car.greeting" role="radiogroup" aria-label="Saludo"></div>
+            <label class="field"><span>Saludo antes de tu nombre</span><input type="text" maxlength="16" data-bind="car.greeting" placeholder="Hola" autocomplete="off"></label>
+            <div class="slots" id="greet-slots"></div>
+            <label class="field"><span>Frase de abajo, en lugar de “Buenas tardes” (opcional)</span><input type="text" maxlength="28" data-bind="car.phrase" placeholder="Ej.: Dios te bendiga"></label>
+            <div class="slots" id="phrase-slots"></div>
+            <p class="hint">La frase reemplaza al “Buenas tardes” en la pantalla y en el saludo por voz. Déjala vacía para el saludo normal.</p>
+            <div class="photo-row"><button type="button" class="btn ghost" id="greet-listen">▶ Escuchar cómo suena</button></div>
+            <label class="field"><span>Placa (opcional)</span><input type="text" maxlength="10" data-bind="car.plate" placeholder="ABCD-12" style="text-transform:uppercase" autocomplete="off"></label>
+            <p class="hint">Si la escribes, aparece en el diseño “Tablero”.</p>
           </div>
         </section>
 
         <!-- Paso 3 -->
         <section class="step" data-step="3" aria-labelledby="h3" hidden>
           <h2 id="h3">Diseño visual</h2>
-          <p class="lead">Cambia todo cuando quieras desde los ajustes de tu radio, sin internet.</p>
+          <p class="lead">Elige cómo se verá la pantalla de inicio de tu radio. Lo ves en vivo a la derecha.</p>
           <div class="group">
             <h3>Tema</h3>
             <div class="choices cols-2 themes" data-choices="style.theme" role="radiogroup" aria-label="Tema visual"></div>
           </div>
           <div class="group">
             <h3>Distribución</h3>
-            <div class="choices cols-2" data-choices="style.layout" role="radiogroup" aria-label="Distribución de la pantalla"></div>
+            <div class="choices cols-2 with-thumb" data-choices="style.layout" role="radiogroup" aria-label="Distribución de la pantalla"></div>
           </div>
           <div class="group">
             <h3>Fondo</h3>
             <div class="choices cols-4 compact" data-choices="style.scene" role="radiogroup" aria-label="Fondo de pantalla"></div>
+            <p class="hint" id="scene-hint" hidden></p>
+            <h3 class="sub-h">Hora del día</h3>
+            <div class="choices cols-3 compact" data-choices="style.sceneTime" role="radiogroup" aria-label="Hora del día"></div>
+            <p class="hint">“Automática” cambia sola con la hora del día.</p>
           </div>
           <div class="group">
-            <h3>Decoración de temporada</h3>
-            <div class="choices cols-2 compact" data-choices="style.season" role="radiogroup" aria-label="Decoración de temporada"></div>
+            <h3>O usa tu propia imagen</h3>
+            <p class="hint">Una carretera, tu ciudad o tu familia, o el logo de tu negocio. Se queda en tu celular y no se envía con el pedido.</p>
+            <div class="photo-row">
+              <label class="btn ghost" for="bg-file">Subir foto o logo</label>
+              <input type="file" id="bg-file" accept="image/*" hidden>
+              <button type="button" class="btn link" id="bg-clear" hidden>Quitar</button>
+            </div>
+            <p class="error" id="bg-error" role="alert" hidden></p>
+            <div class="choices cols-3 compact" id="bg-mode" data-choices="style.bgMode" role="radiogroup" aria-label="Cómo usar la imagen" hidden></div>
           </div>
           <div class="group">
             <h3>Color de acento</h3>
             <div class="accent-row">
-              <label class="field inline"><span>Elegir color</span><input type="color" id="accent-input" aria-label="Color de acento"></label>
+              <div class="swatches" id="accent-swatches" role="radiogroup" aria-label="Colores de acento"></div>
+              <label class="field inline"><span>Otro color</span><input type="color" id="accent-input" aria-label="Color de acento"></label>
               <button type="button" class="btn link" id="accent-reset">Usar el del tema</button>
             </div>
           </div>
@@ -189,6 +252,9 @@
 
           <fieldset class="feature">
             <legend>Al manejar</legend>
+            <label class="check"><input type="checkbox" data-bind="features.miles"><span>Mostrar millas y mph (en vez de km y km/h)</span></label>
+            <label class="check"><input type="checkbox" data-bind="features.gallons"><span>Mostrar el combustible en galones (en vez de litros)</span></label>
+            <p class="hint">Escribe tus datos en km y litros, como siempre: la radio los muestra en las unidades que marques aquí.</p>
             <label class="check"><input type="checkbox" data-bind="features.speedShow"><span>Mostrar mi velocidad</span></label>
             <div class="choices cols-3 compact" data-choices="features.speedAlert" role="radiogroup" aria-label="Aviso de velocidad"></div>
             <div class="sub" data-show="features.speedAlert=manual">
@@ -199,10 +265,17 @@
           </fieldset>
 
           <fieldset class="feature">
-            <label class="check"><input type="checkbox" data-bind="features.restrOn"><span>Recordar mi día de restricción vehicular</span></label>
+            <label class="check"><input type="checkbox" data-bind="features.restrOn"><span>Recordar mi restricción vehicular</span></label>
             <div class="sub" data-show="features.restrOn">
-              <div class="choices cols-3 compact multi" data-multi="features.restrDays" role="group" aria-label="Días de restricción"></div>
-              <p class="hint">Marca tú los días que te corresponden: la tabla oficial cambia según el año y el tipo de vehículo. Revisa el calendario de tu región.</p>
+              <p class="hint">La radio usa el GPS: cuando entres a Santiago (Provincia de Santiago, San Bernardo y Puente Alto) te avisa si ese día te toca. En el resto de Chile no hay restricción permanente para autos particulares, así que no te molesta.</p>
+              <p class="hint">¿Cómo es tu auto?</p>
+              <div class="choices cols-1 compact" data-choices="features.restrType" role="radiogroup" aria-label="Tipo de auto"></div>
+              <label class="field" data-show-not="features.restrType=nuevo"><span>Último dígito de tu patente</span>
+                <select data-bind="features.restrDigit" id="restr-digit"></select>
+              </label>
+              <p class="note" id="restr-note" role="status"></p>
+              <button type="button" class="btn ghost" id="restr-demo">Ver cómo avisa al entrar a Santiago</button>
+              <p class="hint">Calendario de la temporada <span id="restr-year"></span>. El Ministerio de Transportes publica el nuevo cada abril y lo actualizamos. En días de preemergencia ambiental pueden sumarse más dígitos.</p>
             </div>
           </fieldset>
         </section>
@@ -218,6 +291,16 @@
           </div>
           <div class="group" id="addons"></div>
           <div class="group">
+            <h3>Qué recibes</h3>
+            <ul class="gets">
+              <li><b>Tu auto en la pantalla</b><span>Con tu foto sin fondo o el vehículo que elegiste, y tu diseño, color y fondo.</span></li>
+              <li><b>Todo lo que elegiste</b><span>Aviso de aceite, documentos, velocidad, restricción y saludo por voz.</span></li>
+              <li><b>Nada se pierde</b><span>Android Auto, CarPlay y las apps de tu radio siguen igual.</span></li>
+              <li><b>Garantía</b><span>Si no funciona en tu radio, te devolvemos el dinero. Si cambias de radio, traspasas tu licencia una vez gratis.</span></li>
+              <li><b>Ayuda por WhatsApp</b><span>Si te trabas instalando, te guiamos paso a paso.</span></li>
+            </ul>
+          </div>
+          <div class="group">
             <h3>Tu pedido</h3>
             <dl class="summary" id="summary"></dl>
             <p class="total"><span>Total</span><b id="total">$0</b></p>
@@ -229,37 +312,54 @@
             <label class="field" data-show="contact.kind=whatsapp"><span>WhatsApp</span><input type="tel" inputmode="tel" autocomplete="tel" data-bind="contact.value" placeholder="+56 9 1234 5678"></label>
             <label class="field" data-show="contact.kind=email"><span>Correo</span><input type="email" inputmode="email" autocomplete="email" data-bind="contact.value" placeholder="tu@correo.cl"></label>
           </div>
-          <label class="check terms"><input type="checkbox" data-bind="terms"><span>Acepto los términos y la política de devoluciones.</span></label>
+          <label class="check terms"><input type="checkbox" data-bind="terms"><span>Acepto los <a href="terminos.html" target="_blank" rel="noopener">términos</a> y la <a href="devoluciones.html" target="_blank" rel="noopener">política de devoluciones</a>.</span></label>
           <ul class="errors" id="pay-errors" role="alert" hidden></ul>
           <div class="done" id="pay-done" role="status" hidden></div>
+          <p class="hint pay-install">¿Ya tienes tu código? <a href="listo.html">Mira cómo instalarlo en tu radio</a>.</p>
           <button type="button" class="btn pay" id="pay">Pagar</button>
-          <p class="hint pay-hint">El pago se hace en PayPal, que cobra el equivalente en dólares (USD). El total en pesos es el que ves arriba.</p>
+          <p class="hint pay-hint">El pago se coordina en el contacto de Daniexpress: al presionar el botón enviamos tu pedido y tu foto (ya sin fondo) para armar tu pantalla, y te mostramos tu pedido listo para enviarles; ellos te indican cómo pagar.</p>
         </section>
 
         <div class="nav" id="nav">
           <button type="button" class="btn ghost" id="back">Atrás</button>
           <button type="button" class="btn primary" id="next">Continuar</button>
         </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact wrap" id="contacto">
+      <div class="contact-card">
+        <h2>¿Tienes preguntas?</h2>
+        <p id="contact-text">Escríbenos y te respondemos. Cuando se apruebe tu pago te damos un WhatsApp de soporte.</p>
+        <p class="contact-links" id="contact-links"></p>
       </div>
     </section>
 
     <section class="faq wrap" id="faq">
       <h2>Preguntas frecuentes</h2>
-      <details><summary>¿Cómo sé si mi radio es compatible?</summary><p>Si tu radio tiene pantalla grande y puedes abrir la Play Store o instalar apps como YouTube o Waze, es Android y sirve. Si es la radio que vino de fábrica y solo muestra tu celular por Android Auto o CarPlay, no sirve.</p></details>
-      <details><summary>¿Qué pasa con mis apps y con Android Auto o CarPlay?</summary><p>Nada: siguen funcionando igual. El launcher solo cambia la pantalla de inicio y abre las apps que ya tienes.</p></details>
-      <details><summary>¿Qué estoy comprando?</summary><p>El desbloqueo de la app Tablero para una radio, con el plan que elijas (Esencial o Completo). No es un producto físico: la app se instala en tu radio y el código que recibes al pagar la activa.</p></details>
-      <details><summary>¿Qué es el código que recibo?</summary><p>Es una clave con el formato <code>TBL-XXXX-XXXX-XXXX</code>. Se escribe una vez en la app, en la opción <i>Activar código</i>, y queda ligada a esa radio. No sirve en otra radio.</p></details>
-      <details><summary>¿Hay una versión gratis?</summary><p>La app tendrá una versión gratuita con funciones básicas, como el aviso de aceite y la velocidad. El código desbloquea el resto: más diseños, documentos al día, restricción vehicular, combustible y saludo por voz.</p></details>
-      <details><summary>¿Cómo se instala?</summary><p>Instalas la app en la radio, la abres, presionas <i>Activar código</i> y escribes tu código. Cada código sirve para una sola radio.</p></details>
-      <details><summary>¿Cómo pago?</summary><p>Con PayPal. Como PayPal no cobra en pesos chilenos, se cobra el equivalente en dólares (USD). Puedes pagar con tu cuenta PayPal o con tarjeta.</p></details>
-      <details><summary>¿Y si no me gusta o no funciona en mi radio?</summary><p>Si no funciona en tu radio, te devolvemos tu dinero.</p></details>
+      <details><summary>¿Cómo sé si mi radio es compatible?</summary><p>Si tu radio tiene pantalla grande y puedes abrir la Play Store o instalar apps como YouTube o Waze, es Android y sirve. Si es la radio que vino de fábrica y solo muestra tu celular por Android Auto o CarPlay, no sirve. En el paso 1 puedes subir una captura de la pantalla de tu radio y te decimos si es compatible.</p></details>
+      <details><summary>¿Qué pasa con mis apps y con Android Auto o CarPlay?</summary><p>Nada: siguen funcionando igual. La app solo cambia la pantalla de inicio y abre las apps que ya tienes.</p></details>
+      <details><summary>¿Qué estoy comprando?</summary><p>El desbloqueo de la app Tablero para una radio, con el plan que elijas (Esencial o Completo). No es un producto físico: la app se instala en tu radio y el código que recibes cuando se confirma el pago la activa.</p></details>
+      <details><summary>¿Qué es el código que recibo?</summary><p>Es una clave con el formato <code>TBL-XXXX-XXXX-XXXX</code>. Se escribe una vez en la app, en la opción <i>Activar código</i>, y queda ligada a esa radio. Si cambias de radio, la pasas a la nueva una vez, gratis.</p></details>
+      <details><summary>¿Qué foto de mi auto debo enviar?</summary><p>Una sola, como la tengas: con el auto completo, de lado o en diagonal, de día y sin gente delante. No importa el fondo: se lo quitamos aquí mismo, en tu celular. Tu foto se envía sola cuando haces tu pedido, y antes de eso se queda en tu teléfono.</p></details>
+      <details><summary>¿Cómo se instala?</summary><p>Instalas la app en la radio, la abres, presionas <i>Activar código</i> y escribes tu código. Tienes la guía paso a paso en <a href="listo.html">esta página</a>.</p></details>
+      <details><summary>¿Necesito internet?</summary><p>La radio necesita internet una sola vez, para activar el código (puedes usar los datos de tu celular). Después la app funciona sin internet.</p></details>
+      <details><summary>¿La restricción vehicular sirve en mi ciudad?</summary><p>La restricción vehicular permanente para autos particulares solo existe en Santiago (Provincia de Santiago, San Bernardo y Puente Alto). La radio usa el GPS y te avisa al entrar a esa zona, solo cuando ese día te toca. En el resto del país no te molesta.</p></details>
+      <details><summary>¿Cómo pago?</summary><p>El pago se coordina en el contacto de Daniexpress. Cuando terminas tu diseño, presionas “Pedir mi pantalla”, te mostramos tu pedido listo para copiar y lo envías allá. Ellos te indican cómo pagar y, cuando se confirma el pago, te mandan tu código.</p></details>
+      <details><summary>¿Y si no funciona en mi radio?</summary><p>Te devolvemos tu dinero.</p></details>
     </section>
+
   </main>
 
   <footer class="foot">
     <div class="wrap">
-      <p>© <span id="year"></span> <span id="foot-name">Tablero</span>. Las marcas de autos y de radios que puedan aparecer pertenecen a sus dueños.</p>
-      <p id="foot-contact"></p>
+      <span>© <span id="year"></span> <span id="foot-name">Tablero</span></span>
+      <a id="download-link" href="listo.html">Ya tengo mi código: descargar</a>
+      <a href="terminos.html">Términos</a>
+      <a href="privacidad.html">Privacidad</a>
+      <a href="devoluciones.html">Devoluciones</a>
+      <span id="foot-contact"></span>
     </div>
   </footer>
 
@@ -268,7 +368,10 @@
   <script src="js/site.js"></script>
   <script src="js/art.js"></script>
   <script src="js/themes.js"></script>
+  <script src="js/fx.js"></script>
   <script src="js/preview.js"></script>
+  <script src="js/cutout.js"></script>
+  <script src="js/lights.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="robots" content="noindex">
+  <title>Tablero · pantalla de la radio</title>
+  <link rel="stylesheet" href="css/preview.css">
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; -webkit-user-select: none; user-select: none; }
+    #host { position: fixed; inset: 0; }
+    #gear { position: fixed; left: 6px; top: 6px; z-index: 50; width: 38px; height: 38px; border-radius: 50%; border: 0; background: rgba(255,255,255,.14); color: #fff; font-size: 20px; line-height: 38px; padding: 0; opacity: .45; }
+    #gear:active { opacity: 1; }
+    #key { position: fixed; left: 52px; top: 6px; z-index: 50; height: 38px; border-radius: 19px; border: 0; background: rgba(255,255,255,.14); color: #fff; font-size: 14px; padding: 0 14px; opacity: .55; }
+    #key:active { opacity: 1; }
+    #key[hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <!-- Esta página es la que muestra la app Android de la radio (y también sirve para probarla en un navegador: ?demo=1). -->
+  <div id="host"></div>
+  <button id="gear" aria-label="Ajustes" data-gear>⚙</button>
+  <button id="key" aria-label="Activar código" hidden>🔑 Activar código</button>
+  <script src="shared/catalog.js"></script>
+  <script src="js/art.js"></script>
+  <script src="js/themes.js"></script>
+  <script src="js/fx.js"></script>
+  <script src="js/preview.js"></script>
+  <script src="js/launcher.js"></script>
+</body>
+</html>

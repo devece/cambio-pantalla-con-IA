@@ -12,6 +12,7 @@ class SettingsStore(context: Context) {
         return d.copy(
             name = p.getString("name", d.name) ?: d.name,
             greeting = p.getString("greeting", d.greeting) ?: d.greeting,
+            phrase = p.getString("phrase", d.phrase) ?: d.phrase,
             carType = p.getString("carType", d.carType) ?: d.carType,
             carColor = p.getString("carColor", d.carColor) ?: d.carColor,
             apps = list("apps", d.apps),
@@ -29,6 +30,8 @@ class SettingsStore(context: Context) {
             speedAlert = p.getString("speedAlert", d.speedAlert) ?: d.speedAlert,
             manualLimit = p.getInt("manualLimit", d.manualLimit),
             restrOn = p.getBoolean("restrOn", d.restrOn),
+            restrType = p.getString("restrType", d.restrType) ?: d.restrType,
+            restrDigit = p.getString("restrDigit", d.restrDigit) ?: d.restrDigit,
             restrDays = list("restrDays", d.restrDays),
             voice = p.getBoolean("voice", d.voice),
         )
@@ -38,6 +41,7 @@ class SettingsStore(context: Context) {
         p.edit()
             .putString("name", c.name)
             .putString("greeting", c.greeting)
+            .putString("phrase", c.phrase)
             .putString("carType", c.carType)
             .putString("carColor", c.carColor)
             .putString("apps", c.apps.joinToString(","))
@@ -55,6 +59,8 @@ class SettingsStore(context: Context) {
             .putString("speedAlert", c.speedAlert)
             .putInt("manualLimit", c.manualLimit)
             .putBoolean("restrOn", c.restrOn)
+            .putString("restrType", c.restrType)
+            .putString("restrDigit", c.restrDigit)
             .putString("restrDays", c.restrDays.joinToString(","))
             .putBoolean("voice", c.voice)
             .apply()

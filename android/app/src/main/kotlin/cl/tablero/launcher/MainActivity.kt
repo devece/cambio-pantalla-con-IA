@@ -11,6 +11,8 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.view.Gravity
 import android.view.View
@@ -26,6 +28,8 @@ import cl.tablero.core.Maintenance
 import cl.tablero.core.MaintenanceItem
 import cl.tablero.core.Reminder
 import cl.tablero.core.Reminders
+import cl.tablero.core.RestrictionNotice
+import cl.tablero.core.RestrictionRules
 import cl.tablero.core.Speed
 import cl.tablero.core.Tier
 import java.util.Calendar
@@ -48,6 +52,12 @@ class MainActivity : Activity() {
     private var alertView: TextView? = null
     private var tts: TextToSpeech? = null
     private var askedLocation = false
+    private lateinit var restriction: RestrictionRules
+    private var zoneView: TextView? = null
+    private var web: WebLauncher? = null
+    private var insideZone = false
+    private val handler = Handler(Looper.getMainLooper())
+    private val hideZone = Runnable { zoneView?.visibility = View.GONE }
 
     private val locationManager by lazy { getSystemService(Context.LOCATION_SERVICE) as LocationManager }
 
@@ -55,6 +65,9 @@ class MainActivity : Activity() {
         override fun onLocationChanged(location: Location) {
             val kmh = if (location.hasSpeed()) (location.speed * 3.6f).roundToInt() else 0
             showSpeed(kmh)
+            web?.setSpeed(kmh)
+            web?.setLocation(location.latitude, location.longitude)
+            checkZone(location.latitude, location.longitude)
         }
 
         override fun onProviderEnabled(provider: String) {}
@@ -69,19 +82,29 @@ class MainActivity : Activity() {
         entitlement = EntitlementStore(this)
         settings = SettingsStore(this)
         maintenance = Maintenance.parse(assets.open("maintenance.json").bufferedReader().use { it.readText() })
+        restriction = RestrictionRules.parse(assets.open("restriction.json").bufferedReader().use { it.readText() })
     }
 
     // Al volver de Ajustes o de Activar código hay que redibujar con lo nuevo.
     override fun onResume() {
         super.onResume()
         config = Gate.apply(settings.load(), entitlement.limits)
-        setContentView(buildUi())
+        web?.destroy()
+        web = null
+        val designs = DesignStore(this)
+        val saved = if (designs.has()) designs.loadText() else null
+        if (saved != null) config = designs.applyTo(config)
+        // Con o sin código se dibuja con el motor del sitio; sin código, con el diseño base de la edición gratuita.
+        val launcher = WebLauncher(this, saved ?: "{}")
+        web = launcher
+        setContentView(launcher.view)
         startSpeed()
         greetOnce()
     }
 
     override fun onPause() {
         super.onPause()
+        handler.removeCallbacks(hideZone)
         try {
             locationManager.removeUpdates(locationListener)
         } catch (e: SecurityException) {
@@ -90,6 +113,8 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        web?.destroy()
+        web = null
         tts?.shutdown()
         super.onDestroy()
     }
@@ -120,6 +145,20 @@ class MainActivity : Activity() {
             visibility = View.INVISIBLE
             text = " "
         }
+        val zone = TextView(this).apply {
+            typeface = Ui.DISPLAY
+            textSize = 20f
+            setTextColor(Color.BLACK)
+            background = Ui.rounded(this@MainActivity, Ui.ACCENT, 22)
+            setPadding(dp(24), dp(8), dp(24), dp(8))
+            gravity = Gravity.CENTER
+            visibility = View.GONE
+        }
+        zoneView = zone
+        main.addView(zone, LinearLayout.LayoutParams(WRAP, WRAP).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+            bottomMargin = dp(8)
+        })
         alertView = alert
         main.addView(alert, LinearLayout.LayoutParams(WRAP, WRAP).apply {
             gravity = Gravity.CENTER_HORIZONTAL
@@ -179,7 +218,7 @@ class MainActivity : Activity() {
         val card = card()
         card.addView(text(Reminders.hello(config), 40f, Ui.TEXT).apply { typeface = Ui.DISPLAY })
         val odometer = if (config.odometer > 0) " · ${Reminders.km(config.odometer)} km" else ""
-        card.addView(text(Reminders.greeting(now.get(Calendar.HOUR_OF_DAY)) + odometer, 17f, Ui.SUB))
+        card.addView(text(Reminders.below(config, now.get(Calendar.HOUR_OF_DAY)) + odometer, 17f, Ui.SUB))
 
         val car = CarView(this).apply {
             carType = config.carType
@@ -340,7 +379,7 @@ class MainActivity : Activity() {
     /* ---------- velocidad (GPS) ---------- */
 
     private fun startSpeed() {
-        if (!config.speedShow) return
+        if (!config.speedShow && !config.restrOn) return
         if (!hasLocationPermission()) {
             if (!askedLocation && Build.VERSION.SDK_INT >= 23) {
                 askedLocation = true
@@ -385,12 +424,57 @@ class MainActivity : Activity() {
         }
     }
 
+    /* ---------- restricción vehicular (GPS) ---------- */
+
+    /** Avisa una sola vez, al pasar de "afuera" a "adentro" de la zona de Santiago. */
+    private fun checkZone(lat: Double, lon: Double) {
+        if (!config.restrOn) return
+        val inside = restriction.inZone(lat, lon)
+        if (inside && !insideZone) {
+            val cal = Calendar.getInstance()
+            val minutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
+            restriction.notice(config, Reminders.weekdayId(cal.get(Calendar.DAY_OF_WEEK)), cal.get(Calendar.MONTH) + 1, minutes)
+                ?.let { showZoneNotice(it) }
+        }
+        insideZone = inside
+    }
+
+    private fun showZoneNotice(n: RestrictionNotice) {
+        web?.let {
+            it.zoneNotice(n.text, n.warn)
+            speak(n.text)
+            return
+        }
+        zoneView?.apply {
+            text = n.text
+            visibility = View.VISIBLE
+        }
+        handler.removeCallbacks(hideZone)
+        handler.postDelayed(hideZone, 15_000L)
+        speak(n.text)
+    }
+
+    private fun speak(phrase: String) {
+        if (!config.voice) return
+        val engine = tts
+        if (engine != null) {
+            engine.speak(phrase, TextToSpeech.QUEUE_ADD, null, "zona")
+            return
+        }
+        tts = TextToSpeech(this) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = Locale("es", "CL")
+                tts?.speak(phrase, TextToSpeech.QUEUE_ADD, null, "zona")
+            }
+        }
+    }
+
     /* ---------- saludo por voz ---------- */
 
     private fun greetOnce() {
         if (!config.voice || greeted) return
         greeted = true
-        val phrase = "${Reminders.greeting(Calendar.getInstance().get(Calendar.HOUR_OF_DAY))}, ${config.name.ifBlank { "amigo" }}"
+        val phrase = Reminders.voiceLine(config, Calendar.getInstance().get(Calendar.HOUR_OF_DAY))
         tts = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 tts?.language = Locale("es", "CL")
@@ -402,12 +486,12 @@ class MainActivity : Activity() {
     /* ---------- utilidades ---------- */
 
     private fun open(pkg: String) {
-        val intent = packageManager.getLaunchIntentForPackage(pkg)
+        val intent = Apps.launchIntent(packageManager, pkg)
         if (intent == null) Toast.makeText(this, "Esa app no está instalada en la radio", Toast.LENGTH_SHORT).show()
         else startActivity(intent)
     }
 
-    private fun isInstalled(pkg: String): Boolean = packageManager.getLaunchIntentForPackage(pkg) != null
+    private fun isInstalled(pkg: String): Boolean = Apps.isInstalled(packageManager, pkg)
 
     private fun card(): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL

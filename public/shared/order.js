@@ -18,7 +18,14 @@
     return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n))) : def;
   };
   const pick = (v, list, def) => (list.includes(v) ? v : def);
-  const money = (n) => new Intl.NumberFormat(C.locale, { style: 'currency', currency: C.currency, maximumFractionDigits: 0 }).format(n);
+  const screenOf = (s) => {
+    const w = s && Number.isInteger(s.w) ? s.w : 0;
+    const h = s && Number.isInteger(s.h) ? s.h : 0;
+    return w >= 200 && w <= 8000 && h >= 200 && h <= 8000 ? { w, h } : null;
+  };
+  // Los precios están en centavos: 300 -> "US$3" (sin decimales si es exacto, "US$3,50" si no).
+  const money = (cents) =>
+    new Intl.NumberFormat(C.locale, { style: 'currency', currency: C.currency, minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 }).format(cents / 100);
 
   /** Plan mínimo que necesita lo elegido en "estilo". */
   function requiredPlan(style) {
@@ -26,6 +33,55 @@
     const plusTheme = C.themeTiers[s.theme] === 'plus';
     const plusSeason = C.plusSeasons.includes(s.season);
     return plusTheme || plusSeason ? 'completo' : 'esencial';
+  }
+
+  /** Días de la semana en que le toca restricción a una patente, según la tabla de catalog.restriction. */
+  function restrDaysFor(f) {
+    const r = C.restriction;
+    const x = f || {};
+    if (!x.restrOn) return [];
+    const table = r.digits[x.restrType];
+    const d = Number(x.restrDigit);
+    if (!table || x.restrDigit === '' || x.restrDigit == null || !Number.isInteger(d) || d < 0 || d > 9) return [];
+    return C.weekdays.filter((id) => table[id].includes(d));
+  }
+
+  /** ¿Está el punto (lat, lon) dentro de la zona donde rige la restricción? (algoritmo del rayo) */
+  function inRestrictionZone(lat, lon) {
+    const poly = C.restriction.zone.polygon;
+    if (typeof lat !== 'number' || typeof lon !== 'number' || !isFinite(lat) || !isFinite(lon)) return false;
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const [yi, xi] = poly[i];
+      const [yj, xj] = poly[j];
+      if (yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  }
+
+  /**
+   * Aviso al entrar a la zona. `ctx`: { weekday: 'lun'..'vie'|'sab'|'dom', month: 1-12, minutes: minutos desde la medianoche }.
+   * Devuelve { warn, text } o null si no hay nada que avisar. No sabe de festivos (la radio no los conoce).
+   */
+  function restrictionNotice(f, ctx) {
+    const r = C.restriction;
+    const x = f || {};
+    if (!x.restrOn || x.restrType === 'nuevo') return null;
+    const c = ctx || {};
+    if (!r.season.months.includes(c.month)) return null;
+    if (!C.weekdays.includes(c.weekday)) return null;
+    if (c.minutes < 7 * 60 + 30 || c.minutes >= 21 * 60) return null;
+    const parts = [];
+    let warn = false;
+    if (restrDaysFor(x).includes(c.weekday)) {
+      warn = true;
+      parts.push(`Hoy tienes restricción vehicular (patente terminada en ${x.restrDigit}). Rige hasta las 21:00.`);
+    }
+    if (x.restrType === 'sin') {
+      warn = true;
+      parts.push('Sin sello verde no puedes circular hoy dentro del anillo Américo Vespucio.');
+    }
+    return parts.length ? { warn, text: `Entraste a ${r.zone.name}. ${parts.join(' ')}` } : null;
   }
 
   /** Por qué se necesita el plan Completo (para mostrarlo al cliente). */
@@ -83,17 +139,26 @@
       : [];
 
     const clean = {
-      radio: { type: radioType, brand: str(radio.brand, 24), model: str(radio.model, 40) },
+      radio: {
+        type: radioType,
+        brand: str(radio.brand, 24),
+        model: str(radio.model, 40),
+        // Medidas de la captura que subió el cliente (solo números; la imagen nunca viaja con el pedido).
+        screen: screenOf(radio.screen),
+      },
       car: {
         type: pick(car.type, C.vehicles, 'auto'),
         color: HEX.test(car.color) ? car.color.toLowerCase() : '#b3261e',
         name: str(car.name, 24),
-        greeting: str(car.greeting, 24) || 'Hola',
+        greeting: str(car.greeting, 16) || 'Hola',
+        phrase: str(car.phrase, 28),
+        plate: str(car.plate, 10).toUpperCase(),
       },
       style: {
         theme: pick(style.theme, Object.keys(C.themeTiers), 'ruta'),
         layout: pick(style.layout, C.layouts, 'tarjetas'),
         scene: pick(style.scene, C.scenes, 'tema'),
+        sceneTime: pick(style.sceneTime, C.sceneTimes, 'auto'),
         season: pick(style.season, C.seasons, 'ninguna'),
         accent: HEX.test(style.accent) ? style.accent.toLowerCase() : null,
         apps,
@@ -113,14 +178,23 @@
         speedAlert: pick(f.speedAlert, C.speedAlerts, 'auto'),
         manualLimit: num(f.manualLimit, 20, 140, 60),
         restrOn: !!f.restrOn,
-        restrDays: Array.isArray(f.restrDays) ? [...new Set(f.restrDays.filter((d) => C.weekdays.includes(d)))] : [],
+        restrType: pick(f.restrType, C.restriction.types.map((t) => t.id), 'sello'),
+        restrDigit: /^[0-9]$/.test(String(f.restrDigit)) ? String(f.restrDigit) : '',
+        restrDays: [],
         voice: f.voice !== false,
+        miles: !!f.miles,
+        gallons: !!f.gallons,
       },
       plan: pick(o.plan, C.plans.map((p) => p.id), null),
       addons: {},
       contact: { kind: contact.kind === 'email' ? 'email' : 'whatsapp', value: '' },
       terms: o.terms === true,
     };
+    // Los días de restricción se calculan en el servidor a partir del dígito: nunca se confía en los del navegador.
+    clean.features.restrDays = restrDaysFor(clean.features);
+    if (clean.features.restrOn && clean.features.restrType !== 'nuevo' && clean.features.restrDigit === '') {
+      errors.push('Elige el último dígito de tu patente para la restricción vehicular.');
+    }
     C.addons.forEach((a) => {
       if (a.available !== false && o.addons && o.addons[a.id]) clean.addons[a.id] = true;
     });
@@ -149,5 +223,5 @@
     return { ok: errors.length === 0, errors, clean };
   }
 
-  return { requiredPlan, planReasons, quote, validateOrder, normalizeMobile, money };
+  return { restrDaysFor, inRestrictionZone, restrictionNotice, requiredPlan, planReasons, quote, validateOrder, normalizeMobile, money };
 });

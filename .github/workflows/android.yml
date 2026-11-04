@@ -1,0 +1,123 @@
+name: Android
+
+# Compila la app de la radio y deja el APK listo para descargar.
+# Se ejecuta solo al cambiar la carpeta android/ o los datos compartidos, y también a mano (Actions > Android > Run workflow).
+on:
+  push:
+    paths:
+      - 'android/**'
+      - 'public/shared/**'
+      - 'public/js/**'
+      - 'public/css/**'
+      - 'public/img/**'
+      - 'public/launcher.html'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write   # para publicar el APK como descarga pública
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias del servidor
+        run: npm ci --omit=dev
+
+      - name: Pruebas del sitio y del servidor
+        run: npm test
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Los servidores de GitHub ya traen el SDK de Android: solo aseguramos la versión que usa la app.
+      - name: SDK de Android
+        run: |
+          SDKM="$(command -v sdkmanager || echo "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager")"
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" "platforms;android-34" "build-tools;34.0.0"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Pruebas de las reglas (sin Android)
+        working-directory: android
+        run: ./gradlew --no-daemon :core:test
+
+      # Firma fija: si existen los secretos TB_KEYSTORE_B64, TB_KEYSTORE_PASSWORD, TB_KEY_ALIAS y TB_KEY_PASSWORD
+      # se compila el APK de release firmado (las actualizaciones se instalan encima sin desinstalar).
+      # Sin ellos se sigue compilando el APK de prueba, como hasta ahora.
+      - name: Preparar la firma
+        id: sign
+        env:
+          KS: ${{ secrets.TB_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > "$RUNNER_TEMP/tablero.jks"
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+            echo "apk=android/app/build/outputs/apk/release/app-release.apk" >> "$GITHUB_OUTPUT"
+          else
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "apk=android/app/build/outputs/apk/debug/app-debug.apk" >> "$GITHUB_OUTPUT"
+            echo "::warning::Sin clave de firma: se publica el APK de prueba (debug)."
+          fi
+
+      - name: Compilar el APK
+        working-directory: android
+        env:
+          TB_KEYSTORE_FILE: ${{ runner.temp }}/tablero.jks
+          TB_KEYSTORE_PASSWORD: ${{ secrets.TB_KEYSTORE_PASSWORD }}
+          TB_KEY_ALIAS: ${{ secrets.TB_KEY_ALIAS }}
+          TB_KEY_PASSWORD: ${{ secrets.TB_KEY_PASSWORD }}
+        run: |
+          if [ "${{ steps.sign.outputs.signed }}" = "true" ]; then TASK=:app:assembleRelease; else TASK=:app:assembleDebug; fi
+          ./gradlew --no-daemon $TASK -PtableroApiBase=https://tablero-pearl.vercel.app
+
+      - name: Revisar que el APK trae sus datos
+        run: |
+          unzip -l "${{ steps.sign.outputs.apk }}" > contenido.txt
+          for f in editions maintenance restriction; do
+            grep -q "assets/$f.json" contenido.txt || { echo "::error::Falta assets/$f.json dentro del APK"; exit 1; }
+          done
+          for f in launcher.html css/preview.css js/preview.js js/launcher.js js/art.js js/themes.js js/fx.js shared/catalog.js img/auto.png; do
+            grep -q "assets/web/$f" contenido.txt || { echo "::error::Falta assets/web/$f dentro del APK"; exit 1; }
+          done
+          echo "El APK trae sus datos y la pantalla de inicio."
+
+      - name: Dejar el APK con un nombre fijo
+        run: cp "${{ steps.sign.outputs.apk }}" tablero.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tablero-apk
+          path: tablero.apk
+          if-no-files-found: error
+
+      # Descarga pública y siempre igual:
+      # https://github.com/devece/cambio-pantalla-con-IA/releases/download/app-latest/tablero.apk
+      - name: Publicar la descarga
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: app-latest
+          name: App de la radio (última versión)
+          body: |
+            Instalador de la app Tablero para radios Android. Es siempre la última compilación.
+            Instrucciones: https://tablero-pearl.vercel.app/listo.html
+          files: tablero.apk
+          prerelease: false
+          make_latest: 'false'
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: reportes-de-error
+          path: |
+            android/core/build/reports/tests
+            android/app/build/reports

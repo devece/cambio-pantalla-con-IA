@@ -142,4 +142,16 @@ class RemindersTest {
         assertTrue(Speed.isOver(66, 60))
         assertFalse(Speed.isOver(200, null))
     }
+
+    @Test
+    fun `la frase del usuario reemplaza al saludo del momento del dia`() {
+        val sin = LauncherConfig(name = "Daniel", greeting = "Wena")
+        assertEquals("Wena, Daniel", Reminders.hello(sin))
+        assertEquals("Buenas tardes", Reminders.below(sin, hour = 15))
+        assertEquals("Wena, Daniel. Buenas tardes", Reminders.voiceLine(sin, hour = 15))
+        val con = sin.copy(phrase = "  Dios te bendiga ")
+        assertEquals("Dios te bendiga", Reminders.below(con, hour = 15))
+        assertEquals("Wena, Daniel. Dios te bendiga", Reminders.voiceLine(con, hour = 15))
+        assertEquals("Hola, amigo. Buenos días", Reminders.voiceLine(LauncherConfig(), hour = 8))
+    }
 }

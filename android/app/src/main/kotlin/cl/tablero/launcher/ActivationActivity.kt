@@ -66,6 +66,16 @@ class ActivationActivity : Activity() {
 
         Thread {
             val result = LicenseClient.activate(code, deviceId)
+            // Baja el diseño del cliente (y su foto) ahora, mientras hay internet; después todo funciona sin conexión.
+            if (result is ActivationResult.Activated) {
+                try {
+                    val store = DesignStore(this)
+                    val design = result.design
+                    if (design != null) store.save(design) else store.clear()
+                } catch (e: Exception) {
+                    // sin diseño la app igual queda activada, con su pantalla de siempre
+                }
+            }
             runOnUiThread {
                 if (isFinishing) return@runOnUiThread
                 button.isEnabled = true

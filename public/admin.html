@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel · Tablero</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#d9730d">
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .adm { max-width: 760px; margin: 0 auto; padding: 18px 16px 60px; display: grid; gap: 18px; }
+    .adm h1 { font: 600 28px/1.1 var(--display); }
+    .adm .card2 { background: var(--paper); border: 1px solid var(--borde); border-radius: 16px; padding: 16px; display: grid; gap: 10px; }
+    .adm h2 { font: 600 20px/1.2 var(--display); }
+    .adm .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .adm .row > * { flex: 1 1 160px; }
+    .adm .row .btn { flex: 0 0 auto; }
+    .adm table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .adm td, .adm th { text-align: left; padding: 8px 6px; border-top: 1px solid var(--borde); vertical-align: top; }
+    .adm th { color: var(--ink2); font-weight: 500; border-top: 0; }
+    .adm code { font-size: 13px; }
+    .badge { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #eee; }
+    .badge.ok { background: #e1f4e7; } .badge.warn { background: #fff0c9; } .badge.bad { background: #fde3e1; }
+    .result { background: #fdf0e0; border: 1px solid #f0c9a0; border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
+    .result .big { font: 600 clamp(20px, 5vw, 28px)/1.1 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .04em; }
+    textarea.msg { width: 100%; min-height: 120px; font: inherit; font-size: 14px; border: 2px solid var(--borde); border-radius: 10px; padding: 8px; }
+    .scroll { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <main class="adm">
+    <h1>Panel de Tablero</h1>
+
+    <section class="card2" id="login">
+      <h2>Entrar</h2>
+      <div class="row">
+        <input type="password" id="token" placeholder="Tu clave de administrador" autocomplete="current-password">
+        <button type="button" class="btn primary" id="enter">Entrar</button>
+      </div>
+      <p class="error" id="login-err" hidden></p>
+    </section>
+
+    <div id="app" hidden style="display:grid;gap:18px">
+      <section class="card2">
+        <h2>Nuevo código</h2>
+        <p class="hint">Para una venta que ya cobraste. Crea el pedido como pagado y te da el código.</p>
+        <div class="row">
+          <select id="plan"></select>
+          <input type="text" id="note" maxlength="120" placeholder="Cliente (nombre o WhatsApp)">
+          <button type="button" class="btn primary" id="create">Crear código</button>
+        </div>
+        <div id="created"></div>
+      </section>
+
+      <section class="card2">
+        <h2>Confirmar un pedido del sitio</h2>
+        <p class="hint">El cliente te manda su número de pedido (TB-XXXXXXXX). Cuando confirmes su pago, se crea su código.</p>
+        <div class="row">
+          <input type="text" id="order" maxlength="20" placeholder="TB-XXXXXXXX" style="text-transform:uppercase">
+          <button type="button" class="btn primary" id="confirm">Confirmar pago y crear código</button>
+        </div>
+        <div id="confirmed"></div>
+        <div id="pending"></div>
+      </section>
+
+      <section class="card2">
+        <h2>Códigos</h2>
+        <div class="scroll"><table id="codes"><thead><tr><th>Código</th><th>Plan</th><th>Estado</th><th></th></tr></thead><tbody></tbody></table></div>
+        <p class="hint" id="codes-empty" hidden>Todavía no hay códigos.</p>
+      </section>
+    </div>
+  </main>
+
+  <script src="shared/catalog.js"></script>
+  <script>
+  (function () {
+    var $ = function (s) { return document.querySelector(s); };
+    var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+    var money = function (cents) { return 'US$' + (cents / 100).toLocaleString('es-CL', { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 }); };
+    var token = '';
+    try { token = sessionStorage.getItem('tb-admin') || ''; } catch (e) {}
+
+    function api(body) {
+      body.action = body.action;
+      return fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': token }, body: JSON.stringify(body) })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.http = r.status; return d; }); });
+    }
+
+    function customerMessage(code, plan) {
+      var link = location.origin + '/listo.html?codigo=' + encodeURIComponent(code);
+      return '¡Listo! Tu código de Tablero (' + (plan === 'completo' ? 'plan Completo' : 'plan Esencial') + ') es:\n\n' + code + '\n\n' +
+        'Para instalarlo en tu radio, sigue estos pasos: ' + link + '\n\n' +
+        'El código sirve para una sola radio. Si algo no resulta, escríbeme.';
+    }
+
+    function showResult(el, d) {
+      var msg = customerMessage(d.code, d.plan);
+      el.innerHTML = '<div class="result"><div>Pedido <b>' + esc(d.orderId) + '</b> · ' + esc(d.plan) + ' · ' + money(d.total) + '</div>' +
+        '<div class="big">' + esc(d.code) + '</div>' +
+        '<textarea class="msg" readonly>' + esc(msg) + '</textarea>' +
+        '<div class="row"><button type="button" class="btn primary" data-copy="msg">Copiar mensaje para el cliente</button>' +
+        '<button type="button" class="btn ghost" data-copy="code">Copiar solo el código</button></div></div>';
+      el.querySelector('[data-copy="msg"]').onclick = function (e) { copy(msg, e.target); };
+      el.querySelector('[data-copy="code"]').onclick = function (e) { copy(d.code, e.target); };
+    }
+    function copy(text, btn) {
+      var ok = function () { var t = btn.textContent; btn.textContent = '¡Copiado!'; setTimeout(function () { btn.textContent = t; }, 1400); };
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(ok, function () {}); else ok();
+    }
+
+    function badge(l) {
+      if (l.status === 'revoked') return '<span class="badge bad">anulado</span>';
+      if (l.activated) return '<span class="badge ok">activado</span>';
+      return '<span class="badge warn">sin activar</span>';
+    }
+
+    function load() {
+      return api({ action: 'list' }).then(function (d) {
+        if (d.http === 401) { logout('Clave incorrecta.'); return; }
+        if (!d.ok) { $('#login-err').textContent = d.error || 'No se pudo cargar.'; $('#login-err').hidden = false; return; }
+        $('#login').hidden = true; $('#app').hidden = false;
+        var body = $('#codes tbody');
+        body.innerHTML = d.licenses.map(function (l) {
+          return '<tr><td><code>' + esc(l.code) + '</code><br><small>' + esc(l.orderId) + (l.contact ? ' · ' + esc(l.contact) : '') + (l.hasPhoto ? ' · foto ✓' : '') + '</small></td>' +
+            '<td>' + esc(l.plan || '') + '</td><td>' + badge(l) + (l.transfersUsed ? '<br><small>traspasos: ' + l.transfersUsed + '</small>' : '') + '</td>' +
+            '<td><button type="button" class="btn link" data-act="release" data-code="' + esc(l.code) + '">Liberar radio</button> ' +
+            (l.status === 'revoked' ? '' : '<button type="button" class="btn link" data-act="revoke" data-code="' + esc(l.code) + '">Anular</button>') + '</td></tr>';
+        }).join('');
+        $('#codes-empty').hidden = d.licenses.length > 0;
+        $('#pending').innerHTML = d.pending.length
+          ? '<p class="hint">Pedidos esperando pago:</p>' + d.pending.map(function (o) {
+              return '<div class="row"><span><b>' + esc(o.public_id) + '</b> · ' + esc(o.plan) + ' · ' + money(o.total) + ' · ' + esc(o.contact_value) + (o.hasPhoto ? ' · foto ✓' : ' · sin foto') + '</span><button type="button" class="btn ghost" data-confirm="' + esc(o.public_id) + '">Confirmar pago</button></div>';
+            }).join('')
+          : '';
+      });
+    }
+
+    function logout(msg) {
+      token = ''; try { sessionStorage.removeItem('tb-admin'); } catch (e) {}
+      $('#app').hidden = true; $('#login').hidden = false;
+      if (msg) { $('#login-err').textContent = msg; $('#login-err').hidden = false; }
+    }
+
+    $('#plan').innerHTML = TBCatalog.plans.map(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + ' · ' + money(p.price) + '</option>'; }).join('');
+    $('#enter').onclick = function () {
+      token = $('#token').value.trim(); $('#login-err').hidden = true;
+      if (!token) return;
+      try { sessionStorage.setItem('tb-admin', token); } catch (e) {}
+      load();
+    };
+    $('#token').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('#enter').click(); });
+    $('#create').onclick = function () {
+      api({ action: 'create', plan: $('#plan').value, note: $('#note').value }).then(function (d) {
+        if (!d.ok) { $('#created').innerHTML = '<p class="error">' + esc(d.error || 'No se pudo crear.') + '</p>'; return; }
+        showResult($('#created'), d); $('#note').value = ''; load();
+      });
+    };
+    function confirmOrder(id) {
+      api({ action: 'confirm', orderId: id }).then(function (d) {
+        if (!d.ok) { $('#confirmed').innerHTML = '<p class="error">' + esc(d.error || 'No se pudo confirmar.') + '</p>'; return; }
+        showResult($('#confirmed'), d); $('#order').value = ''; load();
+      });
+    }
+    $('#confirm').onclick = function () { confirmOrder($('#order').value); };
+    document.addEventListener('click', function (e) {
+      var c = e.target.closest('[data-confirm]'); if (c) { confirmOrder(c.dataset.confirm); return; }
+      var b = e.target.closest('[data-act]'); if (!b) return;
+      var msg = b.dataset.act === 'revoke' ? '¿Anular este código? El cliente dejará de poder usarlo.' : '¿Liberar este código para pasarlo a otra radio?';
+      if (!confirm(msg)) return;
+      api({ action: b.dataset.act, code: b.dataset.code }).then(function (d) { if (!d.ok) alert(d.error || 'No se pudo.'); load(); });
+    });
+
+    if (token) load();
+  })();
+  </script>
+</body>
+</html>

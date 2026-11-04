@@ -3,27 +3,26 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const paypal = require('../lib/paypal.js');
 
-test('clpToUsd redondea hacia arriba al centavo', () => {
-  assert.equal(paypal.clpToUsd(9990, 950), '10.52');
-  assert.equal(paypal.clpToUsd(9500, 950), '10.00');
-  assert.equal(paypal.clpToUsd(14990, 1000), '14.99');
+test('centsToUsd convierte centavos a texto con 2 decimales', () => {
+  assert.equal(paypal.centsToUsd(300), '3.00');
+  assert.equal(paypal.centsToUsd(800), '8.00');
+  assert.equal(paypal.centsToUsd(1050), '10.50');
 });
 
-test('clpToUsd exige un tipo de cambio válido', () => {
-  assert.throws(() => paypal.clpToUsd(9990, 0));
+test('centsToUsd rechaza montos inválidos', () => {
+  assert.throws(() => paypal.centsToUsd(0));
+  assert.throws(() => paypal.centsToUsd(3.5));
 });
 
-test('configured necesita credenciales y tipo de cambio', () => {
+test('configured necesita credenciales', () => {
   const keep = { ...process.env };
   try {
     delete process.env.PAYPAL_CLIENT_ID;
     delete process.env.PAYPAL_CLIENT_SECRET;
-    delete process.env.PAYPAL_CLP_PER_USD;
     assert.equal(paypal.configured(), false);
     process.env.PAYPAL_CLIENT_ID = 'id';
+    assert.equal(paypal.configured(), false, 'sin secreto no está listo');
     process.env.PAYPAL_CLIENT_SECRET = 'secret';
-    assert.equal(paypal.configured(), false, 'sin tipo de cambio no está listo');
-    process.env.PAYPAL_CLP_PER_USD = '950';
     assert.equal(paypal.configured(), true);
   } finally {
     process.env = keep;

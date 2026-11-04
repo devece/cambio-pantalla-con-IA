@@ -7,9 +7,16 @@
   const fmt = (n) => new Intl.NumberFormat('es-CL').format(Math.round(n));
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+  const MI = 0.621371;
+  const GAL = 3.78541;
+  const imp = (state) => !!(state && state.features && state.features.miles);
+  const dist = (km, state) => (imp(state) ? Math.round(km * MI) : Math.round(km));
+  const du = (state) => (imp(state) ? 'mi' : 'km');
+  const su = (state) => (imp(state) ? 'mph' : 'km/h');
   const icon = (id, size) =>
     `<svg viewBox="0 0 24 24" width="${size || 28}" height="${size || 28}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TB.icons[id] || ''}</svg>`;
 
+  TB.icons.pausa = '<path d="M8 5v14M16 5v14" stroke-width="3.2"/>';
   TB.icons.casa = '<path d="M4 11l8-7 8 7M6.500 10v10h11V10"/>';
 
   const ZONES = [
@@ -19,11 +26,18 @@
   ];
   const PRESETS = [88.9, 92.5, 96.1, 99.3, 101.7, 105.3];
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const live = { speed: 58, zone: 0, n: 0, maint: 0, freq: 96.1 };
+  const live = { speed: 58, zone: 0, n: 0, maint: 0, freq: 96.1, zoneMsg: null, zoneUntil: 0 };
   let scr = null;
   let host = null;
   let current = null;
   let uid = 0;
+
+  /* ---------- modo app ----------
+   * Dentro de la app de la radio (js/launcher.js) `TB.preview.app` trae datos reales: velocidad por GPS, clima y
+   * acciones para abrir apps. Sin él (en el sitio) todo es la demostración de siempre. */
+  const appMode = () => !!TB.preview.app;
+  const WX = (c) => (c >= 51 && c <= 67) || (c >= 80 && c <= 99) ? 'lluvia' : 'sol';
+  const openAttr = (kind) => (appMode() ? `data-open="${kind}"` : `data-go="${kind === 'bluetooth' ? 'bluetooth' : 'radio'}"`);
 
   /* ---------- helpers de estado ---------- */
   const themeOf = (s) => TB.themes.find((t) => t.id === s.style.theme) || TB.themes[0];
@@ -45,6 +59,8 @@
     }
     return { th, t };
   }
+  /** En la radio no conocemos el límite de cada calle: solo hay límite si el cliente fijó uno. */
+  const appLimit = (state) => (state.features.speedAlert === 'manual' ? state.features.manualLimit : null);
   function limitFor(state) {
     const f = state.features;
     return f.speedAlert === 'manual' ? f.manualLimit : ZONES[live.zone].limit;
@@ -58,13 +74,13 @@
       const left = f.lastOil + f.oilEvery - f.odometer;
       out.push({
         key: 'Aceite',
-        text: left >= 0 ? `faltan ${fmt(left)} km` : `pasado por ${fmt(-left)} km`,
+        text: left >= 0 ? `faltan ${fmt(dist(left, state))} ${du(state)}` : `pasado por ${fmt(dist(-left, state))} ${du(state)}`,
         pct: clamp(1 - left / f.oilEvery, 0, 1),
         warn: left <= 500,
       });
     }
     TBCatalog.maintenance.forEach((m) => {
-      if (f.others.includes(m.id)) out.push({ key: m.name, text: `faltan ${fmt(m.every)} km`, pct: 0.02, warn: false });
+      if (f.others.includes(m.id)) out.push({ key: m.name, text: `faltan ${fmt(dist(m.every, state))} ${du(state)}`, pct: 0.02, warn: false });
     });
     if (f.docsOn) {
       const now = new Date().getMonth() + 1;
@@ -74,12 +90,51 @@
       out.push({ key: 'Permiso de circulación', text: `próximo pago en ${nextPermiso}`, pct: 0.3, warn: false });
       out.push({ key: 'Seguro obligatorio (SOAP)', text: 'vence el 31 de marzo', pct: 0.3, warn: false });
     }
-    if (f.fuelOn) out.push({ key: 'Combustible', text: `~${fmt(f.tankL * f.kmPerL)} km con el tanque lleno`, pct: 1, warn: false });
-    if (f.restrOn && f.restrDays.length) {
+    if (f.fuelOn) out.push({ key: 'Combustible', text: `~${fmt(dist(f.tankL * f.kmPerL, state))} ${du(state)} con el tanque lleno${f.gallons ? ` (${(f.tankL / GAL).toFixed(1).replace('.', ',')} gal)` : ''}`, pct: 1, warn: false });
+    if (f.restrOn && f.restrCity === 'rm' && f.restrDays.length) {
       const names = TB.weekdays.filter((d) => f.restrDays.includes(d.id)).map((d) => d.name.toLowerCase());
-      out.push({ key: 'Restricción vehicular', text: names.join(', '), pct: 0, warn: false, noBar: true });
+      const r = TBCatalog.restriction;
+      const m = new Date().getMonth() + 1;
+      const inSeason = r.season.months.includes(m);
+      const todayId = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'][new Date().getDay()];
+      const today = inSeason && f.restrDays.includes(todayId);
+      out.push({
+        key: 'Restricción vehicular',
+        text: today ? `HOY tienes restricción (${names.join(', ')})` : inSeason ? `te toca el ${names.join(' y ')}` : `te toca el ${names.join(' y ')} · rige desde el ${r.season.from}`,
+        pct: 0, warn: today, noBar: true,
+      });
     }
     return out;
+  }
+
+  /** Tarjeta del clima con datos reales (Open-Meteo); sin datos todavía, lo dice. */
+  function appWeather(state) {
+    const w = TB.preview.app.weather;
+    if (!w) return `<div class="weather"><span class="wx">${icon('sol', 44)}</span><b>—</b><span class="wd">Clima<small>sin datos aún</small></span></div>`;
+    const t = (v) => Math.round(v) + '°';
+    return `<div class="weather"><span class="wx">${icon(WX(w.code), 44)}</span><b>${t(w.temp)}</b><span class="wd">${esc(w.text)}<small>Sensación ${t(w.feels)} · ${Math.round(w.humidity)}%</small></span></div>`;
+  }
+
+
+  /* ---------- reproductor (música en vivo desde la radio) ---------- */
+  const DEMO_MUSIC = { access: true, active: true, playing: true, title: 'Camino a casa', artist: 'Artista de ejemplo', art: '' };
+  function playerInner() {
+    const app = TB.preview.app;
+    const m = app ? app.music : DEMO_MUSIC;
+    const ctl = (playing) => `<div class="ctl"><button class="rbtn" data-media="prev" aria-label="Anterior">${icon('prev', 24)}</button><button class="rbtn play" data-media="toggle" aria-label="${playing ? 'Pausar' : 'Reproducir'}">${icon(playing ? 'pausa' : 'play', 26)}</button><button class="rbtn" data-media="next" aria-label="Siguiente">${icon('next', 24)}</button></div>`;
+    if (m && m.active) {
+      const art = m.art ? `<img class="art" src="${m.art}" alt="">` : `<div class="art disc"></div>`;
+      return `<span class="src">${m.playing ? 'Sonando' : 'En pausa'}</span>${art}<b>${esc(m.title || 'Sin título')}</b><span>${esc(m.artist || '')}</span>${ctl(m.playing)}`;
+    }
+    if (m && m.access === false) {
+      return `<span class="src">Música</span><div class="art disc"></div><b>Ver lo que suena</b><span>Da permiso una vez para mostrar tu canción</span><div class="ctl"><button class="rbtn play wide" data-open="musicaccess" aria-label="Dar permiso">${icon('check', 26)}</button></div>`;
+    }
+    return `<span class="src">Música</span><div class="art disc"></div><b>Tu música</b><span>Abre tu app favorita</span><div class="ctl"><button class="rbtn play" data-open="music" aria-label="Abrir música">${icon('play', 26)}</button></div>`;
+  }
+  function updateMusic() {
+    if (!scr) return;
+    scr.querySelectorAll('.player').forEach((el) => { el.innerHTML = playerInner(); });
+    scr.querySelectorAll('.music-card .music').forEach((el) => { el.innerHTML = playerInner(); });
   }
 
   /* ---------- piezas de la pantalla de inicio ---------- */
@@ -97,28 +152,45 @@
     const dateShort = rawShort.charAt(0).toUpperCase() + rawShort.slice(1);
     const season = seasonOf(state);
     const carHtml = car.photo
-      ? `<img class="car-photo" src="${car.photo}" alt="Tu auto">`
+      ? `<img class="car-photo${car.photoCut ? ' cut' : ''}${night && car.photoCut ? ' night' : ''}" src="${night && car.photoCut && car.photoNight ? car.photoNight : car.photo}" alt="Tu auto">`
       : TB.carSVG(car.type, car.color, night, ++uid);
-    const limit = limitFor(state);
+    const limit = appMode() ? appLimit(state) : limitFor(state);
+    const spd = dist(appMode() ? TB.preview.app.speed || 0 : live.speed, state);
     const items = maintItems(state);
     return {
       hello: `${esc(car.greeting)}, ${car.name ? esc(car.name) : 'amigo'}`,
-      sub: (TB.seasonLabel[season] || tod) + (f.odometer ? ` · ${fmt(f.odometer)} km` : ''),
+      sub: (car.phrase ? car.phrase : TB.seasonLabel[season] || tod) + (f.odometer ? ` · ${fmt(dist(f.odometer, state))} ${du(state)}` : ''),
       car: carHtml,
       time,
       date,
       dateShort,
-      speed: f.speedShow ? `<div class="spd"><b data-speed>${Math.round(live.speed)}</b><span>km/h</span></div>` : '',
-      weather: `<div class="weather"><span class="wx">${icon('lluvia', 44)}</span><b>14°</b><span class="wd">Lluvioso<small>Sensación 13° · 82%</small></span></div>`,
-      radio: `<div class="radio-mini"><button class="rbtn" data-go="radio" aria-label="Anterior">${icon('prev', 22)}</button><div><small>FM</small><b>${live.freq.toFixed(1)}</b><i>MHz</i></div><button class="rbtn" data-go="radio" aria-label="Siguiente">${icon('next', 22)}</button></div>`,
-      music: `<div class="music"><span class="src">Bluetooth</span><div class="disc"></div><b>Camino a casa</b><span>Artista de ejemplo</span><div class="ctl"><button class="rbtn" aria-label="Anterior">${icon('prev', 24)}</button><button class="rbtn play" aria-label="Reproducir">${icon('play', 26)}</button><button class="rbtn" aria-label="Siguiente">${icon('next', 24)}</button></div></div>`,
-      limitSign: `<div class="limit"><div class="sign"><b data-limit>${limit}</b></div><small>${f.speedAlert === 'manual' ? 'Límite fijo' : 'Límite de la vía'}</small></div>`,
+      speed: f.speedShow ? `<div class="spd"><b data-speed>${spd}</b><span>${su(state)}</span></div>` : '',
+      weather: appMode() ? appWeather(state) : `<div class="weather"><span class="wx">${icon('lluvia', 44)}</span><b>14°</b><span class="wd">Lluvioso<small>Sensación 13° · 82%</small></span></div>`,
+      radio: appMode()
+        ? `<div class="radio-mini"><div><small>Radio</small><b>FM</b><i>Toca para abrir</i></div><button class="rbtn play" data-open="radio" aria-label="Abrir la radio">${icon('play', 26)}</button></div>`
+        : `<div class="radio-mini"><button class="rbtn" data-go="radio" aria-label="Anterior">${icon('prev', 22)}</button><div><small>FM</small><b>${live.freq.toFixed(1)}</b><i>MHz</i></div><button class="rbtn" data-go="radio" aria-label="Siguiente">${icon('next', 22)}</button></div>`,
+      player: `<div class="music player">${playerInner()}</div>`,
+      music: appMode()
+        ? `<div class="music">${playerInner()}</div>`
+        : `<div class="music"><span class="src">Bluetooth</span><div class="disc"></div><b>Camino a casa</b><span>Artista de ejemplo</span><div class="ctl"><button class="rbtn" aria-label="Anterior">${icon('prev', 24)}</button><button class="rbtn play" aria-label="Reproducir">${icon('play', 26)}</button><button class="rbtn" aria-label="Siguiente">${icon('next', 24)}</button></div></div>`,
+      limitSign: `<div class="limit"><div class="sign"><b data-limit>${limit == null ? '—' : dist(limit, state)}</b></div><small>${f.speedAlert === 'manual' ? 'Límite fijo' : 'Límite de la vía'}</small></div>`,
+      routeCard: `<div class="route-card"><div><small>Altitud</small><b>2.850 m</b></div><div class="compass" aria-hidden="true"><svg viewBox="0 0 60 60" width="64" height="64"><circle cx="30" cy="30" r="27" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/><text x="30" y="11" text-anchor="middle" font-size="9" fill="currentColor">N</text><path d="M30 12 L36 32 L30 28 L24 32Z" fill="var(--accent)" transform="rotate(42 30 30)"/><path d="M30 48 L24 32 L30 36 L36 32Z" fill="currentColor" opacity=".45" transform="rotate(42 30 30)"/></svg></div><div><small>Rumbo</small><b>NE 42°</b></div></div>`,
+      mapCard: `<svg class="mapsvg" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="160" fill="rgba(255,255,255,.06)"/><g fill="none" stroke="rgba(255,255,255,.22)" stroke-width="6" stroke-linecap="round"><path d="M-10 120 L120 110 L170 60 L310 70"/><path d="M60 -10 L80 90 L70 170"/><path d="M200 -10 L190 70 L230 170"/></g><path d="M-10 120 L120 110 L170 60 L260 66" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round"/><circle cx="170" cy="60" r="9" fill="var(--accent)"/><circle cx="170" cy="60" r="3.5" fill="var(--accent-ink)"/></svg><div class="map-info"><b>Ruta a casa</b><small>18 min · ${imp(state) ? '7,7 mi' : '12,4 km'}</small></div>`,
+      menu: `<nav class="side-menu card">${[['inicio', 'casa', 'Inicio'], ['radio', 'radio', 'Radio'], ['bluetooth', 'bluetooth', 'Bluetooth'], ['mantenimiento', 'check', 'Mantención']].map(([go, ic, t], i) => `<button class="sm${i === 0 ? ' on' : ''}" ${go === 'radio' || go === 'bluetooth' ? openAttr(go) : `data-go="${go}"`}>${icon(ic, 28)}<span>${t}</span></button>`).join('')}</nav>`,
+      plate: car.plate ? `<span class="plate">${esc(car.plate)}</span>` : '',
       maint: items.length ? `<div class="maint${items[0].warn ? ' warn' : ''}" data-maint><b>${esc(items[0].key)}</b><span>${esc(items[0].text)}</span></div>` : '',
       hasMaint: items.length > 0,
+      spd,
+      su: su(state),
     };
   }
 
   const LAYOUTS = {
+    estelar: (p) => `
+      <section class="st-left"><div class="st-clock"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div>
+        <div class="st-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" class="trk"/><circle cx="60" cy="60" r="52" class="val" data-ring pathLength="100" stroke-dasharray="0 100"/></svg><div class="st-spd"><b data-speed>${p.spd}</b><span>${p.su}</span></div></div></section>
+      <section class="st-stage"><div class="st-hello"><h2>${p.hello}</h2><p>${esc(p.sub)}</p></div><div class="st-streaks" aria-hidden="true"></div><div class="st-glow" aria-hidden="true"></div><div class="car st-car">${p.car}</div></section>
+      <section class="st-right"><div class="card music-card st-player">${p.player}</div><div class="card st-wx">${p.weather}</div></section>`,
     tarjetas: (p) => `
       <section class="card greet"><div class="greet-txt"><h2>${p.hello}</h2><p>${esc(p.sub)}</p></div><div class="car">${p.car}</div>${p.weather}</section>
       <section class="card clock"><div class="clk"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div>${p.speed}</section>
@@ -131,10 +203,23 @@
       <section class="card wx-card">${p.weather}</section>
       <section class="card music-card">${p.music}</section>`,
     manejo: (p) => `
-      <section class="speedbig"><b data-speed>${Math.round(live.speed)}</b><span>km/h</span><div class="car mini-car">${p.car}</div></section>
+      <section class="speedbig"><b data-speed>${p.spd}</b><span>${p.su}</span><div class="car mini-car">${p.car}</div></section>
       ${p.limitSign}
       <section class="card nav"><span class="turn">${icon('giro', 46)}</span><div><b>En 300 m, gira a la derecha</b><small>Av. Costanera · ejemplo de indicación</small></div></section>
       <section class="card radio">${p.radio}</section>`,
+    tablero: (p) => `
+      <section class="card t-left"><div class="t-speed"><b data-speed>${p.spd}</b><span>${p.su}</span></div><div class="car">${p.car}${p.plate}</div><div class="t-clock"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div></section>
+      <section class="card t-route">${p.routeCard}</section>
+      <section class="card t-map">${p.mapCard}</section>`,
+    lateral: (p) => `
+      ${p.menu}
+      <section class="card clock"><div class="clk"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div>${p.speed}</section>
+      <section class="card wx-card">${p.weather}</section>
+      <section class="card music-card">${p.music}<small class="swipe">‹ desliza para cambiar de canción ›</small></section>`,
+    todoterreno: (p) => `
+      <section class="tt-top"><div class="tt-speed"><b data-speed>${p.spd}</b><span>${p.su}</span></div><div class="tt-clock"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div></section>
+      <section class="tt-car"><div class="car">${p.car}</div></section>
+      <section class="tt-info card">${p.routeCard}</section>`,
     minimal: (p) => `
       <section class="bigclock"><b data-clock>${p.time}</b><span>${esc(p.date)}</span><p>${p.hello}</p></section>
       <section class="pills"><div class="card pill">${p.weather}</div><div class="card pill">${p.radio}</div></section>`,
@@ -176,15 +261,22 @@
   };
 
   function dock(state, ui) {
-    const items = [{ go: 'inicio', ic: 'casa', t: 'Inicio' }, { go: 'radio', ic: 'radio', t: 'Radio' }, { go: 'bluetooth', ic: 'bluetooth', t: 'Bluetooth' }];
+    const items = [{ go: 'inicio', ic: 'casa', t: 'Inicio' }, { go: 'radio', open: 'radio', ic: 'radio', t: 'Radio' }, { go: 'bluetooth', open: 'bluetooth', ic: 'bluetooth', t: 'Bluetooth' }];
     state.style.apps.forEach((id) => {
       const a = TB.apps.find((x) => x.id === id);
-      if (a) items.push({ ic: id, t: id === 'telefono' ? 'Teléfono' : a.name });
+      if (a) items.push({ app: id, ic: id, t: id === 'telefono' ? 'Teléfono' : a.name });
     });
     items.push({ go: 'mantenimiento', ic: 'check', t: 'Mantención' });
     return `<nav class="dock">${items
-      .map((i) => `<button class="dk${i.go && i.go === ui.screen ? ' on' : ''}" ${i.go ? `data-go="${i.go}"` : ''}><span class="ic">${icon(i.ic, 30)}</span><small>${esc(i.t)}</small></button>`)
+      .map((i) => `<button class="dk${i.go && i.go === ui.screen ? ' on' : ''}" ${i.open && appMode() ? `data-open="${i.open}"` : i.go ? `data-go="${i.go}"` : ''} ${i.app ? `data-app="${i.app}"` : ''}><span class="ic">${icon(i.ic, 30)}</span><small>${esc(i.t)}</small></button>`)
       .join('')}</nav>`;
+  }
+
+  function sceneTime(state) {
+    const s = state.style.sceneTime || 'auto';
+    if (s !== 'auto') return s;
+    const h = new Date().getHours();
+    return h >= 6 && h < 9 ? 'amanecer' : h >= 9 && h < 18 ? 'dia' : h >= 18 && h < 21 ? 'atardecer' : 'noche';
   }
 
   /* ---------- render ---------- */
@@ -197,6 +289,7 @@
     const vars = {
       '--bg1': t.bg1, '--bg2': t.bg2, '--ink': t.ink, '--ink2': t.ink2, '--card': t.card, '--line': t.line,
       '--accent': t.accent, '--accent-ink': t.accentInk, '--scene-rgb': t.sceneRgb,
+      '--orb1': t.orb1 || t.accent, '--orb2': t.orb2 || t.bg1, '--orb3': t.orb3 || t.bg1,
       '--radius': th.radius + 'px', '--blur': th.blur + 'px', '--shadow': th.shadow,
     };
     Object.keys(vars).forEach((k) => scr.style.setProperty(k, vars[k]));
@@ -211,14 +304,25 @@
     } else {
       body = `<main class="home screen-${ui.screen}">${SCREENS[ui.screen](state)}</main>`;
     }
-    const customBg = state.style.scene === 'color' ? '' : TB.scene(sceneId);
+    const bg = state.style.bg;
+    const mode = state.style.bgMode;
+    // Los temas de vidrio llevan manchas de luz difusas debajo del fondo, para que el desenfoque tenga qué mostrar.
+    const orbs = t.orb1 && sceneId !== 'aurora' && state.style.scene !== 'color' && !(bg && mode === 'photo') ? TB.scene('aurora') : '';
+    let customBg = state.style.scene === 'color' || (bg && mode === 'photo') ? '' : orbs + TB.scene(sceneId);
+    if (bg && mode === 'photo') customBg = `<image href="${bg}" x="0" y="0" width="1024" height="600" preserveAspectRatio="xMidYMid slice"/><rect width="1024" height="600" fill="rgba(0,0,0,.38)"/>`;
+    else if (bg && mode === 'logo') customBg += `<image href="${bg}" x="262" y="110" width="500" height="380" preserveAspectRatio="xMidYMid meet" opacity=".14"/>`;
     scr.innerHTML =
       `<svg class="scene" viewBox="0 0 1024 600" preserveAspectRatio="none" aria-hidden="true">${customBg}</svg>` +
-      `<header class="status"><span></span><b data-clock>${new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false })}</b></header>` +
+      `<div class="tint tint-${sceneTime(state)}"></div>` +
+      `<header class="status">${bg && mode === 'badge' ? `<img class="badge-logo" src="${bg}" alt="">` : '<span></span>'}<b data-clock>${new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false })}</b></header>` +
       body +
       `<svg class="decor" viewBox="0 0 1024 600" aria-hidden="true">${TB.decor(season, ui.night)}</svg>` +
+      `<canvas class="fx" width="1024" height="600" aria-hidden="true"></canvas>` +
       dock(state, ui) +
-      `<div class="alert" hidden></div>`;
+      `<div class="alert" hidden></div>` +
+      `<div class="zone-alert${live.zoneMsg && live.zoneMsg.warn ? ' warn' : ''}"${live.zoneMsg && Date.now() < live.zoneUntil ? '' : ' hidden'}><b>${live.zoneMsg ? esc(live.zoneMsg.text) : ''}</b></div>`;
+    TB.tintCars(scr);
+    if (TB.fx) TB.fx.attach(scr.querySelector('.fx'), season, ui.night);
     tick();
   }
 
@@ -228,21 +332,31 @@
     const { state } = current;
     live.n++;
     if (!reduced && live.n % 12 === 0) live.zone = (live.zone + 1) % ZONES.length;
-    const limit = limitFor(state);
-    const target = reduced ? limit + 8 : limit + 7 * Math.sin(live.n / 3.5) - 1;
-    live.speed += (target - live.speed) * 0.4;
-    const v = Math.max(0, Math.round(live.speed));
+    const real = TB.preview.app;
+    const limit = real ? appLimit(state) : limitFor(state);
+    let v;
+    if (real) {
+      v = Math.max(0, Math.round(real.speed || 0)); // velocidad real del GPS
+    } else {
+      const target = reduced ? limit + 8 : limit + 7 * Math.sin(live.n / 3.5) - 1;
+      live.speed += (target - live.speed) * 0.4;
+      v = Math.max(0, Math.round(live.speed));
+    }
 
-    scr.querySelectorAll('[data-speed]').forEach((el) => (el.textContent = v));
-    scr.querySelectorAll('[data-limit]').forEach((el) => (el.textContent = limit));
+    scr.querySelectorAll('[data-speed]').forEach((el) => (el.textContent = dist(v, state)));
+    const ringMax = state.features.miles ? 120 : 200;
+    scr.querySelectorAll('[data-ring]').forEach((el) => el.setAttribute('stroke-dasharray', Math.min(100, (v / ringMax) * 100).toFixed(1) + ' 100'));
+    scr.querySelectorAll('[data-limit]').forEach((el) => (el.textContent = limit == null ? '—' : dist(limit, state)));
     const time = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
     scr.querySelectorAll('[data-clock]').forEach((el) => (el.textContent = time));
 
+    const za = scr.querySelector('.zone-alert');
+    if (za && live.zoneMsg && Date.now() >= live.zoneUntil) { za.hidden = true; live.zoneMsg = null; }
     const alert = scr.querySelector('.alert');
     if (alert) {
-      const show = state.features.speedAlert !== 'off' && v > limit;
+      const show = state.features.speedAlert !== 'off' && limit != null && v > limit;
       alert.hidden = !show;
-      if (show) alert.textContent = `Baja la velocidad · ${v} km/h · límite ${limit}`;
+      if (show) alert.textContent = `Baja la velocidad · ${dist(v, state)} ${su(state)} · límite ${dist(limit, state)}`;
     }
 
     if (!reduced && live.n % 4 === 0) {
@@ -264,6 +378,14 @@
     scr.className = 'scr';
     host.appendChild(scr);
     const fit = () => {
+      if (appMode()) {
+        // Pantalla completa: la radio se ajusta a lo ancho o a lo alto, lo que quepa, y queda centrada.
+        const s = Math.min(host.clientWidth / 1024, host.clientHeight / 600);
+        scr.style.transform = `scale(${s})`;
+        scr.style.left = Math.round((host.clientWidth - 1024 * s) / 2) + 'px';
+        scr.style.top = Math.round((host.clientHeight - 600 * s) / 2) + 'px';
+        return;
+      }
       const s = host.clientWidth / 1024;
       scr.style.transform = `scale(${s})`;
       host.style.height = Math.round(600 * s) + 'px';
@@ -279,6 +401,15 @@
         if (current) render(current.state, current.ui);
         return;
       }
+      const app = TB.preview.app;
+      if (app) {
+        const media = e.target.closest('[data-media]');
+        if (media && app.media) { app.media(media.dataset.media); return; }
+        const open = e.target.closest('[data-open]');
+        if (open) { app.open(open.dataset.open); return; }
+        const a = e.target.closest('[data-app]');
+        if (a) { app.openApp(a.dataset.app); return; }
+      }
       const go = e.target.closest('[data-go]');
       if (go && TB.preview.onGo) TB.preview.onGo(go.dataset.go);
     });
@@ -287,5 +418,13 @@
     }, 1000);
   }
 
-  TB.preview = { mount, render, onGo: null, maintItems };
+  /** Muestra por unos segundos el aviso de "entraste a la zona" (demo en la web; en la radio lo dispara el GPS). */
+  function showZoneNotice(n) {
+    live.zoneMsg = n;
+    live.zoneUntil = Date.now() + 9000;
+    const za = scr && scr.querySelector('.zone-alert');
+    if (za) { za.hidden = false; za.className = 'zone-alert' + (n.warn ? ' warn' : ''); za.firstElementChild.textContent = n.text; }
+  }
+
+  TB.preview = { mount, render, onGo: null, maintItems, showZoneNotice, updateMusic, app: null };
 })();

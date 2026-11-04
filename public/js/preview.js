@@ -380,10 +380,13 @@
     const fit = () => {
       if (appMode()) {
         // Pantalla completa: la radio se ajusta a lo ancho o a lo alto, lo que quepa, y queda centrada.
-        const s = Math.min(host.clientWidth / 1024, host.clientHeight / 600);
+        // Si el WebView de la radio es viejo y el contenedor midió 0, se usa el tamaño de la ventana: nunca dejar la pantalla en escala 0 (se vería negra).
+        const w = host.clientWidth || window.innerWidth || 1024;
+        const h = host.clientHeight || window.innerHeight || 600;
+        const s = Math.min(w / 1024, h / 600);
         scr.style.transform = `scale(${s})`;
-        scr.style.left = Math.round((host.clientWidth - 1024 * s) / 2) + 'px';
-        scr.style.top = Math.round((host.clientHeight - 600 * s) / 2) + 'px';
+        scr.style.left = Math.round((w - 1024 * s) / 2) + 'px';
+        scr.style.top = Math.round((h - 600 * s) / 2) + 'px';
         return;
       }
       const s = host.clientWidth / 1024;

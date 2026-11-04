@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.net.Uri
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
@@ -98,8 +99,12 @@ class WebLauncher(private val activity: Activity, private val designJson: String
         @JavascriptInterface
         fun openApp(id: String) {
             activity.runOnUiThread {
+                if (id == "telefono") {
+                    start(Intent(Intent.ACTION_DIAL))
+                    return@runOnUiThread
+                }
                 val app = Ui.KNOWN_APPS[id]
-                if (app == null) toast("Ese atajo aún no está disponible en la radio.") else launch(app.pkg)
+                if (app == null) toast("Ese atajo aún no está disponible en la radio.") else launch(app.pkg, app.label)
             }
         }
 
@@ -128,6 +133,7 @@ class WebLauncher(private val activity: Activity, private val designJson: String
                     "activate" -> start(Intent(activity, ActivationActivity::class.java))
                     "musicaccess" -> start(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
                     "settings" -> start(Intent(activity, SettingsActivity::class.java))
+                    "webview" -> openWebviewUpdate()
                     "music" -> toast("Agrega Spotify o YouTube Music a tu pantalla para abrir tu música desde aquí.")
                 }
             }
@@ -196,9 +202,24 @@ class WebLauncher(private val activity: Activity, private val designJson: String
         if (pkg == null) toast("No encontramos la app de radio de tu equipo.") else launch(pkg)
     }
 
-    private fun launch(pkg: String) {
+    private fun launch(pkg: String, label: String? = null) {
         val intent = Apps.launchIntent(activity.packageManager, pkg)
-        if (intent == null) toast("Esa app no está instalada en la radio.") else start(intent)
+        if (intent == null) toast(if (label != null) "$label no está instalada en la radio." else "Esa app no está instalada en la radio.") else start(intent)
+    }
+
+    /** Abre la ficha de Android System WebView en la tienda (o en el navegador si la radio no tiene Play Store). */
+    private fun openWebviewUpdate() {
+        val market = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.google.android.webview"))
+        val web = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.webview"))
+        try {
+            activity.startActivity(market)
+        } catch (e: Exception) {
+            try {
+                activity.startActivity(web)
+            } catch (e2: Exception) {
+                toast("Abre Play Store y actualiza «Android System WebView».")
+            }
+        }
     }
 
     private fun start(intent: Intent) {

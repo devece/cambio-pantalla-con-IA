@@ -10,8 +10,8 @@
 }
 .scr *, .scr *::before, .scr *::after { box-sizing: border-box; }
 .scr b, .scr h2 { font-weight: 700; }
-.scr .scene { position: absolute; inset: 0; width: 100%; height: 100%; }
-.scr .decor { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
+.scr .scene { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; }
+.scr .decor { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
 .scr .snow { animation: drift 9s ease-in-out infinite alternate; }
 @keyframes drift { from { transform: translateY(-8px); } to { transform: translateY(16px); } }
 
@@ -186,7 +186,7 @@
 }
 
 /* ---- Hora del día sobre el fondo ---- */
-.scr .tint { position: absolute; inset: 0; pointer-events: none; z-index: 1; transition: background .6s; }
+.scr .tint { position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; z-index: 1; transition: background .6s; }
 .scr .tint-amanecer { background: linear-gradient(180deg, rgba(255,160,120,.26), rgba(255,210,150,.08) 60%, transparent); }
 .scr .tint-atardecer { background: linear-gradient(180deg, rgba(255,110,80,.28), rgba(150,60,140,.18) 70%, transparent); }
 .scr .tint-noche { background: linear-gradient(180deg, rgba(4,8,30,.5), rgba(4,8,30,.34)); }
@@ -206,7 +206,7 @@
 .scr .route-card b { font: 500 32px/1.1 'Rubik', sans-serif; }
 .scr .compass { color: var(--ink); display: grid; place-items: center; }
 .scr .t-map { grid-area: map; padding: 0; display: grid; }
-.scr .t-map .mapsvg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.scr .t-map .mapsvg { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; }
 .scr .map-info { position: absolute; left: 14px; bottom: 12px; background: rgba(0,0,0,.35); border-radius: 12px; padding: 6px 12px; }
 .scr .map-info b { display: block; font-size: 19px; }
 .scr .map-info small { color: #ffffffcc; font-size: 14px; }
@@ -236,7 +236,7 @@
 .scr .tt-info .route-card b { font-size: 26px; }
 .scr .pickup.lift .pickup-img { transform: translateY(-4px) scale(1.04); }
 .scr .badge-logo { height: 30px; max-width: 150px; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
-.scr .fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+.scr .fx { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
 
 /* Aviso al entrar a la zona de restricción */
 .scr .zone-alert { position: absolute; left: 50%; top: 52px; transform: translateX(-50%); z-index: 6; max-width: 78%; padding: 10px 18px; border-radius: 16px; background: rgba(255,255,255,.95); color: #1a1b2e; box-shadow: 0 10px 28px rgba(0,0,0,.35); font-size: 17px; line-height: 1.3; text-align: center; animation: zin .35s ease-out; }
@@ -258,7 +258,7 @@
 .scr .st-ring circle { fill: none; stroke-width: 7; stroke-linecap: round; }
 .scr .st-ring .trk { stroke: var(--line); stroke-dasharray: 75 100; }
 .scr .st-ring .val { stroke: var(--accent); filter: drop-shadow(0 0 6px var(--accent)); transition: stroke-dasharray .9s ease; }
-.scr .st-spd { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.scr .st-spd { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: grid; place-content: center; text-align: center; }
 .scr .st-spd b { font: 500 56px/1 'Rubik', 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; }
 .scr .st-spd span { font-size: 15px; color: var(--ink2); letter-spacing: .12em; }
 

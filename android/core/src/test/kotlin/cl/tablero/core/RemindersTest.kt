@@ -154,4 +154,60 @@ class RemindersTest {
         assertEquals("Wena, Daniel. Dios te bendiga", Reminders.voiceLine(con, hour = 15))
         assertEquals("Hola, amigo. Buenos días", Reminders.voiceLine(LauncherConfig(), hour = 8))
     }
+
+    @Test
+    fun `mantenimiento sin anotar solo dice cada cuanto toca y se puede empezar a contar`() {
+        val c = LauncherConfig(oilOn = false, odometer = 50000, otherMaintenance = listOf("filtro"))
+        val r = build(c).single()
+        assertTrue(r.untracked)
+        assertEquals("filtro", r.doneId)
+        assertEquals(65000, r.nextKm)
+    }
+
+    @Test
+    fun `mantenimiento anotado cuenta los km que faltan y avisa cerca del limite`() {
+        // Filtro cada 15.000: hecho a los 40.000 y hoy 50.000 -> faltan 5.000.
+        val lejos = build(LauncherConfig(oilOn = false, odometer = 50000, otherMaintenance = listOf("filtro"), maintDone = mapOf("filtro" to 40000))).single()
+        assertEquals("faltan 5.000 km", lejos.text)
+        assertEquals(1 - 5000 / 15000.0, lejos.pct, 1e-9)
+        assertFalse(lejos.warn)
+        assertFalse(lejos.untracked)
+
+        // Faltan 1.500 km (una décima del intervalo): alerta.
+        val cerca = build(LauncherConfig(oilOn = false, odometer = 53500, otherMaintenance = listOf("filtro"), maintDone = mapOf("filtro" to 40000))).single()
+        assertTrue(cerca.warn)
+
+        val pasado = build(LauncherConfig(oilOn = false, odometer = 56000, otherMaintenance = listOf("filtro"), maintDone = mapOf("filtro" to 40000))).single()
+        assertEquals("pasado por 1.000 km", pasado.text)
+        assertEquals(1.0, pasado.pct, 1e-9)
+        assertTrue(pasado.warn)
+    }
+
+    @Test
+    fun `marcar el aceite como hecho lo reinicia solo`() {
+        val vencido = LauncherConfig(odometer = 64000, lastOil = 58000, oilEvery = 5000)
+        assertTrue(build(vencido).single().warn)
+        val hecho = Reminders.markDone(vencido, Reminders.OIL_ID, maintenance)
+        assertEquals(64000, hecho.lastOil)
+        val r = build(hecho).single()
+        assertEquals("faltan 5.000 km", r.text)
+        assertFalse(r.warn)
+        assertEquals(0.0, r.pct, 1e-9)
+    }
+
+    @Test
+    fun `marcar otro mantenimiento como hecho guarda el km y deja los demas`() {
+        val c = LauncherConfig(oilOn = false, odometer = 70000, otherMaintenance = listOf("filtro", "correa"), maintDone = mapOf("correa" to 10000))
+        val hecho = Reminders.markDone(c, "filtro", maintenance)
+        assertEquals(mapOf("correa" to 10000, "filtro" to 70000), hecho.maintDone)
+        val filtro = build(hecho).first { it.doneId == "filtro" }
+        assertEquals("faltan 15.000 km", filtro.text)
+        assertFalse(filtro.warn)
+    }
+
+    @Test
+    fun `marcar un id desconocido no cambia nada`() {
+        val c = LauncherConfig(odometer = 1000)
+        assertEquals(c, Reminders.markDone(c, "no-existe", maintenance))
+    }
 }

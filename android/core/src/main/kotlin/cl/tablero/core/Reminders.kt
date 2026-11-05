@@ -2,8 +2,22 @@ package cl.tablero.core
 
 import org.json.JSONArray
 
-/** Un aviso de mantención o documento. `pct` (0 a 1) llena la barra; `warn` lo pinta en alerta. */
-data class Reminder(val key: String, val text: String, val pct: Double, val warn: Boolean, val noBar: Boolean = false)
+/**
+ * Un aviso de mantención o documento. `pct` (0 a 1) llena la barra; `warn` lo pinta en alerta.
+ * `doneId` (solo en los avisos por kilometraje) es lo que se pasa a [Reminders.markDone] al tocar "Hecho";
+ * `nextKm` es el kilometraje al que tocaría el siguiente aviso si se marca hecho hoy.
+ */
+data class Reminder(
+    val key: String,
+    val text: String,
+    val pct: Double,
+    val warn: Boolean,
+    val noBar: Boolean = false,
+    val doneId: String? = null,
+    val nextKm: Int? = null,
+    /** Aún no se anotó cuándo se hizo: el aviso no cuenta kilómetros hasta que se marque. */
+    val untracked: Boolean = false,
+)
 
 data class MaintenanceItem(val id: String, val name: String, val every: Int)
 
@@ -20,6 +34,23 @@ object Maintenance {
 
 /** Mismas cuentas que la vista previa del sitio (public/js/preview.js), para que la radio muestre lo mismo. */
 object Reminders {
+    /** Id con que el aceite se marca como hecho. */
+    const val OIL_ID = "aceite"
+
+    /** Faltan tantos km o menos y el aviso pasa a alerta (o una décima del intervalo, lo que sea mayor). */
+    private const val WARN_KM = 500
+
+    /**
+     * Marca un servicio como hecho al kilometraje actual: el aviso se reinicia solo y el próximo
+     * toca [OIL_ID] / el mantenimiento cada `every` km más adelante. Un id desconocido no cambia nada.
+     */
+    fun markDone(c: LauncherConfig, id: String, maintenance: List<MaintenanceItem>): LauncherConfig = when {
+        id == OIL_ID -> c.copy(lastOil = c.odometer)
+        maintenance.any { it.id == id } -> c.copy(maintDone = c.maintDone + (id to c.odometer))
+        else -> c
+    }
+
+    private fun warnAt(every: Int) = maxOf(WARN_KM, every / 10)
     private val MONTHS = listOf(
         "enero", "febrero", "marzo", "abril", "mayo", "junio",
         "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
@@ -70,13 +101,31 @@ object Reminders {
                 key = "Aceite",
                 text = if (left >= 0) "faltan ${km(left)} km" else "pasado por ${km(-left)} km",
                 pct = (1.0 - left.toDouble() / c.oilEvery).coerceIn(0.0, 1.0),
-                warn = left <= 500,
+                warn = left <= WARN_KM,
+                doneId = OIL_ID,
+                nextKm = c.odometer + c.oilEvery,
             )
         }
 
         maintenance.filter { it.id in c.otherMaintenance }.forEach {
-            // No llevamos el kilometraje de cada servicio: solo recordamos cada cuánto toca.
-            out += Reminder(it.name, "cada ${km(it.every)} km (revisa tu manual)", 0.0, false, noBar = true)
+            val last = c.maintDone[it.id]
+            if (last == null) {
+                // Sin fecha del último servicio solo sabemos cada cuánto toca; al marcarlo "Hecho" empieza a contar.
+                out += Reminder(
+                    it.name, "cada ${km(it.every)} km (revisa tu manual)", 0.0, false, noBar = true,
+                    doneId = it.id, nextKm = c.odometer + it.every, untracked = true,
+                )
+            } else {
+                val left = last + it.every - c.odometer
+                out += Reminder(
+                    key = it.name,
+                    text = if (left >= 0) "faltan ${km(left)} km" else "pasado por ${km(-left)} km",
+                    pct = (1.0 - left.toDouble() / it.every).coerceIn(0.0, 1.0),
+                    warn = left <= warnAt(it.every),
+                    doneId = it.id,
+                    nextKm = c.odometer + it.every,
+                )
+            }
         }
 
         if (c.docsOn) {

@@ -12,7 +12,7 @@
     car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', phrase: '', plate: '', photo: null, photoCut: false, photoNight: null },
     style: { theme: 'cristal', layout: 'estelar', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
-      oilOn: true, odometer: 0, lastOil: 0, oilEvery: 5000, others: [], docsOn: false, rtMonth: 1, fuelOn: false, tankL: 45, kmPerL: 12,
+      oilOn: true, odometer: 0, lastOil: 0, oilEvery: 5000, others: [], maintDone: {}, docsOn: false, rtMonth: 1, fuelOn: false, tankL: 45, kmPerL: 12,
       speedShow: true, speedAlert: 'auto', manualLimit: 60, restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: false, miles: false, gallons: false,
     },
   });
@@ -60,6 +60,8 @@
       bridge('open', kind);
     },
     openApp(id) { bridge('openApp', id); },
+    /** "Hecho": la app guarda el kilometraje de hoy y devuelve el avance con TBApp.setProgress. */
+    markDone(id) { bridge('done', JSON.stringify({ id, odometer: state.features.odometer })); },
   };
 
   function render() {
@@ -128,6 +130,17 @@
     setMusic(json) {
       try { app.music = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }
       if (TB.preview.updateMusic) TB.preview.updateMusic();
+    },
+    /** Avance guardado en la radio: kilometraje y fecha (km) del último servicio de cada aviso. */
+    setProgress(json) {
+      let p = null;
+      try { p = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }
+      if (!p || typeof p !== 'object') return;
+      const f = state.features;
+      if (Number.isFinite(p.odometer) && p.odometer > 0) f.odometer = p.odometer;
+      if (Number.isFinite(p.lastOil)) f.lastOil = p.lastOil;
+      if (p.maintDone && typeof p.maintDone === 'object') f.maintDone = Object.assign({}, p.maintDone);
+      render();
     },
     setNight(on) { nightForced = on === null || on === undefined ? null : !!on; render(); },
     zoneNotice(text, warn) { TB.preview.showZoneNotice({ text: String(text), warn: !!warn }); },

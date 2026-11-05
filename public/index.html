@@ -74,6 +74,11 @@
         <div class="card">
         <section class="step" data-step="1" aria-labelledby="h1">
           <h2 id="h1">¿Cómo es tu radio?</h2>
+          <div class="group">
+            <h3>¿En qué país vas a usarla?</h3>
+            <p class="hint">Con tu país activamos el aviso de restricción que te corresponde: restricción vehicular en Chile y pico y placa en Colombia y Ecuador.</p>
+            <div class="choices cols-3 compact" data-choices="features.country" role="radiogroup" aria-label="País"></div>
+          </div>
           <p class="lead">Funciona en radios Android de pantalla grande.</p>
           <div class="choices cols-3 with-thumb" data-choices="radio.type" role="radiogroup" aria-labelledby="h1"></div>
           <div class="note" id="radio-note" role="status"></div>
@@ -266,17 +271,23 @@
           </fieldset>
 
           <fieldset class="feature">
-            <label class="check"><input type="checkbox" data-bind="features.restrOn"><span>Recordar mi restricción vehicular</span></label>
+            <label class="check"><input type="checkbox" data-bind="features.restrOn"><span>Recordar mi <span id="restr-label">restricción vehicular</span></span></label>
             <div class="sub" data-show="features.restrOn">
-              <p class="hint">La radio usa el GPS: cuando entres a Santiago (Provincia de Santiago, San Bernardo y Puente Alto) te avisa si ese día te toca. En el resto de Chile no hay restricción permanente para autos particulares, así que no te molesta.</p>
-              <p class="hint">¿Cómo es tu auto?</p>
-              <div class="choices cols-1 compact" data-choices="features.restrType" role="radiogroup" aria-label="Tipo de auto"></div>
-              <label class="field" data-show-not="features.restrType=nuevo"><span>Último dígito de tu patente</span>
+              <div data-show="features.country=CL">
+                <p class="hint">La radio usa el GPS: cuando entres a Santiago (Provincia de Santiago, San Bernardo y Puente Alto) te avisa si ese día te toca. En el resto de Chile no hay restricción permanente para autos particulares, así que no te molesta.</p>
+                <p class="hint">¿Cómo es tu auto?</p>
+                <div class="choices cols-1 compact" data-choices="features.restrType" role="radiogroup" aria-label="Tipo de auto"></div>
+              </div>
+              <div data-show-not="features.country=CL">
+                <p class="hint" id="pico-hint">La radio usa el GPS: cuando entres a una ciudad con pico y placa te avisa si ese día te toca.</p>
+              </div>
+              <label class="field" id="restr-digit-field"><span>Último dígito de tu patente</span>
                 <select data-bind="features.restrDigit" id="restr-digit"></select>
               </label>
-              <p class="note" id="restr-note" role="status"></p>
-              <button type="button" class="btn ghost" id="restr-demo">Ver cómo avisa al entrar a Santiago</button>
-              <p class="hint">Calendario de la temporada <span id="restr-year"></span>. El Ministerio de Transportes publica el nuevo cada abril y lo actualizamos. En días de preemergencia ambiental pueden sumarse más dígitos.</p>
+              <p class="note" id="restr-note" role="status" style="white-space:pre-line"></p>
+              <button type="button" class="btn ghost" id="restr-demo">Ver cómo avisa al entrar a la ciudad</button>
+              <p class="hint" data-show="features.country=CL">Calendario de la temporada <span id="restr-year"></span>. El Ministerio de Transportes publica el nuevo cada abril y lo actualizamos. En días de preemergencia ambiental pueden sumarse más dígitos.</p>
+              <p class="hint" data-show-not="features.country=CL">Las reglas de pico y placa cambian cada semestre o cada año. Te mostramos la fuente y hasta cuándo vale cada una; pasada esa fecha la radio te avisa que hay que revisarla.</p>
             </div>
           </fieldset>
         </section>
@@ -366,6 +377,7 @@
 
   <script src="shared/catalog.js"></script>
   <script src="shared/order.js"></script>
+  <script src="shared/pico.js"></script>
   <script src="js/site.js"></script>
   <script src="js/art.js"></script>
   <script src="js/themes.js"></script>

@@ -13,7 +13,7 @@
     style: { theme: 'cristal', layout: 'estelar', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
       oilOn: true, odometer: 0, lastOil: 0, oilEvery: 5000, others: [], docsOn: false, rtMonth: 1, fuelOn: false, tankL: 45, kmPerL: 12,
-      speedShow: true, speedAlert: 'auto', manualLimit: 60, restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: false, miles: false, gallons: false,
+      speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: false, miles: false, gallons: false,
     },
   });
   function merge(base, saved) {
@@ -106,6 +106,19 @@
       : '<p>No encontramos apps para mostrar.</p>';
   }
 
+  /* ---------- pico y placa (Colombia y Ecuador): aviso al entrar a la ciudad ---------- */
+  let picoCity = null;
+  function checkPico(lat, lon) {
+    const f = state.features;
+    if (!window.TBPico || !f.restrOn || f.country === 'CL' || f.restrDigit === '' || f.restrDigit === undefined) return;
+    const city = window.TBPico.cityAt(lat, lon, f.country);
+    if (!city) { picoCity = null; return; }
+    if (picoCity === city.id) return; // ya avisamos al entrar
+    picoCity = city.id;
+    const n = window.TBPico.notice(city, Number(f.restrDigit), new Date());
+    if (n && TB.preview.showZoneNotice) TB.preview.showZoneNotice(n);
+  }
+
   /* ---------- clima real (Open-Meteo) ---------- */
   const WX_TEXT = (c) => (c === 0 ? 'Despejado' : c <= 3 ? 'Parcialmente nublado' : c <= 48 ? 'Neblina' : c <= 57 ? 'Llovizna' : c <= 67 ? 'Lluvia' : c <= 77 ? 'Nieve' : c <= 82 ? 'Chubascos' : 'Tormenta');
   let lastWeather = 0;
@@ -144,6 +157,7 @@
       if (!moved) return;
       app.loc = { lat, lon, bearing: b };
       if (TB.preview.updateMap) TB.preview.updateMap();
+      checkPico(lat, lon);
     },
     setMusic(json) {
       try { app.music = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }

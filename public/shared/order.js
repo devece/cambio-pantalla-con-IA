@@ -8,8 +8,13 @@
 })(typeof self !== 'undefined' ? self : this, function (C) {
   const HEX = /^#[0-9a-fA-F]{6}$/;
   const EMAIL = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,}$/;
-  // Celular chileno: +56 9 XXXX XXXX (con o sin espacios, con o sin +56)
-  const CL_MOBILE = /^(?:\+?56)?9\d{8}$/;
+  // Celulares: Chile +56 9 XXXX XXXX · Colombia +57 3XX XXX XXXX · Ecuador +593 9X XXX XXXX (con o sin espacios y con o sin el prefijo)
+  const MOBILE = {
+    CL: { re: /^(?:\+?56)?9\d{8}$/, prefix: '+56', tail: 9, example: '+56 9 1234 5678', name: 'chileno' },
+    CO: { re: /^(?:\+?57)?3\d{9}$/, prefix: '+57', tail: 10, example: '+57 300 123 4567', name: 'colombiano' },
+    EC: { re: /^(?:\+?593)?0?9\d{8}$/, prefix: '+593', tail: 9, example: '+593 99 123 4567', name: 'ecuatoriano' },
+  };
+  const COUNTRIES = ['CL', 'CO', 'EC'];
 
   const str = (v, max) =>
     typeof v === 'string' ? v.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, max) : '';
@@ -104,11 +109,12 @@
     return { currency: C.currency, lines, total };
   }
 
-  /** Normaliza un celular chileno a +569XXXXXXXX o devuelve null. */
-  function normalizeMobile(raw) {
+  /** Normaliza un celular del país (Chile por defecto) a +569XXXXXXXX, +573XXXXXXXXX o +5939XXXXXXXX; devuelve null si no corresponde. */
+  function normalizeMobile(raw, country) {
+    const m = MOBILE[country] || MOBILE.CL;
     const digits = String(raw || '').replace(/[\s().-]/g, '');
-    if (!CL_MOBILE.test(digits)) return null;
-    return '+56' + digits.slice(-9);
+    if (!m.re.test(digits)) return null;
+    return m.prefix + digits.slice(-m.tail);
   }
 
   /**
@@ -162,6 +168,7 @@
         apps,
       },
       features: {
+        country: pick(f.country, COUNTRIES, 'CL'),
         oilOn: !!f.oilOn,
         odometer: num(f.odometer, 0, 999999, 0),
         lastOil: num(f.lastOil, 0, 999999, 0),
@@ -189,9 +196,10 @@
       terms: o.terms === true,
     };
     // Los días de restricción se calculan en el servidor a partir del dígito: nunca se confía en los del navegador.
-    clean.features.restrDays = restrDaysFor(clean.features);
-    if (clean.features.restrOn && clean.features.restrType !== 'nuevo' && clean.features.restrDigit === '') {
-      errors.push('Elige el último dígito de tu patente para la restricción vehicular.');
+    const ft = clean.features;
+    ft.restrDays = ft.country === 'CL' ? restrDaysFor(ft) : [];
+    if (ft.restrOn && ft.restrDigit === '' && (ft.country !== 'CL' || ft.restrType !== 'nuevo')) {
+      errors.push(ft.country === 'CL' ? 'Elige el último dígito de tu patente para la restricción vehicular.' : 'Elige el último dígito de tu patente para el pico y placa.');
     }
     C.addons.forEach((a) => {
       if (a.available !== false && o.addons && o.addons[a.id]) clean.addons[a.id] = true;
@@ -211,9 +219,9 @@
       if (EMAIL.test(v)) clean.contact.value = v;
       else errors.push('Escribe un correo válido para enviarte el código.');
     } else {
-      const v = normalizeMobile(contact.value);
+      const v = normalizeMobile(contact.value, clean.features.country);
       if (v) clean.contact.value = v;
-      else errors.push('Escribe un celular chileno válido, por ejemplo +56 9 1234 5678.');
+      else errors.push(`Escribe un celular ${MOBILE[clean.features.country].name} válido, por ejemplo ${MOBILE[clean.features.country].example}.`);
     }
 
     if (!clean.terms) errors.push('Debes aceptar los términos para continuar.');

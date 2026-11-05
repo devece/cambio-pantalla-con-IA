@@ -103,6 +103,8 @@
   /* Autos con imagen real. `lamp`: zona (fracciones del ancho/alto) que no se repinta, como la luz trasera. */
   const CAR_IMAGES = {
     camioneta: { src: 'img/camioneta.png', lamp: [0, 0.056, 0.33, 0.57] },
+    // El SUV usa por ahora la foto de la camioneta (el dibujo anterior se veía infantil). Es solo el ejemplo: tu foto lo reemplaza.
+    suv: { src: 'img/camioneta.png', lamp: [0, 0.056, 0.33, 0.57] },
     '4x4': { src: 'img/camioneta.png', lamp: [0, 0.056, 0.33, 0.57] },
     auto: { src: 'img/auto.png', lamp: null, flip: true },
   };

@@ -6,13 +6,16 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Base64
 import java.io.ByteArrayOutputStream
 import android.provider.Settings
@@ -22,6 +25,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -36,6 +40,7 @@ class WebLauncher(private val activity: Activity, private val designJson: String
     private val handler = Handler(Looper.getMainLooper())
     private var lastMusicSig = ""
     private var lastArt = ""
+    private var lastMusicAt = 0L
     private val musicPoll = object : Runnable {
         override fun run() {
             try { pushMusic() } catch (e: Exception) { /* la música es un extra: nunca debe tumbar la pantalla */ }
@@ -83,7 +88,7 @@ class WebLauncher(private val activity: Activity, private val designJson: String
 
     fun setSpeed(kmh: Int) = js("TBApp.setSpeed($kmh)")
 
-    fun setLocation(lat: Double, lon: Double) = js("TBApp.setLocation($lat,$lon)")
+    fun setLocation(lat: Double, lon: Double, bearing: Float) = js("TBApp.setLocation($lat,$lon,$bearing)")
 
     fun zoneNotice(text: String, warn: Boolean) = js("TBApp.zoneNotice(" + JSONObject.quote(text) + ",$warn)")
 
@@ -101,6 +106,27 @@ class WebLauncher(private val activity: Activity, private val designJson: String
                 val app = Ui.KNOWN_APPS[id]
                 if (app == null) toast("Ese atajo aún no está disponible en la radio.") else launch(app.pkg)
             }
+        }
+
+        @JavascriptInterface
+        fun launchPkg(pkg: String) {
+            activity.runOnUiThread { launch(pkg) }
+        }
+
+        /** Lista de apps instaladas con su ícono pequeño, para el cajón de apps. Corre fuera del hilo principal. */
+        @JavascriptInterface
+        fun apps(): String {
+            val pm = activity.packageManager
+            val out = JSONArray()
+            val list = Apps.launchables(pm, activity.packageName).sortedBy { it.loadLabel(pm).toString().lowercase() }
+            for (ri in list) {
+                try {
+                    out.put(JSONObject().put("n", ri.loadLabel(pm).toString()).put("p", ri.activityInfo.packageName).put("i", iconDataUrl(ri.loadIcon(pm))))
+                } catch (e: Exception) {
+                    // una app con ícono raro no debe vaciar la lista
+                }
+            }
+            return out.toString()
         }
 
         @JavascriptInterface
@@ -126,12 +152,35 @@ class WebLauncher(private val activity: Activity, private val designJson: String
                     "radio" -> openRadio()
                     "bluetooth" -> start(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
                     "activate" -> start(Intent(activity, ActivationActivity::class.java))
+                    "androidauto" -> openProjection("Android Auto", listOf("com.google.android.projection.gearhead"), listOf("android auto", "headunit", "zlink", "carlink", "autokit", "tlink", "autobox"))
+                    "carplay" -> openProjection("CarPlay", emptyList(), listOf("carplay", "zlink", "carlink", "autokit", "tlink", "autobox"))
+                    "camera" -> {
+                        val pkg = Apps.findByLabel(activity.packageManager, activity.packageName, listOf("reversa", "retro", "backcar", "rear", "360", "avm", "cámara", "camara", "camera"))
+                        if (pkg == null) toast("No encontramos la app de la cámara de tu radio.") else launch(pkg)
+                    }
                     "musicaccess" -> start(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
                     "settings" -> start(Intent(activity, SettingsActivity::class.java))
                     "music" -> toast("Agrega Spotify o YouTube Music a tu pantalla para abrir tu música desde aquí.")
                 }
             }
         }
+    }
+
+    private fun openProjection(name: String, packages: List<String>, labels: List<String>) {
+        val pm = activity.packageManager
+        val pkg = packages.firstOrNull { Apps.isInstalled(pm, it) } ?: Apps.findByLabel(pm, activity.packageName, labels)
+        if (pkg == null) toast("No encontramos $name en tu radio. Instala la app de tu pantalla (ZLink, CarLink…) o Open Headunit.") else launch(pkg)
+    }
+
+    private fun iconDataUrl(d: Drawable): String {
+        val size = 64
+        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val c = Canvas(bmp)
+        d.setBounds(0, 0, size, size)
+        d.draw(c)
+        val out = ByteArrayOutputStream()
+        bmp.compress(Bitmap.CompressFormat.PNG, 90, out)
+        return "data:image/png;base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
     }
 
     /* ---------- música en vivo ---------- */
@@ -176,11 +225,23 @@ class WebLauncher(private val activity: Activity, private val designJson: String
             val bmp = md.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) ?: md.getBitmap(MediaMetadata.METADATA_KEY_ART)
                 ?: md.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
             val sig = trackSig + "|" + playing + "|" + (bmp != null)
-            if (sig == lastMusicSig) return
+            val now = SystemClock.elapsedRealtime()
+            // Se reenvía la posición cada 10 s mientras suena, para que la barra de progreso no se desfase.
+            if (sig == lastMusicSig && (!playing || now - lastMusicAt < 10_000)) return
+            lastMusicAt = now
             // La carátula solo se vuelve a codificar cuando cambia la canción.
             if (!lastMusicSig.startsWith(trackSig + "|") || lastArt.isEmpty()) lastArt = if (bmp != null) bitmapToDataUrl(bmp) else ""
             lastMusicSig = sig
+            val st = c.playbackState
+            var pos = st?.position ?: 0L
+            if (playing && st != null) pos += ((SystemClock.elapsedRealtime() - st.lastPositionUpdateTime) * st.playbackSpeed).toLong()
+            val dur = md.getLong(MediaMetadata.METADATA_KEY_DURATION)
+            val src = try {
+                val pm = activity.packageManager
+                pm.getApplicationLabel(pm.getApplicationInfo(c.packageName, 0)).toString()
+            } catch (e: Exception) { "" }
             json.put("active", true).put("playing", playing).put("title", title).put("artist", artist).put("art", lastArt)
+                .put("pos", maxOf(0L, pos)).put("dur", maxOf(0L, dur)).put("speed", st?.playbackSpeed ?: 1f).put("src", src)
         } else {
             val sig = "none|$access"
             if (sig == lastMusicSig) return

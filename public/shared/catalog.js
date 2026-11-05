@@ -35,6 +35,7 @@
 
   // 'base' viene en Esencial; 'plus' requiere el plan Completo.
   const themeTiers = {
+    sobrio: 'base',
     ruta: 'base',
     papel: 'base',
     cristal: 'base',
@@ -47,7 +48,7 @@
 
   const seasons = ['ninguna', 'auto', 'patrias', 'halloween', 'navidad', 'anonuevo'];
   const plusSeasons = ['auto', 'patrias', 'halloween', 'navidad', 'anonuevo'];
-  const layouts = ['estelar', 'tarjetas', 'centro', 'manejo', 'minimal', 'tablero', 'lateral', 'todoterreno'];
+  const layouts = ['consola', 'estelar', 'tarjetas', 'centro', 'manejo', 'minimal', 'tablero', 'lateral', 'todoterreno'];
   const scenes = ['tema', 'cordillera', 'costa', 'desierto', 'bosque', 'ciudad', 'carretera', 'montana', 'nieve', 'rocas', 'barro', 'color'];
   const sceneTimes = ['auto', 'amanecer', 'dia', 'atardecer', 'noche'];
   const vehicles = ['auto', 'suv', 'camioneta', '4x4'];

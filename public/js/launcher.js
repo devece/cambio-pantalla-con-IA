@@ -42,8 +42,10 @@
     speed: 0,
     weather: null,
     music: { access: null, active: false },
+    loc: null,
     media(cmd) { bridge('media', cmd); },
     open(kind) {
+      if (kind === 'drawer') { openDrawer(); return; }
       if (kind === 'music') {
         const id = MUSIC_APPS.find((a) => state.style.apps.includes(a));
         if (id) bridge('openApp', id); else bridge('open', 'music');
@@ -73,6 +75,37 @@
     render();
   }
 
+  /* ---------- cajón de apps instaladas ---------- */
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  let appListCache = null;
+  function openDrawer() {
+    let box = document.getElementById('drawer');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'drawer';
+      box.innerHTML = '<div class="dr-head"><b>Apps</b><button type="button" data-close>Cerrar</button></div><div class="dr-grid"></div>';
+      document.body.appendChild(box);
+      box.addEventListener('click', (e) => {
+        if (e.target.closest('[data-close]')) { box.hidden = true; return; }
+        const a = e.target.closest('[data-pkg]');
+        if (a) { bridge('launchPkg', a.dataset.pkg); box.hidden = true; }
+      });
+    }
+    box.hidden = false;
+    const grid = box.querySelector('.dr-grid');
+    if (appListCache) { drawApps(grid); return; }
+    grid.innerHTML = '<p>Cargando…</p>';
+    setTimeout(() => {
+      try { appListCache = JSON.parse(window.Android.apps()); } catch (e) { appListCache = []; }
+      drawApps(grid);
+    }, 40);
+  }
+  function drawApps(grid) {
+    grid.innerHTML = appListCache.length
+      ? appListCache.map((a) => '<button type="button" data-pkg="' + esc(a.p) + '"><img src="' + esc(a.i) + '" alt=""><span>' + esc(a.n) + '</span></button>').join('')
+      : '<p>No encontramos apps para mostrar.</p>';
+  }
+
   /* ---------- clima real (Open-Meteo) ---------- */
   const WX_TEXT = (c) => (c === 0 ? 'Despejado' : c <= 3 ? 'Parcialmente nublado' : c <= 48 ? 'Neblina' : c <= 57 ? 'Llovizna' : c <= 67 ? 'Lluvia' : c <= 77 ? 'Nieve' : c <= 82 ? 'Chubascos' : 'Tormenta');
   let lastWeather = 0;
@@ -98,12 +131,23 @@
       TB.preview.onGo = (id) => { ui.screen = id === 'inicio' ? 'inicio' : id; render(); };
       if (!mounted) { TB.preview.mount(document.getElementById('host')); mounted = true; }
       document.getElementById('key').hidden = !!(design && design.config);
+      document.body.classList.toggle('free', !(design && design.config));
       setDesign(design);
     },
     setSpeed(kmh) { app.speed = Number(kmh) || 0; },
-    setLocation(lat, lon) { if (isFinite(lat) && isFinite(lon)) loadWeather(lat, lon); },
+    setLocation(lat, lon, bearing) {
+      if (!isFinite(lat) || !isFinite(lon)) return;
+      loadWeather(lat, lon);
+      const prev = app.loc;
+      const b = isFinite(bearing) && bearing >= 0 ? bearing : prev ? prev.bearing : 0;
+      const moved = !prev || Math.abs(lat - prev.lat) * 111000 + Math.abs(lon - prev.lon) * 90000 > 15 || Math.abs(b - prev.bearing) > 20;
+      if (!moved) return;
+      app.loc = { lat, lon, bearing: b };
+      if (TB.preview.updateMap) TB.preview.updateMap();
+    },
     setMusic(json) {
       try { app.music = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }
+      app.music.at = Date.now();
       if (TB.preview.updateMusic) TB.preview.updateMusic();
     },
     setNight(on) { nightForced = on === null || on === undefined ? null : !!on; render(); },

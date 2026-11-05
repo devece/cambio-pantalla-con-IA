@@ -28,7 +28,6 @@ a { color: var(--verde); }
 [tabindex="-1"]:focus, [tabindex="-1"]:focus-visible { outline: none; }
 
 /* Cinta de prototipo */
-.ribbon { background: var(--ink); color: #fff; text-align: center; font-size: 15px; padding: 6px 16px; }
 
 /* Cabecera */
 .topbar { background: var(--page); }

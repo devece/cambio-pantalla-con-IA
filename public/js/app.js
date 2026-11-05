@@ -956,7 +956,6 @@
   /* ---------- arranque ---------- */
   function init() {
     const site = TB.site || {};
-    if (site.prototype) $('#ribbon').hidden = false;
     $('#brand-name').textContent = site.name || 'Tablero';
     $('#foot-name').textContent = site.name || 'Tablero';
     $('#year').textContent = new Date().getFullYear();

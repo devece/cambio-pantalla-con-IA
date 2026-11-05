@@ -169,25 +169,19 @@
 
   const vehicleLevel = () => TB.vehicleLevel[state.car.type] || 0;
   const VEHICLE_HINT = {
-    '4x4': 'Te armamos un estilo 4x4: diseño Todoterreno y escena de barro. Puedes cambiar todo abajo.',
-    suv: 'Te pusimos la escena de montaña. Puedes cambiarla abajo.',
+    '4x4': 'Con la 4x4 se desbloquean el diseño Todoterreno y las escenas de barro, rocas y nieve. Tu diseño no cambia: tú eliges.',
+    suv: 'Con SUV se desbloquea la escena de montaña.',
     camioneta: 'Con camioneta se desbloquea la escena de montaña.',
   };
+  /** Elegir el tipo de vehículo NO cambia tu diseño: solo desbloquea opciones y devuelve a lo básico lo que ya no te corresponde. */
   function applyVehicle() {
     const lv = vehicleLevel();
-    const t = state.car.type;
-    if (t === '4x4') { state.style.layout = 'todoterreno'; state.style.scene = 'barro'; }
-    else if (t === 'suv' || t === 'camioneta') {
-      if (state.style.layout === 'todoterreno') state.style.layout = 'tarjetas';
-      state.style.scene = 'montana';
-    } else {
-      if (state.style.layout === 'todoterreno') state.style.layout = 'tarjetas';
-      const sc = TB.scenes.find((s) => s.id === state.style.scene);
-      if (sc && sc.level > lv) state.style.scene = 'tema';
-    }
+    if (state.style.layout === 'todoterreno' && state.car.type !== '4x4') state.style.layout = 'consola';
+    const sc = TB.scenes.find((x) => x.id === state.style.scene);
+    if (sc && sc.level > lv) state.style.scene = 'tema';
     const hint = $('#vt-hint');
-    hint.textContent = VEHICLE_HINT[t] || '';
-    hint.hidden = !VEHICLE_HINT[t];
+    hint.textContent = VEHICLE_HINT[state.car.type] || '';
+    hint.hidden = !VEHICLE_HINT[state.car.type];
   }
 
   function syncChoices() {

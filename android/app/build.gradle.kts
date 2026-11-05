@@ -69,7 +69,7 @@ android.sourceSets.getByName("main").assets.srcDir(
 // para que funcione sin internet y siempre dibuje igual que la vista previa.
 val copyWeb = tasks.register<Copy>("copyWeb") {
     from(rootProject.file("../public")) {
-        include("launcher.html", "css/preview.css", "js/art.js", "js/themes.js", "js/fx.js", "js/preview.js", "js/launcher.js", "shared/catalog.js", "shared/pico.js", "img/auto.png", "img/camioneta.png")
+        include("launcher.html", "css/preview.css", "js/art.js", "js/themes.js", "js/fx.js", "js/preview.js", "js/launcher.js", "shared/catalog.js", "shared/pico.js", "img/auto.png", "img/camioneta.png", "img/suv.png")
     }
     into(layout.buildDirectory.dir("generated/web/web"))
 }

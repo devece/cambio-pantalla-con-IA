@@ -103,8 +103,8 @@
   /* Autos con imagen real. `lamp`: zona (fracciones del ancho/alto) que no se repinta, como la luz trasera. */
   const CAR_IMAGES = {
     camioneta: { src: 'img/camioneta.png', lamp: [0, 0.056, 0.33, 0.57] },
-    // El SUV usa por ahora la foto de la camioneta (el dibujo anterior se veía infantil). Es solo el ejemplo: tu foto lo reemplaza.
-    suv: { src: 'img/camioneta.png', lamp: [0, 0.056, 0.33, 0.57] },
+    // `range`: tonos (0-360) de la pintura original que se repintan con el color elegido. Sin `range`, la pintura original es roja.
+    suv: { src: 'img/suv.png', lamp: null, range: [190, 260] },
     '4x4': { src: 'img/camioneta.png', lamp: [0, 0.056, 0.33, 0.57] },
     auto: { src: 'img/auto.png', lamp: null, flip: true },
   };
@@ -127,7 +127,7 @@
     return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
   }
   /** Cambia solo la pintura roja de la foto al color elegido; vidrios, llantas y faros no se tocan. */
-  function tintPickup(img, color, lamp) {
+  function tintPickup(img, color, lamp, range) {
     const cv = document.createElement('canvas');
     cv.width = img.naturalWidth; cv.height = img.naturalHeight;
     const cx = cv.getContext('2d', { willReadFrequently: true });
@@ -143,7 +143,7 @@
       const x = (i / 4) % cv.width, y = Math.floor(i / 4 / cv.width);
       if (lamp && x < lampX && y > lampY0 && y < lampY1) continue;
       const [h, s, l] = hsl(px[i], px[i + 1], px[i + 2]);
-      if (s < 0.12 || l < 0.015 || l > 0.9 || !(h >= 335 || h <= 42)) continue;
+      if (s < 0.12 || l < 0.015 || l > 0.9 || !(range ? h >= range[0] && h <= range[1] : h >= 335 || h <= 42)) continue;
       const ns = Math.min(1, s * (ts / 0.6));
       const nl = tl > 0.55 ? Math.min(0.97, tl * (0.5 + l * 1.5)) : Math.min(0.96, Math.max(0.03, l * (tl / 0.3)));
       const [r, g, b] = rgb(th, ts < 0.12 ? ts * 0.5 : ns, nl);
@@ -159,7 +159,7 @@
       const color = el.dataset.color;
       const key = info.src + '|' + color;
       const apply = () => {
-        if (!tinted[key]) { try { tinted[key] = tintPickup(carImgs[info.src], color, info.lamp); } catch (e) { tinted[key] = info.src; } }
+        if (!tinted[key]) { try { tinted[key] = tintPickup(carImgs[info.src], color, info.lamp, info.range); } catch (e) { tinted[key] = info.src; } }
         el.src = tinted[key];
       };
       let img = carImgs[info.src];

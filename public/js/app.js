@@ -16,7 +16,7 @@
   const defaults = () => ({
     radio: { type: null, model: '', screen: null, analysis: null },
     car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', phrase: '', plate: '', photo: null, photoCut: false, photoNight: null },
-    style: { theme: 'ruta', layout: 'tarjetas', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
+    style: { theme: 'sobrio', layout: 'consola', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
       oilOn: true, odometer: 45000, lastOil: 42000, oilEvery: 5000,
       others: ['neumaticos'], docsOn: true, rtMonth: 6,
@@ -977,7 +977,6 @@
     const extra = [site.supportEmail && 'por correo', site.instagram && 'por Instagram'].filter(Boolean).join(' o ');
     const how = web ? `Contáctanos en ${web.name}${extra ? ' o ' + extra : ''}` : extra ? `Escríbenos ${extra}` : '';
     if (how) $('#contact-text').textContent = `${how} y te respondemos. Te respondemos por WhatsApp.`;
-    if (site.freeUrl) { $('#free-link').href = site.freeUrl; $('#free-option').hidden = false; }
     const plans = C.plans;
     const prices = plans ? Object.values(plans).map((p) => p.price).filter((n) => typeof n === 'number') : [];
     if (prices.length) $('#price-from').textContent = Math.min(...prices) > 0 ? 'Desde $' + Math.min(...prices).toLocaleString('es-CL') : 'Gratis.';

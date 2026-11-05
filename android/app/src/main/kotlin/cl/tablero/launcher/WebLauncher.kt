@@ -17,10 +17,15 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Base64
+import cl.tablero.core.TileId
+import cl.tablero.core.Tiles
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import android.provider.Settings
 import android.view.View
 import android.webkit.JavascriptInterface
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -39,6 +44,9 @@ class WebLauncher(private val activity: Activity, private val designJson: String
 
     private val handler = Handler(Looper.getMainLooper())
     private var lastMusicSig = ""
+    private val tiles = TileCache(activity)
+    @Volatile private var saving = false
+    @Volatile private var closed = false
     private var lastArt = ""
     private var lastMusicAt = 0L
     private val musicPoll = object : Runnable {
@@ -72,6 +80,16 @@ class WebLauncher(private val activity: Activity, private val designJson: String
         }
         view.addJavascriptInterface(Bridge(), "Android")
         view.webViewClient = object : WebViewClient() {
+            /** Los cuadros del mapa pasan por la copia guardada en la radio: se ven sin internet y no se bajan dos veces. */
+            override fun shouldInterceptRequest(v: WebView, request: WebResourceRequest): WebResourceResponse? {
+                val host = request.url.host ?: return null
+                if (!host.endsWith("basemaps.cartocdn.com")) return null
+                val tile = Tiles.parse(request.url.path ?: "") ?: return null
+                val bytes = tiles.getOrFetch(tile)
+                    ?: return WebResourceResponse("image/png", null, 404, "Sin mapa", emptyMap(), ByteArrayInputStream(ByteArray(0)))
+                return WebResourceResponse("image/png", null, 200, "OK", mapOf("Cache-Control" to "max-age=86400"), ByteArrayInputStream(bytes))
+            }
+
             override fun onPageFinished(v: WebView, url: String) {
                 ready = true
                 v.evaluateJavascript("TBApp.init(" + JSONObject.quote(designJson) + ")", null)
@@ -93,6 +111,7 @@ class WebLauncher(private val activity: Activity, private val designJson: String
     fun zoneNotice(text: String, warn: Boolean) = js("TBApp.zoneNotice(" + JSONObject.quote(text) + ",$warn)")
 
     fun destroy() {
+        closed = true
         handler.removeCallbacks(musicPoll)
         view.removeJavascriptInterface("Android")
         view.destroy()
@@ -106,6 +125,46 @@ class WebLauncher(private val activity: Activity, private val designJson: String
                 val app = Ui.KNOWN_APPS[id]
                 if (app == null) toast("Ese atajo aún no está disponible en la radio.") else launch(app.pkg)
             }
+        }
+
+        /** Baja de una vez los mapas alrededor de la posición (de día y de noche). Avisa el avance a la pantalla. */
+        @JavascriptInterface
+        fun saveMapArea(lat: Double, lon: Double) {
+            if (saving || lat.isNaN() || lon.isNaN()) return
+            saving = true
+            Thread {
+                var done = 0
+                var failed = 0
+                try {
+                    val around = Tiles.around(lat, lon, MAP_RADIUS)
+                    val all = ArrayList<TileId>()
+                    Tiles.STYLES.forEach { st -> around.forEach { (x, y) -> all.add(TileId(st, Tiles.ZOOM, x, y)) } }
+                    for (t in all) {
+                        if (closed) return@Thread
+                        if (!tiles.has(t)) {
+                            if (tiles.fetch(t) == null) failed++
+                            Thread.sleep(120) // sin apurar al servidor de mapas
+                        }
+                        done++
+                        if (done % 15 == 0) progress(done, all.size, failed, false)
+                    }
+                    tiles.trim()
+                    progress(done, all.size, failed, true)
+                } finally {
+                    saving = false
+                }
+            }.start()
+        }
+
+        @JavascriptInterface
+        fun mapInfo(): String {
+            val (n, bytes) = tiles.stats()
+            return JSONObject().put("tiles", n).put("bytes", bytes).toString()
+        }
+
+        @JavascriptInterface
+        fun clearMaps() {
+            if (!saving) tiles.clear()
         }
 
         @JavascriptInterface
@@ -181,6 +240,10 @@ class WebLauncher(private val activity: Activity, private val designJson: String
         val out = ByteArrayOutputStream()
         bmp.compress(Bitmap.CompressFormat.PNG, 90, out)
         return "data:image/png;base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+    }
+
+    private fun progress(done: Int, total: Int, failed: Int, fin: Boolean) {
+        activity.runOnUiThread { if (!closed) js("TBApp.mapProgress($done,$total,$failed,$fin)") }
     }
 
     /* ---------- música en vivo ---------- */
@@ -273,6 +336,8 @@ class WebLauncher(private val activity: Activity, private val designJson: String
     private fun toast(text: String) = Toast.makeText(activity, text, Toast.LENGTH_SHORT).show()
 
     private companion object {
+        // 15 x 15 cuadros por estilo (unos 15 km de lado): lo que cubre una ciudad sin pasarse con el servidor de mapas.
+        const val MAP_RADIUS = 7
         // Apps de radio FM de fábrica más comunes en radios de auto chinas.
         val RADIO_PACKAGES = listOf(
             "com.nwd.radio", "com.nwd.android.radio", "com.syu.radio", "com.mediatek.fmradio",

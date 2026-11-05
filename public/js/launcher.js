@@ -46,6 +46,7 @@
     media(cmd) { bridge('media', cmd); },
     open(kind) {
       if (kind === 'drawer') { openDrawer(); return; }
+      if (kind === 'mapsave') { saveMap(); return; }
       if (kind === 'music') {
         const id = MUSIC_APPS.find((a) => state.style.apps.includes(a));
         if (id) bridge('openApp', id); else bridge('open', 'music');
@@ -73,6 +74,21 @@
     }
     ui.screen = 'inicio';
     render();
+  }
+
+  /* ---------- mapa sin conexión ---------- */
+  let mapTimer = null;
+  function mapSaveText(text, resetMs) {
+    document.querySelectorAll('[data-mapsave]').forEach((el) => { el.textContent = text; });
+    clearTimeout(mapTimer);
+    if (resetMs) mapTimer = setTimeout(() => mapSaveText('Guardar mapa'), resetMs);
+  }
+  function saveMap() {
+    if (!app.loc) { mapSaveText('Esperando tu ubicación…', 4000); return; }
+    try {
+      window.Android.saveMapArea(app.loc.lat, app.loc.lon);
+      mapSaveText('Guardando…');
+    } catch (e) { mapSaveText('No disponible', 3000); }
   }
 
   /* ---------- cajón de apps instaladas ---------- */
@@ -163,6 +179,11 @@
       try { app.music = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }
       app.music.at = Date.now();
       if (TB.preview.updateMusic) TB.preview.updateMusic();
+    },
+    /** Avance del guardado del mapa que hace la app: cuadros listos, total, los que no se pudieron bajar, y si terminó. */
+    mapProgress(done, total, failed, fin) {
+      if (!fin) { mapSaveText('Guardando… ' + Math.round((done / Math.max(1, total)) * 100) + '%'); return; }
+      mapSaveText(failed >= total ? 'Sin internet: no se guardó' : failed > 0 ? 'Guardado (' + failed + ' sin bajar)' : 'Mapa guardado ✓', 6000);
     },
     setNight(on) { nightForced = on === null || on === undefined ? null : !!on; render(); },
     zoneNotice(text, warn) { TB.preview.showZoneNotice({ text: String(text), warn: !!warn }); },

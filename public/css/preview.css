@@ -385,3 +385,5 @@
 .scr[data-layout='consola'] .dk.on .ic { background: var(--accent); color: var(--accent-ink); }
 .scr[data-layout='consola'] .dk { min-width: 64px; }
 @media (prefers-reduced-motion: reduce) { .scr .c-car { animation: none; } }
+
+.scr .map-save { position: absolute; right: 12px; top: 28px; z-index: 2; padding: 7px 14px; border-radius: 99px; background: var(--card); font-size: 15px; font-weight: 500; box-shadow: 0 2px 8px rgba(0,0,0,.18); }

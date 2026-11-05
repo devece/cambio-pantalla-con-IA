@@ -21,6 +21,10 @@ class SettingsStore(context: Context) {
             lastOil = p.getInt("lastOil", d.lastOil),
             oilEvery = p.getInt("oilEvery", d.oilEvery),
             otherMaintenance = list("others", d.otherMaintenance),
+            maintDone = list("maintDone", emptyList()).mapNotNull {
+                val (id, km) = it.split(":").takeIf { p -> p.size == 2 } ?: return@mapNotNull null
+                km.toIntOrNull()?.let { v -> id to v }
+            }.toMap(),
             docsOn = p.getBoolean("docsOn", d.docsOn),
             rtMonth = p.getInt("rtMonth", d.rtMonth).coerceIn(1, 12),
             fuelOn = p.getBoolean("fuelOn", d.fuelOn),
@@ -50,6 +54,7 @@ class SettingsStore(context: Context) {
             .putInt("lastOil", c.lastOil)
             .putInt("oilEvery", c.oilEvery)
             .putString("others", c.otherMaintenance.joinToString(","))
+            .putString("maintDone", c.maintDone.entries.joinToString(",") { "${it.key}:${it.value}" })
             .putBoolean("docsOn", c.docsOn)
             .putInt("rtMonth", c.rtMonth)
             .putBoolean("fuelOn", c.fuelOn)

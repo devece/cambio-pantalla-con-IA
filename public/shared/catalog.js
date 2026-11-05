@@ -1,6 +1,6 @@
 /*
  * Catálogo compartido entre el navegador y el servidor (api/).
- * Los PRECIOS SON DE EJEMPLO: defínelos tú antes de vender.
+ * Por ahora todo es GRATIS (precio 0). Si más adelante vuelves a cobrar, cambia los precios aquí.
  * El servidor siempre recalcula el total con este archivo; nunca confía en el precio que manda el navegador.
  */
 (function (root, factory) {
@@ -11,14 +11,14 @@
     {
       id: 'esencial',
       name: 'Esencial',
-      price: 9990,
-      blurb: 'Tu pantalla con 3 diseños visuales y todas las funciones de manejo.',
+      price: 0,
+      blurb: 'Tu pantalla con diseños básicos y todas las funciones de manejo.',
     },
     {
       id: 'completo',
       name: 'Completo',
-      price: 14990,
-      blurb: 'Los 8 diseños visuales, decoraciones de temporada y cambios ilimitados.',
+      price: 0,
+      blurb: 'Todos los diseños visuales y las decoraciones de temporada.',
     },
   ];
 

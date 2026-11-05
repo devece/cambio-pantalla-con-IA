@@ -23,7 +23,7 @@
       fuelOn: false, tankL: 45, kmPerL: 12,
       speedShow: true, speedAlert: 'auto', manualLimit: 60, restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: true, miles: false, gallons: false,
     },
-    plan: 'esencial',
+    plan: 'completo',
     addons: {},
     contact: { kind: 'whatsapp', value: '' },
     terms: false,
@@ -321,7 +321,7 @@
     ];
     $('#summary').innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
     const q = O.quote(state);
-    $('#total').textContent = O.money(q.total);
+    $('#total').textContent = q.total > 0 ? O.money(q.total) : 'Gratis';
     $('#pay').textContent = (TB.site || {}).payment === 'transfer' ? `Pagar ${O.money(q.total)} por transferencia` : (TB.site || {}).payment === 'contact' ? `Pedir mi pantalla · ${O.money(q.total)}` : `Pagar ${O.money(q.total)}`;
   }
 
@@ -850,7 +850,7 @@
     const done = $('#pay-done');
     done.hidden = false;
     done.innerHTML = `<b>Pedido ${esc(data.orderId)}</b>
-      <p>Tu pedido está listo por <b>${esc(O.money(data.total))}</b>. El pago se coordina en el contacto de <b>${esc(web.name || 'Daniexpress')}</b>: allá te indican cómo pagar y, cuando confirman el pago, te mandan tu código.</p>
+      <p>Tu pedido está listo. Tu pantalla es <b>gratis</b>. Envíaselo a <b>${esc(web.name || 'Daniexpress')}</b> y ellos te mandan tu código de activación.</p>
       <ol class="mini-steps">
         <li>Copia tu pedido (botón de abajo).</li>
         <li>Ábrelo en ${esc(web.name || 'Daniexpress')} y pégalo en el mensaje de contacto.</li>
@@ -946,11 +946,11 @@
     $('#contact-links').innerHTML = links.join('') || 'Pronto publicaremos aquí nuestros datos de contacto.';
     const extra = [site.supportEmail && 'por correo', site.instagram && 'por Instagram'].filter(Boolean).join(' o ');
     const how = web ? `Contáctanos en ${web.name}${extra ? ' o ' + extra : ''}` : extra ? `Escríbenos ${extra}` : '';
-    if (how) $('#contact-text').textContent = `${how} y te respondemos. Cuando se apruebe tu pago te damos un WhatsApp de soporte.`;
+    if (how) $('#contact-text').textContent = `${how} y te respondemos. Te respondemos por WhatsApp.`;
     if (site.freeUrl) { $('#free-link').href = site.freeUrl; $('#free-option').hidden = false; }
     const plans = C.plans;
     const prices = plans ? Object.values(plans).map((p) => p.price).filter((n) => typeof n === 'number') : [];
-    if (prices.length) $('#price-from').textContent = 'Desde $' + Math.min(...prices).toLocaleString('es-CL');
+    if (prices.length) $('#price-from').textContent = Math.min(...prices) > 0 ? 'Desde $' + Math.min(...prices).toLocaleString('es-CL') : 'Gratis.';
 
     load();
     build();

@@ -283,9 +283,9 @@
 
         <!-- Paso 5 -->
         <section class="step" data-step="5" aria-labelledby="h5" hidden>
-          <h2 id="h5">Resumen y pago</h2>
-          <p class="lead">Estás comprando el <b>desbloqueo de la app Tablero para una radio</b>, con el plan que elijas. No es un producto físico: después de pagar recibes un código para activarla.</p>
-          <div class="group">
+          <h2 id="h5">Resumen y pedido</h2>
+          <p class="lead">Tu pantalla es <b>gratis</b>. Al terminar recibes un código para activar la app Tablero en tu radio.</p>
+          <div class="group" id="plan-group" hidden>
             <h3>Plan</h3>
             <div class="choices cols-1 plans" data-choices="plan" role="radiogroup" aria-label="Plan"></div>
             <p class="note" id="plan-note" role="status" hidden></p>
@@ -297,7 +297,7 @@
               <li><b>Tu auto en la pantalla</b><span>Con tu foto sin fondo o el vehículo que elegiste, y tu diseño, color y fondo.</span></li>
               <li><b>Todo lo que elegiste</b><span>Aviso de aceite, documentos, velocidad, restricción y saludo por voz.</span></li>
               <li><b>Nada se pierde</b><span>Android Auto, CarPlay y las apps de tu radio siguen igual.</span></li>
-              <li><b>Garantía</b><span>Si no funciona en tu radio, te devolvemos el dinero. Si cambias de radio, traspasas tu licencia una vez gratis.</span></li>
+              <li><b>Gratis</b><span>Sin costo. Si cambias de radio, te pasamos tu código a la nueva.</span></li>
               <li><b>Ayuda por WhatsApp</b><span>Si te trabas instalando, te guiamos paso a paso.</span></li>
             </ul>
           </div>
@@ -313,12 +313,12 @@
             <label class="field" data-show="contact.kind=whatsapp"><span>WhatsApp</span><input type="tel" inputmode="tel" autocomplete="tel" data-bind="contact.value" placeholder="+56 9 1234 5678"></label>
             <label class="field" data-show="contact.kind=email"><span>Correo</span><input type="email" inputmode="email" autocomplete="email" data-bind="contact.value" placeholder="tu@correo.cl"></label>
           </div>
-          <label class="check terms"><input type="checkbox" data-bind="terms"><span>Acepto los <a href="terminos.html" target="_blank" rel="noopener">términos</a> y la <a href="devoluciones.html" target="_blank" rel="noopener">política de devoluciones</a>.</span></label>
+          <label class="check terms"><input type="checkbox" data-bind="terms"><span>Acepto los <a href="terminos.html" target="_blank" rel="noopener">términos</a> y la <a href="devoluciones.html" target="_blank" rel="noopener">página de cambios y ayuda</a>.</span></label>
           <ul class="errors" id="pay-errors" role="alert" hidden></ul>
           <div class="done" id="pay-done" role="status" hidden></div>
           <p class="hint pay-install">¿Ya tienes tu código? <a href="listo.html">Mira cómo instalarlo en tu radio</a>.</p>
           <button type="button" class="btn pay" id="pay">Pagar</button>
-          <p class="hint pay-hint">El pago se coordina en el contacto de Daniexpress: al presionar el botón enviamos tu pedido y tu foto (ya sin fondo) para armar tu pantalla, y te mostramos tu pedido listo para enviarles; ellos te indican cómo pagar.</p>
+          <p class="hint pay-hint">Al presionar el botón guardamos tu pedido y tu foto (ya sin fondo) y te mostramos tu pedido listo para enviarlo por WhatsApp a Daniexpress. Ahí te mandan tu código de activación.</p>
         </section>
 
         <div class="nav" id="nav">
@@ -332,7 +332,7 @@
     <section class="contact wrap" id="contacto">
       <div class="contact-card">
         <h2>¿Tienes preguntas?</h2>
-        <p id="contact-text">Escríbenos y te respondemos. Cuando se apruebe tu pago te damos un WhatsApp de soporte.</p>
+        <p id="contact-text">Escríbenos y te respondemos. Te respondemos por WhatsApp.</p>
         <p class="contact-links" id="contact-links"></p>
       </div>
     </section>
@@ -341,13 +341,13 @@
       <h2>Preguntas frecuentes</h2>
       <details><summary>¿Cómo sé si mi radio es compatible?</summary><p>Si tu radio tiene pantalla grande y puedes abrir la Play Store o instalar apps como YouTube o Waze, es Android y sirve. Si es la radio que vino de fábrica y solo muestra tu celular por Android Auto o CarPlay, no sirve. En el paso 1 puedes subir una captura de la pantalla de tu radio y te decimos si es compatible.</p></details>
       <details><summary>¿Qué pasa con mis apps y con Android Auto o CarPlay?</summary><p>Nada: siguen funcionando igual. La app solo cambia la pantalla de inicio y abre las apps que ya tienes.</p></details>
-      <details><summary>¿Qué estoy comprando?</summary><p>El desbloqueo de la app Tablero para una radio, con el plan que elijas (Esencial o Completo). No es un producto físico: la app se instala en tu radio y el código que recibes cuando se confirma el pago la activa.</p></details>
+      <details><summary>¿Cuánto cuesta?</summary><p>Nada: tu pantalla es gratis. Recibes un código de activación para instalarla en una radio.</p></details>
       <details><summary>¿Qué es el código que recibo?</summary><p>Es una clave con el formato <code>TBL-XXXX-XXXX-XXXX</code>. Se escribe una vez en la app, en la opción <i>Activar código</i>, y queda ligada a esa radio. Si cambias de radio, la pasas a la nueva una vez, gratis.</p></details>
       <details><summary>¿Qué foto de mi auto debo enviar?</summary><p>Una sola, como la tengas: con el auto completo, de lado o en diagonal, de día y sin gente delante. No importa el fondo: se lo quitamos aquí mismo, en tu celular. Tu foto se envía sola cuando haces tu pedido, y antes de eso se queda en tu teléfono.</p></details>
       <details><summary>¿Cómo se instala?</summary><p>Instalas la app en la radio, la abres, presionas <i>Activar código</i> y escribes tu código. Tienes la guía paso a paso en <a href="listo.html">esta página</a>.</p></details>
       <details><summary>¿Necesito internet?</summary><p>La radio necesita internet una sola vez, para activar el código (puedes usar los datos de tu celular). Después la app funciona sin internet.</p></details>
       <details><summary>¿La restricción vehicular sirve en mi ciudad?</summary><p>La restricción vehicular permanente para autos particulares solo existe en Santiago (Provincia de Santiago, San Bernardo y Puente Alto). La radio usa el GPS y te avisa al entrar a esa zona, solo cuando ese día te toca. En el resto del país no te molesta.</p></details>
-      <details><summary>¿Cómo pago?</summary><p>El pago se coordina en el contacto de Daniexpress. Cuando terminas tu diseño, presionas “Pedir mi pantalla”, te mostramos tu pedido listo para copiar y lo envías allá. Ellos te indican cómo pagar y, cuando se confirma el pago, te mandan tu código.</p></details>
+      <details><summary>¿Cómo recibo mi código?</summary><p>Cuando terminas tu diseño, presionas “Pedir mi pantalla”, te mostramos tu pedido listo para copiar y lo envías por WhatsApp a Daniexpress. Ellos te mandan tu código.</p></details>
       <details><summary>¿Y si no funciona en mi radio?</summary><p>Te devolvemos tu dinero.</p></details>
     </section>
 
@@ -359,7 +359,7 @@
       <a id="download-link" href="listo.html">Ya tengo mi código: descargar</a>
       <a href="terminos.html">Términos</a>
       <a href="privacidad.html">Privacidad</a>
-      <a href="devoluciones.html">Devoluciones</a>
+      <a href="devoluciones.html">Cambios y ayuda</a>
       <span id="foot-contact"></span>
     </div>
   </footer>

@@ -50,7 +50,7 @@ test('el total se calcula con el catálogo, ignorando precios del cliente', () =
   o.total = 1; // el navegador no manda en el precio
   o.price = 1;
   const q = quote(validateOrder(o).clean);
-  assert.equal(q.total, 14990);
+  assert.equal(q.total, 0, 'por ahora todo es gratis (precio 0 en el catálogo)');
 });
 
 test('un servicio no disponible (addon "foto") ni se acepta ni se cobra', () => {
@@ -58,7 +58,7 @@ test('un servicio no disponible (addon "foto") ni se acepta ni se cobra', () => 
   o.addons = { foto: true };
   const r = validateOrder(o);
   assert.deepEqual(r.clean.addons, {});
-  assert.equal(quote(o).total, 9990); // tampoco lo cobra quote() si le llega directo
+  assert.equal(quote(o).total, 0); // tampoco lo cobra quote() si le llega directo
 });
 
 test('"No sé" debe confirmarse antes de pagar', () => {

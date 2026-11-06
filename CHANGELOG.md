@@ -11,6 +11,9 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 - **Recordatorios que se repiten solos.** Cada mantención que anotas (filtro, bujías, frenos…) cuenta sus km con barra y alerta,
   igual que el aceite. En Mantención aparece **Hecho** cuando un aviso está por vencer (se confirma con dos toques): anota el
   kilometraje de hoy y el próximo aviso queda "cada N km" más adelante. Los que aún no tienen fecha dicen **Contar desde hoy**.
+- **Día y noche por la hora del sol.** El tema oscuro entra cuando se pone el sol donde está el auto, no a una hora fija
+  (en invierno oscurece a las 18 h; en verano, pasadas las 21 h). Sin internet; usa el último GPS guardado o Santiago.
+  El fondo "automático" (amanecer, día, atardecer y noche) también lo sigue. Las luces del auto siguen mandando sobre todo.
 
 ### Para quien publica
 - Nuevo workflow **Release**: al crear una etiqueta `vX.Y.Z` compila el APK firmado y lo publica en GitHub Releases con estas notas.

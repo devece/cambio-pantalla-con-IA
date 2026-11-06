@@ -44,6 +44,7 @@ class SettingsActivity : Activity() {
     private val colorChips = linkedMapOf<String, View>()
     private lateinit var oilOn: CheckBox
     private lateinit var odometer: EditText
+    private lateinit var odometerAuto: CheckBox
     private lateinit var lastOil: EditText
     private lateinit var oilEvery: EditText
     private val others = linkedMapOf<String, CheckBox>()
@@ -119,6 +120,7 @@ class SettingsActivity : Activity() {
         section("Aceite")
         oilOn = check("Aviso de cambio de aceite", c.oilOn, limits.oilOn)
         odometer = number("Kilometraje actual", c.odometer)
+        odometerAuto = check("Sumar solos los km que recorro (usa el GPS; es una estimación)", c.odometerAuto, true)
         lastOil = number("Último cambio de aceite a los (km)", c.lastOil)
         oilEvery = number("Cambio cada (km)", c.oilEvery)
 
@@ -230,6 +232,7 @@ class SettingsActivity : Activity() {
                 apps = chosenApps,
                 oilOn = oilOn.isChecked,
                 odometer = int(odometer, old.odometer, 0..999_999),
+                odometerAuto = odometerAuto.isChecked,
                 lastOil = int(lastOil, old.lastOil, 0..999_999),
                 oilEvery = int(oilEvery, old.oilEvery, 1_000..30_000),
                 otherMaintenance = others.filterValues { it.isChecked }.keys.toList(),

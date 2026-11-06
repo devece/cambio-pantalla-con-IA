@@ -8,6 +8,10 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 ## [Sin publicar]
 
 ### Agregado
+- **Kilometraje automático.** Si ya anotaste el kilometraje de tu auto, la app le suma sola los km que recorres (con el GPS),
+  así los avisos de aceite y mantención bajan sin que tengas que actualizar el número. Sigue contando aunque uses Waze o Maps,
+  y por eso muestra un aviso fijo en la barra de notificaciones. Es una estimación: no cuenta cuando el auto está detenido ni
+  los saltos raros del GPS, y puedes corregir el número o apagarlo en Ajustes. Se guarda solo en tu radio.
 - **Recordatorios que se repiten solos.** Cada mantención que anotas (filtro, bujías, frenos…) cuenta sus km con barra y alerta,
   igual que el aceite. En Mantención aparece **Hecho** cuando un aviso está por vencer (se confirma con dos toques): anota el
   kilometraje de hoy y el próximo aviso queda "cada N km" más adelante. Los que aún no tienen fecha dicen **Contar desde hoy**.

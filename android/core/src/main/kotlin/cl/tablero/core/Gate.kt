@@ -36,6 +36,8 @@ data class LauncherConfig(
     val wheelKeys: Map<Int, WheelAction> = emptyMap(),
     /** El primer arranque guiado ya se terminó o se omitió. */
     val welcomeDone: Boolean = false,
+    /** Sumar al kilometraje los km que mide el GPS mientras se maneja (solo si ya se anotó un kilometraje). */
+    val odometerAuto: Boolean = true,
 )
 
 /** El "candado": ajusta una configuración a lo que permite el nivel de la radio. */

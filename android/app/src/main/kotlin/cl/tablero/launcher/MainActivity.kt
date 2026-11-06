@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
@@ -61,6 +62,7 @@ class MainActivity : Activity() {
     private lateinit var restriction: RestrictionRules
     private var zoneView: TextView? = null
     private var web: WebLauncher? = null
+    private var odometerListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
     private var insideZone = false
     private val handler = Handler(Looper.getMainLooper())
     private val hideZone = Runnable { zoneView?.visibility = View.GONE }
@@ -111,11 +113,21 @@ class MainActivity : Activity() {
         web = launcher
         setContentView(launcher.view)
         startSpeed()
+        // Mientras el inicio está a la vista, los avisos ("faltan X km") siguen el kilometraje que va sumando el GPS.
+        odometerListener?.let { settings.removeOdometerListener(it) }
+        odometerListener = settings.onOdometerChange { km ->
+            runOnUiThread {
+                config = config.copy(odometer = km)
+                web?.setProgress(config)
+            }
+        }
         greetOnce()
     }
 
     override fun onPause() {
         super.onPause()
+        odometerListener?.let { settings.removeOdometerListener(it) }
+        odometerListener = null
         handler.removeCallbacks(hideZone)
         try {
             locationManager.removeUpdates(locationListener)
@@ -455,7 +467,11 @@ class MainActivity : Activity() {
     /* ---------- velocidad (GPS) ---------- */
 
     private fun startSpeed() {
-        if (!config.speedShow && !config.restrOn) return
+        val wantsSpeed = config.speedShow || config.restrOn
+        // Kilometraje automático: solo si el usuario ya anotó un kilometraje (sin punto de partida no hay qué sumar).
+        val wantsOdometer = config.odometerAuto && config.odometer > 0
+        if (!wantsOdometer) OdometerService.stop(this)
+        if (!wantsSpeed && !wantsOdometer) return
         if (!hasLocationPermission()) {
             if (!askedLocation && Build.VERSION.SDK_INT >= 23) {
                 askedLocation = true
@@ -463,6 +479,9 @@ class MainActivity : Activity() {
             }
             return
         }
+        // El servicio sigue contando km aunque la pantalla de inicio pase a segundo plano (Waze, Maps...).
+        if (wantsOdometer) OdometerService.startIfNeeded(this)
+        if (!wantsSpeed) return
         try {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, locationListener)
         } catch (e: SecurityException) {

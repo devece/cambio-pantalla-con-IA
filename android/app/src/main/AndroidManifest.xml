@@ -5,6 +5,10 @@
     <!-- Velocidad y alerta de velocidad (solo mientras la pantalla de inicio está abierta). -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <!-- Kilometraje automático: seguir sumando los km del GPS aunque Waze o Maps estén al frente (Android lo exige como servicio en primer plano). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
     <!-- Ver todas las apps instaladas (el APK no se publica en Play Store): así las reconoce aunque la radio use otro tipo de icono. -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
@@ -26,6 +30,12 @@
         android:theme="@style/Theme.Tablero">
 
         <!-- HOME: es lo que permite elegir Tablero como pantalla de inicio de la radio. -->
+        <!-- Cuenta los km recorridos con el GPS para los avisos de aceite y mantención. Lo enciende la pantalla de inicio. -->
+        <service
+            android:name=".OdometerService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
         <!-- Permite mostrar la canción que suena (nombre, artista y carátula). El cliente lo autoriza una sola vez. -->
         <service
             android:name=".MediaListener"

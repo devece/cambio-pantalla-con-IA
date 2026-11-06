@@ -36,11 +36,18 @@ Que Tablero lea datos reales del auto con un adaptador **ELM327** enchufado al p
 
 ## 4. Fases
 
-### Fase 0 — Kilometraje automático por GPS (no necesita adaptador)
-Suma la distancia recorrida al `odometer` guardado, con filtros: descartar fixes con precisión mala (> 25 m), saltos imposibles (> 200 km/h entre dos puntos) y la deriva con el auto detenido (< 4 km/h). Guardar cada ~100 m. Ajustes sigue permitiendo corregir el número.
-- **Dónde:** lógica pura en `core` (nuevo `Odometer.kt`, con pruebas); el `LocationListener` de `MainActivity` la alimenta; `SettingsStore` persiste.
-- **Listo cuando:** las pruebas cubren los filtros y el aviso de aceite baja solo al manejar.
-- **Riesgo:** el GPS acumula error (sobre todo en túneles). Se documenta que es una estimación y que el OBD, si está, manda.
+### Fase 0 — Kilometraje automático por GPS (no necesita adaptador) — **hecha, falta probar en la radio**
+Suma la distancia recorrida al `odometer` guardado, con filtros: descartar puntos con mucho error (> 25 m), saltos imposibles (> 200 km/h entre dos puntos), la deriva del GPS con el auto detenido y los huecos largos de tiempo (> 10 min). Ajustes permite corregir el número o apagarlo.
+- **Dónde quedó:**
+  - `core/.../DistanceCounter.kt` (lógica pura, 12 pruebas en `DistanceCounterTest.kt`).
+  - `app/.../OdometerService.kt`: servicio en primer plano (tipo ubicación) que cuenta los km.
+  - `SettingsStore` guarda el total y los metros sueltos; `MainActivity` enciende el servicio y refresca los avisos en vivo.
+  - Opción "Sumar solos los km que recorro" en Ajustes (`LauncherConfig.odometerAuto`, encendida por defecto).
+- **Cambio respecto a lo planeado:** no bastaba con el `LocationListener` de `MainActivity`, porque la pantalla de inicio apaga el GPS al pasar a segundo plano (`onPause`) y casi todo el manejo ocurre con Waze o Maps al frente. Por eso es un servicio aparte, que muestra un aviso fijo en la barra de notificaciones (Android lo exige).
+- **Solo cuenta si el usuario ya anotó un kilometraje** (sin punto de partida no hay qué sumar).
+- **Qué verificar en la radio:** que el servicio arranque, que siga sumando con Waze al frente, que la notificación no moleste y que sobreviva a apagar y prender la radio.
+- **Límites:** el GPS pierde precisión en túneles y subterráneos; es una estimación. El OBD, cuando exista (fases 1 a 4), pasará a mandar.
+- **Android 14:** el servicio de ubicación no puede arrancar desde el arranque del sistema, por eso lo enciende la pantalla de inicio al abrirse.
 
 ### Fase 1 — Núcleo OBD en `core` (sin hardware, todo probable por CI)
 Kotlin puro, sin Android, detrás de una interfaz `ObdTransport` (enviar un comando, recibir texto) para poder simularlo.

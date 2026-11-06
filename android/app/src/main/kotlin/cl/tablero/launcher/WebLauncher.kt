@@ -130,6 +130,11 @@ class WebLauncher(private val activity: Activity, private val designJson: String
         return out.toString()
     }
 
+    /** Vuelve a mandar a la pantalla lo anotado en la radio (por ejemplo, el kilometraje que acaba de sumar el GPS). Solo en el hilo principal. */
+    fun setProgress(c: LauncherConfig) {
+        progressJson(c)?.let { js("TBApp.setProgress(" + JSONObject.quote(it) + ")") }
+    }
+
     /** Controla la música que suena ("prev", "next" o "toggle"). Lo usan los botones de la pantalla y los del volante. Solo en el hilo principal. */
     fun media(cmd: String) {
         try {

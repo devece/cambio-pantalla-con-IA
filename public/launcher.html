@@ -9,11 +9,22 @@
   <style>
     html, body { margin: 0; height: 100%; background: #000; overflow: hidden; -webkit-user-select: none; user-select: none; }
     #host { position: fixed; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; }
-    #gear { position: fixed; left: 6px; top: 6px; z-index: 50; width: 38px; height: 38px; border-radius: 50%; border: 0; background: rgba(255,255,255,.14); color: #fff; font-size: 20px; line-height: 38px; padding: 0; opacity: .45; }
+    #gear { position: fixed; right: 10px; top: 12px; z-index: 50; width: 38px; height: 38px; border-radius: 50%; border: 0; background: rgba(127,127,127,.3); color: #8a8f98; font-size: 20px; line-height: 38px; padding: 0; opacity: .7; }
     #gear:active { opacity: 1; }
-    #key { position: fixed; left: 52px; top: 6px; z-index: 50; height: 38px; border-radius: 19px; border: 0; background: rgba(255,255,255,.14); color: #fff; font-size: 14px; padding: 0 14px; opacity: .55; }
+    #key { position: fixed; right: 56px; top: 12px; z-index: 50; height: 38px; border-radius: 19px; border: 0; background: rgba(255,255,255,.14); color: #fff; font-size: 14px; padding: 0 14px; opacity: .55; }
     #key:active { opacity: 1; }
     #key[hidden] { display: none; }
+    body.free .scr .c-greet { display: none; }
+    body.free .scr .c-right { padding-right: 250px; }
+    #drawer { position: fixed; inset: 0; z-index: 60; background: rgba(10,11,13,.985); color: #fff; font-family: 'Rubik', 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; }
+    #drawer[hidden] { display: none; }
+    #drawer .dr-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 22px; font-size: 24px; }
+    #drawer .dr-head button { border: 0; border-radius: 99px; background: rgba(255,255,255,.14); color: #fff; font-size: 18px; padding: 10px 22px; }
+    #drawer .dr-grid { flex: 1; overflow-y: auto; padding: 4px 18px 18px; display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; align-content: start; }
+    #drawer .dr-grid button { border: 0; background: transparent; color: #fff; display: grid; justify-items: center; gap: 6px; padding: 10px 4px; border-radius: 14px; font-size: 14px; }
+    #drawer .dr-grid button:active { background: rgba(255,255,255,.14); }
+    #drawer .dr-grid img { width: 56px; height: 56px; border-radius: 12px; }
+    #drawer .dr-grid span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   </style>
 </head>
 <body>
@@ -23,6 +34,7 @@
   <button id="key" aria-label="Activar código" hidden>🔑 Activar código</button>
   <script src="shared/catalog.js"></script>
   <script src="shared/daylight.js"></script>
+  <script src="shared/pico.js"></script>
   <script src="js/art.js"></script>
   <script src="js/themes.js"></script>
   <script src="js/fx.js"></script>

@@ -14,6 +14,13 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 - **Día y noche por la hora del sol.** El tema oscuro entra cuando se pone el sol donde está el auto, no a una hora fija
   (en invierno oscurece a las 18 h; en verano, pasadas las 21 h). Sin internet; usa el último GPS guardado o Santiago.
   El fondo "automático" (amanecer, día, atardecer y noche) también lo sigue. Las luces del auto siguen mandando sobre todo.
+- **Botones del volante.** En Ajustes → Botones del volante, **Aprender un botón**: aprietas el botón y eliges qué hace:
+  controlar la música (siguiente, anterior, pausa) y el volumen, abrir el **atajo 1 o 2 de tu barra** o el teléfono,
+  llamar al asistente de voz, ir a Inicio, Radio o Mantención, o cambiar entre día y noche. Los que no asignes hacen lo
+  de siempre. Funciona si la radio manda esos botones como teclas normales de Android.
+
+### Cambiado
+- En el botón de música de la pantalla, si no hay música sonando ahora avisa qué hacer en vez de no hacer nada.
 
 ### Para quien publica
 - Nuevo workflow **Release**: al crear una etiqueta `vX.Y.Z` compila el APK firmado y lo publica en GitHub Releases con estas notas.

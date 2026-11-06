@@ -1,11 +1,13 @@
 package cl.tablero.launcher
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.InputFilter
 import android.text.InputType
+import android.view.KeyEvent
 import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
@@ -21,6 +23,8 @@ import cl.tablero.core.Limits
 import cl.tablero.core.Maintenance
 import cl.tablero.core.MaintenanceItem
 import cl.tablero.core.RestrictionRules
+import cl.tablero.core.WheelAction
+import cl.tablero.core.WheelKeys
 
 /**
  * Ajustes: lo mismo que el configurador del sitio, pero dentro de la radio y sin internet.
@@ -57,6 +61,8 @@ class SettingsActivity : Activity() {
     private lateinit var rules: RestrictionRules
     private lateinit var voice: CheckBox
     private val apps = linkedMapOf<String, CheckBox>()
+    private var wheelKeys: Map<Int, WheelAction> = emptyMap()
+    private lateinit var wheelList: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -173,6 +179,20 @@ class SettingsActivity : Activity() {
             isEnabled = limits.restrOn
         }
 
+        section("Botones del volante")
+        wheelKeys = c.wheelKeys
+        form.addView(TextView(this).apply {
+            text = "Elige qué hace cada botón de tu volante mientras Tablero está al frente. Los que no asignes hacen lo de siempre."
+            setTextColor(Ui.SUB)
+        })
+        wheelList = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        form.addView(wheelList)
+        form.addView(Button(this).apply {
+            text = "Aprender un botón"
+            setOnClickListener { learnWheelKey() }
+        })
+        refreshWheelList()
+
         section("Apps en la barra (máximo ${limits.maxApps})")
         Ui.KNOWN_APPS.forEach { (id, app) -> apps[id] = check(app.label, id in c.apps, true) }
 
@@ -221,6 +241,7 @@ class SettingsActivity : Activity() {
                 // Los días se calculan con la misma tabla del sitio; aquí ya no se marcan a mano.
                 restrDays = rules.daysFor(rType, rDigit),
                 voice = voice.isChecked,
+                wheelKeys = wheelKeys,
             ),
         )
         Toast.makeText(this, "Guardado", Toast.LENGTH_SHORT).show()
@@ -236,6 +257,83 @@ class SettingsActivity : Activity() {
                 setStroke(dp(if (hex == selectedColor) 4 else 1), if (hex == selectedColor) Ui.ACCENT else Ui.LINE)
             }
         }
+    }
+
+    /* ---------- botones del volante ---------- */
+
+    private fun keyName(keyCode: Int) = KeyEvent.keyCodeToString(keyCode).removePrefix("KEYCODE_").lowercase().replace('_', ' ')
+
+    private fun refreshWheelList() {
+        wheelList.removeAllViews()
+        if (wheelKeys.isEmpty()) {
+            wheelList.addView(TextView(this).apply {
+                text = "Ningún botón asignado."
+                setTextColor(Ui.SUB)
+            })
+            return
+        }
+        wheelKeys.forEach { (keyCode, action) ->
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+            }
+            row.addView(TextView(this).apply {
+                text = "Botón ${keyName(keyCode)}  →  ${action.label}"
+                setTextColor(Ui.TEXT)
+            }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            row.addView(Button(this).apply {
+                text = "Cambiar"
+                setOnClickListener { pickWheelAction(keyCode) }
+            })
+            row.addView(Button(this).apply {
+                text = "Quitar"
+                setOnClickListener {
+                    wheelKeys = wheelKeys - keyCode
+                    refreshWheelList()
+                }
+            })
+            wheelList.addView(row)
+        }
+    }
+
+    /** Espera a que se apriete un botón del volante (llega como una tecla) y luego pregunta qué debe hacer. */
+    private fun learnWheelKey() {
+        if (wheelKeys.size >= WheelKeys.MAX) {
+            Toast.makeText(this, "Ya asignaste el máximo de botones (${WheelKeys.MAX}).", Toast.LENGTH_LONG).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Aprieta el botón del volante")
+            .setMessage("Aprieta ahora el botón que quieres asignar. Si no pasa nada, esa radio no manda ese botón como tecla.")
+            .setNegativeButton("Cancelar", null)
+            .setOnKeyListener { dialog, keyCode, event ->
+                when {
+                    keyCode == KeyEvent.KEYCODE_BACK -> false // Atrás cierra el diálogo
+                    event.action != KeyEvent.ACTION_DOWN || event.repeatCount != 0 -> true
+                    !WheelKeys.isAssignable(keyCode) -> {
+                        Toast.makeText(this, "Esa tecla no se puede asignar.", Toast.LENGTH_SHORT).show()
+                        true
+                    }
+                    else -> {
+                        dialog.dismiss()
+                        pickWheelAction(keyCode)
+                        true
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun pickWheelAction(keyCode: Int) {
+        val actions = WheelAction.entries
+        AlertDialog.Builder(this)
+            .setTitle("¿Qué hace el botón ${keyName(keyCode)}?")
+            .setItems(actions.map { it.label }.toTypedArray()) { _, i ->
+                wheelKeys = WheelKeys.assign(wheelKeys, keyCode, actions[i])
+                refreshWheelList()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     /* ---------- piezas del formulario ---------- */

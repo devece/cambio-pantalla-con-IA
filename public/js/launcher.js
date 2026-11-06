@@ -241,6 +241,15 @@
       if (p.maintDone && typeof p.maintDone === 'object') f.maintDone = Object.assign({}, p.maintDone);
       render();
     },
+    /** Va a una pantalla (lo piden los botones del volante). Solo las que existen; cualquier otro nombre se ignora. */
+    goTo(screen) {
+      if (!['inicio', 'radio', 'mantenimiento', 'bluetooth'].includes(screen)) return;
+      ui.screen = screen;
+      ui.step = 1;
+      render();
+    },
+    /** Cambia entre día y noche a mano (botón del volante); manda sobre el sol hasta que la app avise otra cosa. */
+    toggleNight() { nightForced = !ui.night; render(); },
     /** Avance del guardado del mapa que hace la app: cuadros listos, total, los que no se pudieron bajar, y si terminó. */
     mapProgress(done, total, failed, fin) {
       if (!fin) { mapSaveText('Guardando… ' + Math.round((done / Math.max(1, total)) * 100) + '%'); return; }

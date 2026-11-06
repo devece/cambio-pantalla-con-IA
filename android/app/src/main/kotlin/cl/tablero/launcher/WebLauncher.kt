@@ -127,6 +127,30 @@ class WebLauncher(private val activity: Activity, private val designJson: String
         return out.toString()
     }
 
+    /** Controla la música que suena ("prev", "next" o "toggle"). Lo usan los botones de la pantalla y los del volante. Solo en el hilo principal. */
+    fun media(cmd: String) {
+        try {
+            val c = currentController()
+            if (c == null) {
+                toast("No hay música sonando. Dale acceso a las notificaciones o abre tu app de música.")
+                return
+            }
+            when (cmd) {
+                "prev" -> c.transportControls.skipToPrevious()
+                "next" -> c.transportControls.skipToNext()
+                "toggle" -> if (c.playbackState?.state == PlaybackState.STATE_PLAYING) c.transportControls.pause() else c.transportControls.play()
+            }
+        } catch (e: Exception) {
+            toast("No se pudo controlar la música.")
+        }
+    }
+
+    /** Va a una pantalla de Tablero por su id ("inicio", "radio" o "mantenimiento"). */
+    fun goTo(screen: String) = js("TBApp.goTo(" + JSONObject.quote(screen) + ")")
+
+    /** Cambia entre el tema de día y el de noche (se queda así hasta que se reinicie la app). */
+    fun toggleNight() = js("TBApp.toggleNight()")
+
     fun setSpeed(kmh: Int) = js("TBApp.setSpeed($kmh)")
 
     fun setLocation(lat: Double, lon: Double, bearing: Float) = js("TBApp.setLocation($lat,$lon,$bearing)")
@@ -235,18 +259,7 @@ class WebLauncher(private val activity: Activity, private val designJson: String
 
         @JavascriptInterface
         fun media(cmd: String) {
-            activity.runOnUiThread {
-                try {
-                    val c = currentController() ?: return@runOnUiThread
-                    when (cmd) {
-                        "prev" -> c.transportControls.skipToPrevious()
-                        "next" -> c.transportControls.skipToNext()
-                        "toggle" -> if (c.playbackState?.state == PlaybackState.STATE_PLAYING) c.transportControls.pause() else c.transportControls.play()
-                    }
-                } catch (e: Exception) {
-                    toast("No se pudo controlar la música.")
-                }
-            }
+            activity.runOnUiThread { this@WebLauncher.media(cmd) }
         }
 
         @JavascriptInterface

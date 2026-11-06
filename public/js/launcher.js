@@ -93,9 +93,25 @@
     TB.preview.render(state, ui);
   }
 
+  /**
+   * Sin un diseño del sitio (edición gratuita), la app le pasa lo que el usuario contó en el primer arranque o en Ajustes:
+   * nombre, saludo, frase, tipo de auto y color. Un diseño del sitio manda sobre esto.
+   */
+  function applyProfile(p) {
+    if (!p || typeof p !== 'object') return;
+    const car = state.car;
+    const text = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+    if (text(p.name, 24)) car.name = text(p.name, 24);
+    if (text(p.greeting, 16)) car.greeting = text(p.greeting, 16);
+    if (text(p.phrase, 28)) car.phrase = text(p.phrase, 28);
+    if (['auto', 'suv', 'camioneta'].includes(p.type)) car.type = p.type;
+    if (typeof p.color === 'string' && /^#[0-9a-f]{6}$/i.test(p.color)) car.color = p.color;
+  }
+
   function setDesign(design) {
     state = defaults();
     if (design && design.config) state = merge(state, design.config);
+    else if (design && design.profile) applyProfile(design.profile);
     const ph = design && design.photo;
     if (ph && ph.day) {
       state.car.photo = ph.day;

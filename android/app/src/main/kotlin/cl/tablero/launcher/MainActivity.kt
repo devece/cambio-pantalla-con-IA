@@ -125,28 +125,25 @@ class MainActivity : Activity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val action = WheelKeys.actionFor(config.wheelKeys, event.keyCode) ?: return super.dispatchKeyEvent(event)
         // Una acción por pulsación (mantener apretado no la repite), salvo el volumen, que sube o baja mientras se mantiene.
-        val repeatable = action == WheelAction.VOLUME_UP || action == WheelAction.VOLUME_DOWN
-        if (event.action == KeyEvent.ACTION_DOWN && (event.repeatCount == 0 || repeatable)) runWheelAction(action)
+        if (event.action == KeyEvent.ACTION_DOWN && (event.repeatCount == 0 || action.repeatsWhileHeld)) runWheelAction(action)
         return true
     }
 
     private fun runWheelAction(action: WheelAction) {
+        action.shortcutIndex?.let { openShortcut(it); return }
+        action.screen?.let { web?.goTo(it); return }
         when (action) {
-            WheelAction.PLAY_PAUSE -> web?.media("toggle")
-            WheelAction.NEXT -> web?.media("next")
-            WheelAction.PREVIOUS -> web?.media("prev")
-            WheelAction.VOLUME_UP -> adjustVolume(AudioManager.ADJUST_RAISE)
-            WheelAction.VOLUME_DOWN -> adjustVolume(AudioManager.ADJUST_LOWER)
-            WheelAction.MUTE -> adjustVolume(if (Build.VERSION.SDK_INT >= 23) AudioManager.ADJUST_TOGGLE_MUTE else AudioManager.ADJUST_MUTE)
-            WheelAction.NAVIGATE -> openFirstInstalled(listOf("waze", "maps"), "tu app de mapas")
-            WheelAction.MUSIC -> openFirstInstalled(listOf("spotify", "ytmusic"), "tu app de música")
-            WheelAction.VOICE -> try {
-                startActivity(Intent(Intent.ACTION_VOICE_COMMAND).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            } catch (e: Exception) {
-                Toast.makeText(this, "Esta radio no tiene asistente de voz.", Toast.LENGTH_SHORT).show()
-            }
-            WheelAction.HOME -> web?.goHome()
-            WheelAction.NOTHING -> {}
+            WheelAction.PLAYBACK -> web?.media("toggle")
+            WheelAction.SONG_NEXT -> web?.media("next")
+            WheelAction.SONG_PREV -> web?.media("prev")
+            WheelAction.LOUDER -> adjustVolume(AudioManager.ADJUST_RAISE)
+            WheelAction.QUIETER -> adjustVolume(AudioManager.ADJUST_LOWER)
+            WheelAction.SILENCE -> adjustVolume(if (Build.VERSION.SDK_INT >= 23) AudioManager.ADJUST_TOGGLE_MUTE else AudioManager.ADJUST_MUTE)
+            WheelAction.PHONE -> openIntent(Intent(Intent.ACTION_DIAL))
+            WheelAction.ASSISTANT -> openIntent(Intent(Intent.ACTION_VOICE_COMMAND), "Esta radio no tiene asistente de voz.")
+            WheelAction.SWAP_THEME -> web?.toggleNight()
+            // Los atajos y las pantallas ya se atendieron arriba.
+            else -> {}
         }
     }
 
@@ -158,18 +155,28 @@ class MainActivity : Activity() {
         }
     }
 
-    /** Abre la primera de [ids] (ids de Ui.KNOWN_APPS) que esté instalada, prefiriendo las que el usuario puso en su barra. */
-    private fun openFirstInstalled(ids: List<String>, what: String) {
-        val ordered = ids.sortedBy { if (it in config.apps) 0 else 1 }
-        val intent = ordered.firstNotNullOfOrNull { id -> Ui.KNOWN_APPS[id]?.let { Apps.launchIntent(packageManager, it.pkg) } }
-        if (intent == null) {
-            Toast.makeText(this, "No encontramos $what en la radio.", Toast.LENGTH_SHORT).show()
+    /** Abre la app que el usuario puso en esa posición de la barra de abajo (0 es la primera). */
+    private fun openShortcut(index: Int) {
+        val id = config.apps.getOrNull(index)
+        if (id == null) {
+            Toast.makeText(this, "Aún no hay un atajo ${index + 1} en tu barra. Agrégalo en Ajustes.", Toast.LENGTH_SHORT).show()
             return
         }
+        if (id == "telefono") return openIntent(Intent(Intent.ACTION_DIAL))
+        val app = Ui.KNOWN_APPS[id]
+        val intent = app?.let { Apps.launchIntent(packageManager, it.pkg) }
+        if (intent == null) {
+            Toast.makeText(this, "${app?.label ?: "Esa app"} no está instalada en la radio.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        openIntent(intent)
+    }
+
+    private fun openIntent(intent: Intent, missing: String = "No se pudo abrir.") {
         try {
-            startActivity(intent)
+            startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         } catch (e: Exception) {
-            Toast.makeText(this, "No se pudo abrir.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, missing, Toast.LENGTH_SHORT).show()
         }
     }
 

@@ -151,7 +151,7 @@
 
 
   /* ---------- reproductor (música en vivo desde la radio) ---------- */
-  const DEMO_MUSIC = { access: true, active: true, playing: true, title: 'Camino a casa', artist: 'Artista de ejemplo', art: '' };
+  const DEMO_MUSIC = { access: true, active: true, playing: true, title: 'Camino a casa', artist: 'Artista de ejemplo', art: '', src: 'EJEMPLO', dur: 218000, pos: 84000, at: Date.now() };
   function playerInner() {
     const app = TB.preview.app;
     const m = app ? app.music : DEMO_MUSIC;
@@ -169,6 +169,59 @@
     if (!scr) return;
     scr.querySelectorAll('.player').forEach((el) => { el.innerHTML = playerInner(); });
     scr.querySelectorAll('.music-card .music').forEach((el) => { el.innerHTML = playerInner(); });
+    scr.querySelectorAll('.cm-player').forEach((el) => { el.innerHTML = consolaPlayerInner(); });
+  }
+
+
+  /* ---------- mapa en vivo (solo en la radio, con GPS) ---------- */
+  TB.icons.nav = '<path d="M12 3l7 17-7-4-7 4z"/>';
+  TB.icons.cel = '<rect x="7" y="2.500" width="10" height="19" rx="2.200"/><path d="M11 18.500h2"/>';
+  const MAP_Z = 15;
+  const MAP_PLACEHOLDER = '<svg class="mapsvg" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-opacity=".14" stroke-width="9" stroke-linecap="round"><path d="M-10 120 L120 108 L170 56 L310 66"/><path d="M60 -10 L82 90 L70 170"/><path d="M205 -10 L192 70 L232 170"/><path d="M-10 40 L300 24"/></g><g transform="translate(150 84)"><circle r="15" fill="var(--accent)" opacity=".22"/><path d="M0 -9 L7 8 L0 4 L-7 8z" fill="var(--accent)"/></g></svg>';
+  function mapInner(night) {
+    const app = TB.preview.app;
+    const loc = app && app.loc;
+    if (!loc) {
+      return MAP_PLACEHOLDER;
+    }
+    const n = Math.pow(2, MAP_Z);
+    const x = ((loc.lon + 180) / 360) * n;
+    const lr = (loc.lat * Math.PI) / 180;
+    const y = ((1 - Math.log(Math.tan(lr) + 1 / Math.cos(lr)) / Math.PI) / 2) * n;
+    const tx = Math.floor(x);
+    const ty = Math.floor(y);
+    const fx = Math.round((x - tx) * 256);
+    const fy = Math.round((y - ty) * 256);
+    const style = night ? 'dark_all' : 'light_all';
+    let tiles = '';
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const wx = (((tx + dx) % n) + n) % n;
+        tiles += `<img alt="" draggable="false" onerror="this.style.visibility='hidden'" style="left:${(dx + 1) * 256}px;top:${(dy + 1) * 256}px" src="https://a.basemaps.cartocdn.com/${style}/${MAP_Z}/${wx}/${ty + dy}.png">`;
+      }
+    }
+    return `${MAP_PLACEHOLDER}<div class="map-tiles" style="left:calc(50% - ${256 + fx}px);top:calc(50% - ${256 + fy}px)">${tiles}</div><div class="map-me" style="transform:translate(-50%,-50%) rotate(${Math.round(loc.bearing || 0)}deg)">${icon('nav', 22)}</div><span class="map-credit">© OpenStreetMap · CARTO</span>`;
+  }
+  function updateMap() {
+    if (!scr || !current) return;
+    scr.querySelectorAll('.map-view').forEach((el) => { el.innerHTML = mapInner(current.ui.night); });
+  }
+
+  /* ---------- reproductor del diseño Consola: carátula con anillo de progreso ---------- */
+  const fmtT = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+  function consolaPlayerInner() {
+    const app = TB.preview.app;
+    const m = app ? app.music : DEMO_MUSIC;
+    const ring = (art) => `<div class="cm-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="55" class="trk"/><circle cx="60" cy="60" r="55" class="val" data-mring pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 60 60)"/></svg>${art}</div>`;
+    const ctl = (playing) => `<div class="ctl"><button class="rbtn" data-media="prev" aria-label="Anterior">${icon('prev', 24)}</button><button class="rbtn play" data-media="toggle" aria-label="${playing ? 'Pausar' : 'Reproducir'}">${icon(playing ? 'pausa' : 'play', 26)}</button><button class="rbtn" data-media="next" aria-label="Siguiente">${icon('next', 24)}</button></div>`;
+    if (m && m.active) {
+      const art = m.art ? `<img class="art" src="${m.art}" alt="">` : '<div class="art disc"></div>';
+      return `<div class="cm-head"><span>AUDIO</span><span class="cm-src">${esc(m.src || (m.playing ? 'SONANDO' : 'EN PAUSA'))}</span></div>${ring(art)}<b>${esc(m.title || 'Sin título')}</b><span class="cm-art">${esc(m.artist || '')}</span><small data-mtime>${m.dur > 0 ? '0:00 / ' + fmtT(m.dur) : ''}</small>${ctl(m.playing)}`;
+    }
+    if (m && m.access === false) {
+      return `<div class="cm-head"><span>AUDIO</span><span class="cm-src"></span></div>${ring('<div class="art disc"></div>')}<b>Ver lo que suena</b><span class="cm-art">Da permiso una vez para mostrar tu canción</span><small></small><div class="ctl"><button class="rbtn play wide" data-open="musicaccess" aria-label="Dar permiso">${icon('check', 26)}</button></div>`;
+    }
+    return `<div class="cm-head"><span>AUDIO</span><span class="cm-src"></span></div>${ring('<div class="art disc"></div>')}<b>Tu música</b><span class="cm-art">Abre tu app favorita</span><small></small><div class="ctl"><button class="rbtn play" data-open="music" aria-label="Abrir música">${icon('play', 26)}</button></div>`;
   }
 
   /* ---------- radio FM de fábrica (solo en la radio) ---------- */
@@ -242,6 +295,13 @@
         ? `<div class="radio-mini"><div><small>Radio</small><b>FM</b><i>Toca para abrir</i></div><button class="rbtn play" data-open="radio" aria-label="Abrir la radio">${icon('play', 26)}</button></div>`
         : `<div class="radio-mini"><button class="rbtn" data-go="radio" aria-label="Anterior">${icon('prev', 22)}</button><div><small>FM</small><b>${live.freq.toFixed(1)}</b><i>MHz</i></div><button class="rbtn" data-go="radio" aria-label="Siguiente">${icon('next', 22)}</button></div>`,
       player: `<div class="music player">${playerInner()}</div>`,
+      vehName: car.name ? car.name : 'Mi vehículo',
+      wxMini: appMode()
+        ? (TB.preview.app.weather ? `<span class="c-wx">${icon(WX(TB.preview.app.weather.code), 28)}<b>${Math.round(TB.preview.app.weather.temp)}°</b></span>` : '<span class="c-wx">' + icon('sol', 28) + '<b>—</b></span>')
+        : `<span class="c-wx">${icon('lluvia', 28)}<b>14°</b></span>`,
+      speedBlock: f.speedShow ? `<div class="c-speed"><div><small>Velocidad</small><div class="c-spd"><b data-speed>${spd}</b><span>${su(state)}</span></div></div><div class="c-lim"><small>Límite</small><b data-limit>${limit == null ? '—' : dist(limit, state)}</b></div></div>` : '',
+      mapLive: mapInner(night),
+      consolaPlayer: consolaPlayerInner(),
       music: appMode()
         ? `<div class="music">${playerInner()}</div>`
         : `<div class="music"><span class="src">Bluetooth</span><div class="disc"></div><b>Camino a casa</b><span>Artista de ejemplo</span><div class="ctl"><button class="rbtn" aria-label="Anterior">${icon('prev', 24)}</button><button class="rbtn play" aria-label="Reproducir">${icon('play', 26)}</button><button class="rbtn" aria-label="Siguiente">${icon('next', 24)}</button></div></div>`,
@@ -258,6 +318,11 @@
   }
 
   const LAYOUTS = {
+    consola: (p) => `
+      <header class="c-top"><div class="c-clock"><b data-clock>${p.time}</b><span>${esc(p.date)}</span></div><div class="c-right">${p.wxMini}<span class="c-greet">${p.hello}</span></div></header>
+      <section class="card c-veh"><div class="c-vhead"><h3>${esc(p.vehName)}</h3>${p.plate}</div><div class="car c-car">${p.car}</div>${p.speedBlock}</section>
+      <section class="card c-map"><div class="map-view">${p.mapLive}</div><span class="c-maplabel">${icon('maps', 18)} Mapa en vivo</span>${appMode() ? '<button type="button" class="map-save" data-open="mapsave"><span data-mapsave>Guardar mapa</span></button>' : ''}<div class="c-proj"><button type="button" class="pj on" data-open="androidauto"><span class="pj-ic">${icon('nav', 26)}</span><span><b>Android Auto</b><small>USB o tu pantalla</small></span></button><button type="button" class="pj" data-open="carplay"><span class="pj-ic">${icon('cel', 26)}</span><span><b>CarPlay</b><small>Pantalla o adaptador</small></span></button></div></section>
+      <section class="card c-music"><div class="music cm-player">${p.consolaPlayer}</div></section>`,
     estelar: (p) => `
       <section class="st-left"><div class="st-clock"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div>
         <div class="st-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" class="trk"/><circle cx="60" cy="60" r="52" class="val" data-ring pathLength="100" stroke-dasharray="0 100"/></svg><div class="st-spd"><b data-speed>${p.spd}</b><span>${p.su}</span></div></div></section>
@@ -334,12 +399,16 @@
   };
 
   function dock(state, ui) {
-    const items = [{ go: 'inicio', ic: 'casa', t: 'Inicio' }, { go: 'radio', open: radioFound() ? null : 'radio', ic: 'radio', t: 'Radio' }, { go: 'bluetooth', open: 'bluetooth', ic: 'bluetooth', t: 'Bluetooth' }];
+    const consola = state.style.layout === 'consola';
+    const items = consola
+      ? [].concat(ui.screen !== 'inicio' ? [{ go: 'inicio', ic: 'casa', t: 'Inicio' }] : [], [{ go: 'radio', open: radioFound() ? null : 'radio', ic: 'radio', t: 'Radio' }, { go: 'bluetooth', open: 'bluetooth', ic: 'bluetooth', t: 'Bluetooth' }, { open: 'camera', ic: 'camara', t: 'Cámara' }])
+      : [{ go: 'inicio', ic: 'casa', t: 'Inicio' }, { go: 'radio', open: radioFound() ? null : 'radio', ic: 'radio', t: 'Radio' }, { go: 'bluetooth', open: 'bluetooth', ic: 'bluetooth', t: 'Bluetooth' }];
     state.style.apps.forEach((id) => {
       const a = TB.apps.find((x) => x.id === id);
       if (a) items.push({ app: id, ic: id, t: id === 'telefono' ? 'Teléfono' : a.name });
     });
     items.push({ go: 'mantenimiento', ic: 'check', t: 'Mantención' });
+    if (consola) items.push({ open: 'drawer', ic: 'todas', t: 'Apps' });
     return `<nav class="dock">${items
       .map((i) => `<button class="dk${i.go && i.go === ui.screen ? ' on' : ''}" ${i.open && appMode() ? `data-open="${i.open}"` : i.go ? `data-go="${i.go}"` : ''} ${i.app ? `data-app="${i.app}"` : ''}><span class="ic">${icon(i.ic, 30)}</span><small>${esc(i.t)}</small></button>`)
       .join('')}</nav>`;
@@ -370,6 +439,7 @@
     };
     Object.keys(vars).forEach((k) => scr.style.setProperty(k, vars[k]));
     scr.dataset.layout = state.style.layout;
+    scr.dataset.theme = th.id;
     scr.dataset.night = ui.night ? '1' : '0';
     scr.dataset.screen = ui.screen;
 
@@ -422,6 +492,14 @@
     scr.querySelectorAll('[data-speed]').forEach((el) => (el.textContent = dist(v, state)));
     const ringMax = state.features.miles ? 120 : 200;
     scr.querySelectorAll('[data-ring]').forEach((el) => el.setAttribute('stroke-dasharray', Math.min(100, (v / ringMax) * 100).toFixed(1) + ' 100'));
+    const mm = real ? real.music : DEMO_MUSIC;
+    if (mm && mm.active && mm.dur > 0) {
+      let pos = (mm.pos || 0) + (mm.playing ? (Date.now() - (mm.at || Date.now())) * (mm.speed || 1) : 0);
+      if (!real && pos >= mm.dur) { mm.at = Date.now(); pos = mm.pos || 0; }
+      pos = Math.min(mm.dur, Math.max(0, pos));
+      scr.querySelectorAll('[data-mring]').forEach((el) => el.setAttribute('stroke-dasharray', ((pos / mm.dur) * 100).toFixed(1) + ' 100'));
+      scr.querySelectorAll('[data-mtime]').forEach((el) => { el.textContent = fmtT(pos) + ' / ' + fmtT(mm.dur); });
+    }
     scr.querySelectorAll('[data-limit]').forEach((el) => (el.textContent = limit == null ? '—' : dist(limit, state)));
     const time = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
     scr.querySelectorAll('[data-clock]').forEach((el) => (el.textContent = time));
@@ -515,5 +593,5 @@
     if (za) { za.hidden = false; za.className = 'zone-alert' + (n.warn ? ' warn' : ''); za.firstElementChild.textContent = n.text; }
   }
 
-  TB.preview = { mount, render, onGo: null, maintItems, doneButton, showZoneNotice, updateMusic, updateRadio, app: null };
+  TB.preview = { mount, render, onGo: null, maintItems, doneButton, showZoneNotice, updateMusic, updateRadio, updateMap, app: null };
 })();

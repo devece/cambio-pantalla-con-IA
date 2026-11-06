@@ -2,6 +2,7 @@ package cl.tablero.launcher
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 
 /** Busca cómo abrir una app instalada, aun si la radio no la marca como app "normal" de escritorio. */
 object Apps {
@@ -16,4 +17,19 @@ object Apps {
     }
 
     fun isInstalled(pm: PackageManager, pkg: String): Boolean = launchIntent(pm, pkg) != null
+
+    /** Apps que se pueden abrir desde el escritorio, sin contar la propia. */
+    fun launchables(pm: PackageManager, self: String): List<ResolveInfo> {
+        val i = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+        return pm.queryIntentActivities(i, 0).filter { it.activityInfo.packageName != self }
+    }
+
+    /** Busca una app instalada por su nombre (sin importar mayúsculas), probando las pistas en orden. */
+    fun findByLabel(pm: PackageManager, self: String, needles: List<String>): String? {
+        val all = launchables(pm, self).map { it.activityInfo.packageName to it.loadLabel(pm).toString().lowercase() }
+        for (n in needles) {
+            all.firstOrNull { it.second.contains(n) }?.let { return it.first }
+        }
+        return null
+    }
 }

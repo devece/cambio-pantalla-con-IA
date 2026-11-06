@@ -86,7 +86,7 @@ jobs:
           for f in editions maintenance restriction; do
             grep -q "assets/$f.json" contenido.txt || { echo "::error::Falta assets/$f.json dentro del APK"; exit 1; }
           done
-          for f in launcher.html css/preview.css js/preview.js js/launcher.js js/art.js js/themes.js js/fx.js shared/catalog.js shared/daylight.js img/auto.png; do
+          for f in launcher.html css/preview.css js/preview.js js/launcher.js js/art.js js/themes.js js/fx.js shared/catalog.js shared/daylight.js shared/pico.js img/auto.png img/suv.png; do
             grep -q "assets/web/$f" contenido.txt || { echo "::error::Falta assets/web/$f dentro del APK"; exit 1; }
           done
           echo "El APK trae sus datos y la pantalla de inicio."
@@ -102,7 +102,10 @@ jobs:
 
       # Descarga pública y siempre igual:
       # https://github.com/devece/cambio-pantalla-con-IA/releases/download/app-latest/tablero.apk
+      # Solo desde main: la gente descarga de aquí, así que una rama a medio probar no puede reemplazarla.
+      # El APK de cualquier rama igual queda como artefacto de esta ejecución ("tablero-apk", arriba) para probarlo.
       - name: Publicar la descarga
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: app-latest

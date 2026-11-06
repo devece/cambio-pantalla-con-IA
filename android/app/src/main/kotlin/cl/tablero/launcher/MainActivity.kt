@@ -34,6 +34,7 @@ import cl.tablero.core.RestrictionNotice
 import cl.tablero.core.RestrictionRules
 import cl.tablero.core.Speed
 import cl.tablero.core.Tier
+import cl.tablero.core.Welcome
 import cl.tablero.core.WheelAction
 import cl.tablero.core.WheelKeys
 import java.util.Calendar
@@ -56,6 +57,7 @@ class MainActivity : Activity() {
     private var alertView: TextView? = null
     private var tts: TextToSpeech? = null
     private var askedLocation = false
+    private var askedWelcome = false
     private lateinit var restriction: RestrictionRules
     private var zoneView: TextView? = null
     private var web: WebLauncher? = null
@@ -98,8 +100,14 @@ class MainActivity : Activity() {
         val designs = DesignStore(this)
         val saved = if (designs.has()) designs.loadText() else null
         if (saved != null) config = designs.applyTo(config)
-        // Con o sin código se dibuja con el motor del sitio; sin código, con el diseño base de la edición gratuita.
-        val launcher = WebLauncher(this, saved ?: "{}")
+        // Primera vez: el asistente de bienvenida (una sola vez por arranque de la app; al terminar vuelve aquí y ya no sale).
+        if (!askedWelcome && Welcome.shouldShow(config, hasDesign = saved != null)) {
+            askedWelcome = true
+            startActivity(Intent(this, WelcomeActivity::class.java))
+        }
+        // Con o sin código se dibuja con el motor del sitio; sin código, con el diseño base de la edición gratuita
+        // y lo que el usuario contó (nombre, auto y color).
+        val launcher = WebLauncher(this, saved ?: Welcome.profileJson(config))
         web = launcher
         setContentView(launcher.view)
         startSpeed()

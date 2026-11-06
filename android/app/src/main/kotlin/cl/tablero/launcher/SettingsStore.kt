@@ -40,6 +40,7 @@ class SettingsStore(context: Context) {
             restrDays = list("restrDays", d.restrDays),
             voice = p.getBoolean("voice", d.voice),
             wheelKeys = WheelKeys.parse(p.getString("wheelKeys", null)),
+            welcomeDone = p.getBoolean("welcomeDone", d.welcomeDone),
         )
     }
 
@@ -71,6 +72,7 @@ class SettingsStore(context: Context) {
             .putString("restrDays", c.restrDays.joinToString(","))
             .putBoolean("voice", c.voice)
             .putString("wheelKeys", WheelKeys.serialize(c.wheelKeys))
+            .putBoolean("welcomeDone", c.welcomeDone)
             .apply()
     }
 

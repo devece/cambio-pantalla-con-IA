@@ -61,6 +61,12 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".WelcomeActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".ActivationActivity"
             android:exported="false"
             android:screenOrientation="landscape"

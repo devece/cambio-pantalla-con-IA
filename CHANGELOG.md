@@ -18,6 +18,10 @@ Cómo se publica una versión: `docs/RELEASE.md`.
   controlar la música (siguiente, anterior, pausa) y el volumen, abrir el **atajo 1 o 2 de tu barra** o el teléfono,
   llamar al asistente de voz, ir a Inicio, Radio o Mantención, o cambiar entre día y noche. Los que no asignes hacen lo
   de siempre. Funciona si la radio manda esos botones como teclas normales de Android.
+- **Primer arranque guiado** en 3 pasos, todos opcionales: tu auto (nombre, tipo y color), tu aceite (kilometraje y último
+  cambio) y hacer de Tablero la pantalla de inicio de la radio. Sale una sola vez.
+- Sin un código activado, la pantalla de inicio ya muestra tu nombre, saludo, frase, tipo de auto y color de Ajustes
+  (antes solo los veía quien tenía un diseño del sitio).
 
 ### Cambiado
 - En el botón de música de la pantalla, si no hay música sonando ahora avisa qué hacer en vez de no hacer nada.

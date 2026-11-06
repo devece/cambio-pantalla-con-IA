@@ -24,7 +24,7 @@ import cl.tablero.core.Welcome
 
 /**
  * Primer arranque, en tres pasos y todo opcional: 1) tu auto (nombre, tipo y color), 2) tu aceite (kilometraje y último cambio)
- * y 3) hacer de LiteDash la pantalla de inicio de la radio. Se puede omitir en cualquier momento y todo se cambia después en Ajustes.
+ * y 3) hacer de Tablero la pantalla de inicio de la radio. Se puede omitir en cualquier momento y todo se cambia después en Ajustes.
  */
 class WelcomeActivity : Activity() {
     private lateinit var settings: SettingsStore
@@ -197,10 +197,10 @@ class WelcomeActivity : Activity() {
 
     private fun stepHome() {
         heading("Tu pantalla de inicio")
-        val isHome = isHomeApp()
+        val isHome = isHomeApp(this)
         hint(
-            if (isHome) "Listo: LiteDash ya es la pantalla de inicio de tu radio."
-            else "Para que LiteDash abra al encender la radio, elígelo como pantalla de inicio. En algunas radios hay que marcar \"Siempre\".",
+            if (isHome) "Listo: Tablero ya es la pantalla de inicio de tu radio."
+            else "Para que Tablero abra al encender la radio, elígelo como pantalla de inicio. En algunas radios hay que marcar \"Siempre\".",
         )
         if (!isHome) {
             body.addView(Button(this).apply {
@@ -208,16 +208,6 @@ class WelcomeActivity : Activity() {
                 setOnClickListener { chooseHome() }
             }, margins(top = 16))
         }
-    }
-
-    /** ¿LiteDash ya es la pantalla de inicio? Desde Android 10 se pregunta por el rol; antes, quién resuelve la acción HOME. */
-    private fun isHomeApp(): Boolean {
-        if (Build.VERSION.SDK_INT >= 29) {
-            runCatching { return getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_HOME) }
-        }
-        val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
-        val resolved = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
-        return resolved?.activityInfo?.packageName == packageName
     }
 
     private fun chooseHome() {

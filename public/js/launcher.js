@@ -170,6 +170,7 @@
       if (p.maintDone && typeof p.maintDone === 'object') f.maintDone = Object.assign({}, p.maintDone);
       render();
     },
+    goHome() { ui.screen = 'inicio'; ui.step = 1; render(); },
     setNight(on) { nightForced = on === null || on === undefined ? null : !!on; render(); },
     zoneNotice(text, warn) { TB.preview.showZoneNotice({ text: String(text), warn: !!warn }); },
   };

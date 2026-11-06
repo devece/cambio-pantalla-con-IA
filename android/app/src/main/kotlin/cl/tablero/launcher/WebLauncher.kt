@@ -104,6 +104,27 @@ class WebLauncher(private val activity: Activity, private val designJson: String
         return out.toString()
     }
 
+    /** Controla la música que suena ("prev", "next" o "toggle"). Lo usan los botones de la pantalla y los del volante. Solo en el hilo principal. */
+    fun media(cmd: String) {
+        try {
+            val c = currentController()
+            if (c == null) {
+                toast("No hay música sonando. Dale acceso a las notificaciones o abre tu app de música.")
+                return
+            }
+            when (cmd) {
+                "prev" -> c.transportControls.skipToPrevious()
+                "next" -> c.transportControls.skipToNext()
+                "toggle" -> if (c.playbackState?.state == PlaybackState.STATE_PLAYING) c.transportControls.pause() else c.transportControls.play()
+            }
+        } catch (e: Exception) {
+            toast("No se pudo controlar la música.")
+        }
+    }
+
+    /** Vuelve a la pantalla de inicio del diseño. */
+    fun goHome() = js("TBApp.goHome()")
+
     fun setSpeed(kmh: Int) = js("TBApp.setSpeed($kmh)")
 
     fun setLocation(lat: Double, lon: Double) = js("TBApp.setLocation($lat,$lon)")
@@ -150,18 +171,7 @@ class WebLauncher(private val activity: Activity, private val designJson: String
 
         @JavascriptInterface
         fun media(cmd: String) {
-            activity.runOnUiThread {
-                try {
-                    val c = currentController() ?: return@runOnUiThread
-                    when (cmd) {
-                        "prev" -> c.transportControls.skipToPrevious()
-                        "next" -> c.transportControls.skipToNext()
-                        "toggle" -> if (c.playbackState?.state == PlaybackState.STATE_PLAYING) c.transportControls.pause() else c.transportControls.play()
-                    }
-                } catch (e: Exception) {
-                    toast("No se pudo controlar la música.")
-                }
-            }
+            activity.runOnUiThread { this@WebLauncher.media(cmd) }
         }
 
         @JavascriptInterface

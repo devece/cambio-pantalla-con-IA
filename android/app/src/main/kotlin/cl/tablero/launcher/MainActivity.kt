@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
+import android.media.AudioManager
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
@@ -15,6 +16,7 @@ import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -32,6 +34,8 @@ import cl.tablero.core.RestrictionNotice
 import cl.tablero.core.RestrictionRules
 import cl.tablero.core.Speed
 import cl.tablero.core.Tier
+import cl.tablero.core.WheelAction
+import cl.tablero.core.WheelKeys
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -109,6 +113,63 @@ class MainActivity : Activity() {
             locationManager.removeUpdates(locationListener)
         } catch (e: SecurityException) {
             // sin permiso no había nada que quitar
+        }
+    }
+
+    /* ---------- botones del volante ---------- */
+
+    /**
+     * Los botones del volante llegan como teclas normales de Android. Si el usuario asignó este botón se hace su acción
+     * (y la tecla no sigue); si no, se deja pasar para que Android haga lo de siempre. Solo con el launcher al frente.
+     */
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val action = WheelKeys.actionFor(config.wheelKeys, event.keyCode) ?: return super.dispatchKeyEvent(event)
+        // Una acción por pulsación (mantener apretado no la repite), salvo el volumen, que sube o baja mientras se mantiene.
+        val repeatable = action == WheelAction.VOLUME_UP || action == WheelAction.VOLUME_DOWN
+        if (event.action == KeyEvent.ACTION_DOWN && (event.repeatCount == 0 || repeatable)) runWheelAction(action)
+        return true
+    }
+
+    private fun runWheelAction(action: WheelAction) {
+        when (action) {
+            WheelAction.PLAY_PAUSE -> web?.media("toggle")
+            WheelAction.NEXT -> web?.media("next")
+            WheelAction.PREVIOUS -> web?.media("prev")
+            WheelAction.VOLUME_UP -> adjustVolume(AudioManager.ADJUST_RAISE)
+            WheelAction.VOLUME_DOWN -> adjustVolume(AudioManager.ADJUST_LOWER)
+            WheelAction.MUTE -> adjustVolume(if (Build.VERSION.SDK_INT >= 23) AudioManager.ADJUST_TOGGLE_MUTE else AudioManager.ADJUST_MUTE)
+            WheelAction.NAVIGATE -> openFirstInstalled(listOf("waze", "maps"), "tu app de mapas")
+            WheelAction.MUSIC -> openFirstInstalled(listOf("spotify", "ytmusic"), "tu app de música")
+            WheelAction.VOICE -> try {
+                startActivity(Intent(Intent.ACTION_VOICE_COMMAND).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            } catch (e: Exception) {
+                Toast.makeText(this, "Esta radio no tiene asistente de voz.", Toast.LENGTH_SHORT).show()
+            }
+            WheelAction.HOME -> web?.goHome()
+            WheelAction.NOTHING -> {}
+        }
+    }
+
+    private fun adjustVolume(direction: Int) {
+        try {
+            (getSystemService(Context.AUDIO_SERVICE) as AudioManager).adjustStreamVolume(AudioManager.STREAM_MUSIC, direction, AudioManager.FLAG_SHOW_UI)
+        } catch (e: Exception) {
+            // Algunas radios no dejan cambiar el volumen desde una app: ahí el botón no hace nada, pero no tumba la pantalla.
+        }
+    }
+
+    /** Abre la primera de [ids] (ids de Ui.KNOWN_APPS) que esté instalada, prefiriendo las que el usuario puso en su barra. */
+    private fun openFirstInstalled(ids: List<String>, what: String) {
+        val ordered = ids.sortedBy { if (it in config.apps) 0 else 1 }
+        val intent = ordered.firstNotNullOfOrNull { id -> Ui.KNOWN_APPS[id]?.let { Apps.launchIntent(packageManager, it.pkg) } }
+        if (intent == null) {
+            Toast.makeText(this, "No encontramos $what en la radio.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "No se pudo abrir.", Toast.LENGTH_SHORT).show()
         }
     }
 

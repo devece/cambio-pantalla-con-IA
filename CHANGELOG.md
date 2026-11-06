@@ -7,6 +7,11 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 
 ## [Sin publicar]
 
+### Agregado
+- **Recordatorios que se repiten solos.** Cada mantención que anotas (filtro, bujías, frenos…) cuenta sus km con barra y alerta,
+  igual que el aceite. En Mantención aparece **Hecho** cuando un aviso está por vencer (se confirma con dos toques): anota el
+  kilometraje de hoy y el próximo aviso queda "cada N km" más adelante. Los que aún no tienen fecha dicen **Contar desde hoy**.
+
 ### Para quien publica
 - Nuevo workflow **Release**: al crear una etiqueta `vX.Y.Z` compila el APK firmado y lo publica en GitHub Releases con estas notas.
 

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Restricciones vehiculares (pico y placa) de Latinoamérica",
+  "type": "object",
+  "required": ["schemaVersion", "dataVersion", "countries", "cities"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "dataVersion": { "type": "string", "description": "Fecha AAAA-MM-DD de la última actualización del archivo." },
+    "licencia": { "type": "string" },
+    "aviso": { "type": "string" },
+    "countries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "label"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Z]{2}$", "description": "Código ISO 3166-1 alfa-2." },
+          "name": { "type": "string" },
+          "label": { "type": "string", "description": "Cómo se llama la medida en ese país (restricción vehicular, pico y placa…)." }
+        }
+      }
+    },
+    "cities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ciudad" }
+    }
+  },
+  "$defs": {
+    "digitos": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 9 }, "uniqueItems": true },
+    "diasDigitos": {
+      "type": "object",
+      "description": "Dígitos con restricción por día de la semana.",
+      "propertyNames": { "enum": ["lun", "mar", "mie", "jue", "vie", "sab", "dom"] },
+      "additionalProperties": { "$ref": "#/$defs/digitos" }
+    },
+    "ciudad": {
+      "type": "object",
+      "required": ["id", "country", "name", "label", "confidence", "sources", "checkedAt", "weekdays", "hours", "rule", "zone"],
+      "properties": {
+        "id": { "type": "string" },
+        "country": { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "name": { "type": "string" },
+        "label": { "type": "string" },
+        "confidence": { "enum": ["oficial", "prensa"], "description": "oficial = leído en un sitio de la autoridad. prensa = tomado de medios de comunicación." },
+        "sources": { "type": "array", "minItems": 1, "items": { "type": "string", "format": "uri" } },
+        "checkedAt": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "Cuándo se revisó la fuente por última vez." },
+        "validFrom": { "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "La regla no vale antes de esta fecha. null = sin límite." },
+        "validTo": { "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "La regla no vale después de esta fecha (rotación semestral, resolución anual…). Pasada esta fecha, no se debe afirmar nada: hay que revisar la regla oficial." },
+        "note": { "type": "string" },
+        "months": { "type": ["array", "null"], "items": { "type": "integer", "minimum": 1, "maximum": 12 }, "description": "Meses (1-12) en que rige. null = todo el año." },
+        "weekdays": { "type": "array", "items": { "enum": ["lun", "mar", "mie", "jue", "vie", "sab", "dom"] }, "description": "Días de la semana en que puede regir." },
+        "hours": { "type": "array", "minItems": 1, "items": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 1440 }, "minItems": 2, "maxItems": 2 }, "description": "Franjas [inicio, fin) en minutos desde la medianoche." },
+        "rule": {
+          "oneOf": [
+            {
+              "description": "Dígitos por día de la semana.",
+              "type": "object", "required": ["kind", "days"],
+              "properties": { "kind": { "const": "weekday" }, "days": { "$ref": "#/$defs/diasDigitos" } }
+            },
+            {
+              "description": "Dígitos según si el día del mes es impar o par (Bogotá).",
+              "type": "object", "required": ["kind", "odd", "even"],
+              "properties": { "kind": { "const": "parity" }, "odd": { "$ref": "#/$defs/digitos" }, "even": { "$ref": "#/$defs/digitos" } }
+            },
+            {
+              "description": "Distinto según la clase de vehículo (Chile: con sello verde, sin sello, inscrito desde 2011).",
+              "type": "object", "required": ["kind", "classes"],
+              "properties": {
+                "kind": { "const": "classes" },
+                "classes": {
+                  "type": "array", "minItems": 1,
+                  "items": {
+                    "type": "object", "required": ["id", "name"],
+                    "properties": {
+                      "id": { "type": "string" },
+                      "name": { "type": "string" },
+                      "days": { "$ref": "#/$defs/diasDigitos" },
+                      "exempt": { "type": "boolean", "description": "true = esa clase no tiene restricción permanente." },
+                      "alwaysBanned": {
+                        "type": "object", "required": ["weekdays", "text"],
+                        "description": "La clase no puede circular en la zona esos días, sin importar el dígito.",
+                        "properties": { "weekdays": { "type": "array", "items": { "type": "string" } }, "text": { "type": "string" } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "zone": { "type": "array", "minItems": 3, "items": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 }, "description": "Polígono APROXIMADO de la zona, como [latitud, longitud]. No es el límite legal exacto." }
+      }
+    }
+  }
+}

@@ -1,0 +1,527 @@
+{
+ "schemaVersion": 1,
+ "dataVersion": "2026-11-05",
+ "licencia": "CC0-1.0",
+ "aviso": "Estas reglas CAMBIAN (cada semestre, cada año o por decreto). Cada ciudad indica su fuente, cuándo se revisó, qué tan confiable es y hasta cuándo vale. Las zonas son aproximadas. No es asesoría legal: confirma siempre con la autoridad de tránsito de tu ciudad.",
+ "countries": [
+  {
+   "id": "CL",
+   "name": "Chile",
+   "label": "restricción vehicular"
+  },
+  {
+   "id": "CO",
+   "name": "Colombia",
+   "label": "pico y placa"
+  },
+  {
+   "id": "EC",
+   "name": "Ecuador",
+   "label": "pico y placa"
+  }
+ ],
+ "cities": [
+  {
+   "id": "santiago",
+   "country": "CL",
+   "name": "Santiago (Región Metropolitana)",
+   "label": "restricción vehicular",
+   "confidence": "oficial",
+   "sources": [
+    "https://mtt.gob.cl/inicia-periodo-de-restriccion-vehicular-2026-region-metropolitana/",
+    "https://mtt.gob.cl/wp-content/uploads/2026/04/Res-2026-Restriccion-vehicular-permanente-ano-2026_firmado_GCB.pdf"
+   ],
+   "checkedAt": "2026-11-02",
+   "validFrom": "2026-01-01",
+   "validTo": "2026-12-31",
+   "note": "Restricción permanente 2026 del Ministerio de Transportes (MTT). Rige de mayo a agosto, de lunes a viernes, excepto festivos. El MTT publica la tabla nueva cada abril. En episodios de preemergencia o emergencia ambiental pueden sumarse más dígitos (no están incluidos).",
+   "months": [
+    5,
+    6,
+    7,
+    8
+   ],
+   "weekdays": [
+    "lun",
+    "mar",
+    "mie",
+    "jue",
+    "vie"
+   ],
+   "hours": [
+    [
+     450,
+     1260
+    ]
+   ],
+   "rule": {
+    "kind": "classes",
+    "classes": [
+     {
+      "id": "sello",
+      "name": "Con sello verde, inscrito antes de septiembre de 2011",
+      "days": {
+       "lun": [
+        8,
+        9
+       ],
+       "mar": [
+        0,
+        1
+       ],
+       "mie": [
+        2,
+        3
+       ],
+       "jue": [
+        4,
+        5
+       ],
+       "vie": [
+        6,
+        7
+       ]
+      }
+     },
+     {
+      "id": "sin",
+      "name": "Sin sello verde (más antiguo)",
+      "days": {
+       "lun": [
+        6,
+        7,
+        8,
+        9
+       ],
+       "mar": [
+        0,
+        1,
+        2,
+        3
+       ],
+       "mie": [
+        4,
+        5,
+        6,
+        7
+       ],
+       "jue": [
+        8,
+        9,
+        0,
+        1
+       ],
+       "vie": [
+        2,
+        3,
+        4,
+        5
+       ]
+      },
+      "alwaysBanned": {
+       "weekdays": [
+        "lun",
+        "mar",
+        "mie",
+        "jue",
+        "vie"
+       ],
+       "text": "Sin sello verde no puedes circular dentro del anillo Américo Vespucio, cualquier día hábil de la temporada. El paquete no incluye el polígono del anillo: el aviso se da al entrar a Santiago."
+      }
+     },
+     {
+      "id": "nuevo",
+      "name": "Inscrito desde septiembre de 2011",
+      "exempt": true
+     }
+    ]
+   },
+   "zone": [
+    [
+     -33.3,
+     -70.8
+    ],
+    [
+     -33.28,
+     -70.6
+    ],
+    [
+     -33.3,
+     -70.48
+    ],
+    [
+     -33.45,
+     -70.44
+    ],
+    [
+     -33.62,
+     -70.43
+    ],
+    [
+     -33.74,
+     -70.5
+    ],
+    [
+     -33.74,
+     -70.62
+    ],
+    [
+     -33.68,
+     -70.78
+    ],
+    [
+     -33.58,
+     -70.9
+    ],
+    [
+     -33.42,
+     -70.9
+    ],
+    [
+     -33.32,
+     -70.86
+    ]
+   ]
+  },
+  {
+   "id": "bogota",
+   "country": "CO",
+   "name": "Bogotá",
+   "label": "pico y placa",
+   "confidence": "oficial",
+   "sources": [
+    "https://bogota.gov.co/mi-ciudad/movilidad/pico-y-placa-en-bogota-para-la-semana-del-21-al-27-de-septiembre-2026"
+   ],
+   "checkedAt": "2026-11-05",
+   "validFrom": null,
+   "validTo": null,
+   "note": "Según el calendario de la Secretaría Distrital de Movilidad: en días impares circulan las placas terminadas en 1 a 5, y en días pares las terminadas en 6, 7, 8, 9 y 0. No rige en festivos.",
+   "months": null,
+   "weekdays": [
+    "lun",
+    "mar",
+    "mie",
+    "jue",
+    "vie"
+   ],
+   "hours": [
+    [
+     360,
+     1260
+    ]
+   ],
+   "rule": {
+    "kind": "parity",
+    "odd": [
+     6,
+     7,
+     8,
+     9,
+     0
+    ],
+    "even": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   },
+   "zone": [
+    [
+     4.47,
+     -74.18
+    ],
+    [
+     4.47,
+     -74.09
+    ],
+    [
+     4.56,
+     -74.04
+    ],
+    [
+     4.76,
+     -74.01
+    ],
+    [
+     4.84,
+     -74.04
+    ],
+    [
+     4.84,
+     -74.14
+    ],
+    [
+     4.78,
+     -74.2
+    ],
+    [
+     4.66,
+     -74.21
+    ],
+    [
+     4.55,
+     -74.19
+    ]
+   ]
+  },
+  {
+   "id": "medellin",
+   "country": "CO",
+   "name": "Medellín y Valle de Aburrá",
+   "label": "pico y placa",
+   "confidence": "prensa",
+   "sources": [
+    "https://www.eltiempo.com/colombia/medellin/el-nuevo-pico-y-placa-en-medellin-rige-desde-este-3-de-agosto-recuerde-los-horarios-multas-y-vias-exentas-de-la-medida-3575755"
+   ],
+   "checkedAt": "2026-11-05",
+   "validFrom": "2026-08-03",
+   "validTo": "2026-12-31",
+   "note": "Rotación del segundo semestre de 2026. Hay vías exentas (por ejemplo la Autopista Sur en Medellín y la vía Las Palmas) y los corregimientos no tienen restricción. No rige en festivos.",
+   "months": null,
+   "weekdays": [
+    "lun",
+    "mar",
+    "mie",
+    "jue",
+    "vie"
+   ],
+   "hours": [
+    [
+     300,
+     1200
+    ]
+   ],
+   "rule": {
+    "kind": "weekday",
+    "days": {
+     "lun": [
+      5,
+      8
+     ],
+     "mar": [
+      1,
+      4
+     ],
+     "mie": [
+      0,
+      2
+     ],
+     "jue": [
+      3,
+      6
+     ],
+     "vie": [
+      7,
+      9
+     ]
+    }
+   },
+   "zone": [
+    [
+     6.14,
+     -75.62
+    ],
+    [
+     6.14,
+     -75.55
+    ],
+    [
+     6.22,
+     -75.53
+    ],
+    [
+     6.3,
+     -75.52
+    ],
+    [
+     6.37,
+     -75.53
+    ],
+    [
+     6.37,
+     -75.6
+    ],
+    [
+     6.3,
+     -75.64
+    ],
+    [
+     6.22,
+     -75.66
+    ]
+   ]
+  },
+  {
+   "id": "cali",
+   "country": "CO",
+   "name": "Cali",
+   "label": "pico y placa",
+   "confidence": "prensa",
+   "sources": [
+    "https://www.elpais.com.co/cali/pico-y-placa-en-cali-este-miercoles-1-de-julio-ojo-evite-multas-con-la-nueva-rotacion-3023.html"
+   ],
+   "checkedAt": "2026-11-05",
+   "validFrom": "2026-07-01",
+   "validTo": "2026-12-31",
+   "note": "Rotación del segundo semestre de 2026 (Decreto 0814 de 2026, según la prensa). Puede haber cambios temporales por emergencias. No rige en festivos.",
+   "months": null,
+   "weekdays": [
+    "lun",
+    "mar",
+    "mie",
+    "jue",
+    "vie"
+   ],
+   "hours": [
+    [
+     360,
+     1140
+    ]
+   ],
+   "rule": {
+    "kind": "weekday",
+    "days": {
+     "lun": [
+      9,
+      0
+     ],
+     "mar": [
+      1,
+      2
+     ],
+     "mie": [
+      3,
+      4
+     ],
+     "jue": [
+      5,
+      6
+     ],
+     "vie": [
+      7,
+      8
+     ]
+    }
+   },
+   "zone": [
+    [
+     3.33,
+     -76.56
+    ],
+    [
+     3.33,
+     -76.48
+    ],
+    [
+     3.45,
+     -76.46
+    ],
+    [
+     3.53,
+     -76.47
+    ],
+    [
+     3.56,
+     -76.52
+    ],
+    [
+     3.5,
+     -76.57
+    ],
+    [
+     3.4,
+     -76.58
+    ]
+   ]
+  },
+  {
+   "id": "quito",
+   "country": "EC",
+   "name": "Quito",
+   "label": "pico y placa",
+   "confidence": "prensa",
+   "sources": [
+    "https://www.expreso.ec/quito/pico-placa-quito-2026-restriccion-vehicular-placas-terminadas-3-4-286671.html"
+   ],
+   "checkedAt": "2026-11-05",
+   "validFrom": null,
+   "validTo": null,
+   "note": "Según la AMT (por la prensa). Se habla de un sistema de \"tercera placa\" para fines de 2026, que cambiaría las reglas. No rige en feriados.",
+   "months": null,
+   "weekdays": [
+    "lun",
+    "mar",
+    "mie",
+    "jue",
+    "vie"
+   ],
+   "hours": [
+    [
+     360,
+     570
+    ],
+    [
+     960,
+     1200
+    ]
+   ],
+   "rule": {
+    "kind": "weekday",
+    "days": {
+     "lun": [
+      1,
+      2
+     ],
+     "mar": [
+      3,
+      4
+     ],
+     "mie": [
+      5,
+      6
+     ],
+     "jue": [
+      7,
+      8
+     ],
+     "vie": [
+      9,
+      0
+     ]
+    }
+   },
+   "zone": [
+    [
+     -0.33,
+     -78.54
+    ],
+    [
+     -0.33,
+     -78.48
+    ],
+    [
+     -0.2,
+     -78.44
+    ],
+    [
+     -0.05,
+     -78.44
+    ],
+    [
+     0,
+     -78.46
+    ],
+    [
+     -0.05,
+     -78.52
+    ],
+    [
+     -0.2,
+     -78.56
+    ]
+   ]
+  }
+ ]
+}

@@ -49,6 +49,7 @@
   const blk = (x, y, w, h, o) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="#fff" opacity="${o || 0.22}"/>`;
   const dockMini = blk(8, 62, 104, 5, 0.3);
   TB.layoutThumbs = {
+    consola: mini(blk(8, 6, 104, 8, 0.18) + blk(8, 18, 32, 38) + '<rect x="14" y="26" width="20" height="9" rx="3" fill="#fff" opacity=".75"/>' + blk(44, 18, 36, 38, 0.2) + '<rect x="48" y="46" width="13" height="6" rx="2" fill="#ff3a1a"/>' + blk(84, 18, 28, 38) + '<circle cx="98" cy="32" r="8" fill="#ff3a1a" opacity=".8"/>' + dockMini),
     estelar: mini(blk(8, 10, 24, 30, 0.12) + '<rect x="12" y="14" width="16" height="8" rx="3" fill="#ffd166" opacity=".85"/>' + '<path d="M38 40 L46 30 L60 28 L72 30 L80 40Z" fill="#fff" opacity=".7"/><path d="M38 44 L80 44" stroke="#fff" stroke-width="3" opacity=".25"/>' + blk(88, 8, 24, 32) + blk(88, 44, 24, 12) + dockMini),
     tarjetas: mini(blk(8, 8, 44, 48) + blk(56, 8, 24, 22) + blk(56, 34, 24, 22) + blk(84, 8, 28, 48) + dockMini),
     centro: mini(blk(8, 8, 26, 22) + blk(8, 34, 26, 22) + blk(38, 8, 44, 48, 0.12) + blk(86, 8, 26, 22) + blk(86, 34, 26, 22) + '<rect x="44" y="30" width="32" height="12" rx="5" fill="#ffd166" opacity=".85"/>' + dockMini),
@@ -102,6 +103,8 @@
   /* Autos con imagen real. `lamp`: zona (fracciones del ancho/alto) que no se repinta, como la luz trasera. */
   const CAR_IMAGES = {
     camioneta: { src: 'img/camioneta.png', lamp: [0, 0.056, 0.33, 0.57] },
+    // `range`: tonos (0-360) de la pintura original que se repintan con el color elegido. Sin `range`, la pintura original es roja.
+    suv: { src: 'img/suv.png', lamp: null, range: [190, 260] },
     '4x4': { src: 'img/camioneta.png', lamp: [0, 0.056, 0.33, 0.57] },
     auto: { src: 'img/auto.png', lamp: null, flip: true },
   };
@@ -124,7 +127,7 @@
     return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
   }
   /** Cambia solo la pintura roja de la foto al color elegido; vidrios, llantas y faros no se tocan. */
-  function tintPickup(img, color, lamp) {
+  function tintPickup(img, color, lamp, range) {
     const cv = document.createElement('canvas');
     cv.width = img.naturalWidth; cv.height = img.naturalHeight;
     const cx = cv.getContext('2d', { willReadFrequently: true });
@@ -140,7 +143,7 @@
       const x = (i / 4) % cv.width, y = Math.floor(i / 4 / cv.width);
       if (lamp && x < lampX && y > lampY0 && y < lampY1) continue;
       const [h, s, l] = hsl(px[i], px[i + 1], px[i + 2]);
-      if (s < 0.12 || l < 0.015 || l > 0.9 || !(h >= 335 || h <= 42)) continue;
+      if (s < 0.12 || l < 0.015 || l > 0.9 || !(range ? h >= range[0] && h <= range[1] : h >= 335 || h <= 42)) continue;
       const ns = Math.min(1, s * (ts / 0.6));
       const nl = tl > 0.55 ? Math.min(0.97, tl * (0.5 + l * 1.5)) : Math.min(0.96, Math.max(0.03, l * (tl / 0.3)));
       const [r, g, b] = rgb(th, ts < 0.12 ? ts * 0.5 : ns, nl);
@@ -156,7 +159,7 @@
       const color = el.dataset.color;
       const key = info.src + '|' + color;
       const apply = () => {
-        if (!tinted[key]) { try { tinted[key] = tintPickup(carImgs[info.src], color, info.lamp); } catch (e) { tinted[key] = info.src; } }
+        if (!tinted[key]) { try { tinted[key] = tintPickup(carImgs[info.src], color, info.lamp, info.range); } catch (e) { tinted[key] = info.src; } }
         el.src = tinted[key];
       };
       let img = carImgs[info.src];

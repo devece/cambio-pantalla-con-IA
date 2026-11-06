@@ -18,9 +18,9 @@ class CoreTest {
 
     @Test
     fun `lee los tres niveles del editions json real`() {
-        assertEquals(setOf("ruta"), free.themes)
+        assertEquals(setOf("ruta", "sobrio"), free.themes)
         assertEquals(2, free.maxApps)
-        assertEquals(setOf("ruta", "papel", "cristal"), esencial.themes)
+        assertEquals(setOf("sobrio", "ruta", "papel", "cristal"), esencial.themes)
         assertNull(completo.themes, "Completo no tiene límite de temas")
         assertNull(completo.seasons)
     }
@@ -66,7 +66,7 @@ class CoreTest {
     fun `esencial permite documentos pero no los temas ni temporadas de Completo`() {
         val pedido = LauncherConfig(theme = "cordillera", season = "patrias", docsOn = true, voice = true)
         val r = Gate.apply(pedido, esencial)
-        assertEquals("ruta", r.theme)
+        assertEquals("sobrio", r.theme)
         assertEquals("ninguna", r.season)
         assertTrue(r.docsOn && r.voice)
         assertEquals(listOf("theme", "season"), Gate.locked(pedido, esencial))

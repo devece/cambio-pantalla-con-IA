@@ -126,10 +126,12 @@ class MainActivity : Activity() {
             }
         }
         // Scanner OBD (si el usuario eligió uno en Ajustes): se conecta mientras el inicio está a la vista y descansa al salir.
+        // Apagado mientras ninguna pantalla muestre sus datos: leer algo que nadie ve solo cansa al adaptador y la Bluetooth de la radio.
         obdClient?.stop()
+        obdClient = null
         obdState = ObdState.IDLE
         obdDetail = ""
-        obdClient = ObdClient(
+        if (OBD_LIVE_DATA) obdClient = ObdClient(
             this,
             onState = { state, detail ->
                 obdState = state
@@ -632,6 +634,9 @@ class MainActivity : Activity() {
     private fun dp(v: Int) = Ui.dp(this, v)
 
     companion object {
+        /** Se enciende junto con la pantalla del Taller (fase 3 del plan OBD), que es la que mostrará los datos del scanner. */
+        private const val OBD_LIVE_DATA = false
+
         private const val REQ_LOCATION = 1
         private const val MATCH = LinearLayout.LayoutParams.MATCH_PARENT
         private const val WRAP = LinearLayout.LayoutParams.WRAP_CONTENT

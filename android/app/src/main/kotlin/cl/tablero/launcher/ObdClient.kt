@@ -56,7 +56,7 @@ class ObdClient(
         running = alive
         poller = p
         thread = Thread({
-            while (alive.get()) {
+            while (alive.get() && !p.finished) {
                 val wait = try {
                     p.step()
                 } catch (e: Exception) {

@@ -17,6 +17,7 @@ class ObdSessionTest {
         "ATL0" to "OK\r\r",
         "ATS0" to "OK\r\r",
         "ATH0" to "OK\r\r",
+        "ATAT1" to "OK\r\r",
         "ATSP0" to "OK\r\r",
     )
 
@@ -31,15 +32,37 @@ class ObdSessionTest {
     fun `el inicio configura el adaptador en el orden esperado`() {
         val (s, elm) = session()
         s.init()
-        assertEquals(listOf("ATZ", "ATE0", "ATL0", "ATS0", "ATH0", "ATSP0"), elm.sent)
+        assertEquals(listOf("ATZ", "ATE0", "ATL0", "ATS0", "ATH0", "ATAT1", "ATSP0"), elm.sent)
         assertEquals("ELM327 v1.5", s.adapter)
     }
 
     @Test
-    fun `algo que no se presenta como ELM327 se rechaza`() {
-        val elm = FakeElm(initOk + ("ATZ" to "HOLA\r\r"))
-        val e = assertFailsWith<ObdException> { ObdSession(elm).init() }
-        assertEquals(ObdError.NOT_ELM327, e.error)
+    fun `un aparato que no acepta la configuracion no es un ELM327`() {
+        val elm = FakeElm(initOk + ("ATE0" to "HOLA\r\r"))
+        assertEquals(ObdError.NOT_ELM327, assertFailsWith<ObdException> { ObdSession(elm).init() }.error)
+    }
+
+    @Test
+    fun `un clon que se presenta distinto o no contesta el reinicio igual sirve si acepta la configuracion`() {
+        // saludo sin «ELM»
+        val a = FakeElm(initOk + ("ATZ" to "HOLA\r\r"))
+        ObdSession(a).apply { init() }.also { assertNull(it.adapter) }
+        // reinicio con error
+        val b = FakeElm(initOk + ("ATZ" to "?\r\r"))
+        ObdSession(b).init()
+        // reinicio que ni contesta (plazo vencido)
+        val c = FakeElm(initOk)
+        c.handler = { cmd -> if (cmd == "ATZ") throw IOException("El adaptador no respondió a «ATZ»") else initOk.getValue(cmd) }
+        val s = ObdSession(c)
+        s.init()
+        assertNull(s.adapter)
+        assertEquals(listOf("ATZ", "ATE0", "ATL0", "ATS0", "ATH0", "ATAT1", "ATSP0"), c.sent)
+    }
+
+    @Test
+    fun `los tiempos adaptables son opcionales`() {
+        ObdSession(FakeElm(initOk + ("ATAT1" to "?\r\r"))).init()
+        ObdSession(FakeElm(initOk + ("ATAT1" to "ALGO\r\r"))).init()
     }
 
     @Test
@@ -84,6 +107,33 @@ class ObdSessionTest {
     fun `si un bloque posterior no contesta se queda con lo que ya sabe`() {
         val (s, _) = session("0100" to "410000000001", "0120" to "NO DATA\r\r")
         assertEquals(emptySet(), s.supportedPids())
+    }
+
+    @Test
+    fun `si un bloque posterior da error o se queda mudo se conserva lo ya sabido`() {
+        // El primer bloque anuncia que hay un segundo (último bit encendido): «41 00 08 18 00 01».
+        val first = "410008180001"
+        assertEquals(setOf(0x05, 0x0C, 0x0D), session("0100" to first, "0120" to "ALGO RARO\r").first.supportedPids())
+
+        val mudo = FakeElm(initOk + ("0100" to first))
+        mudo.handler = { cmd -> if (cmd == "0120") throw IOException("El adaptador no respondió a «0120»") else (initOk + ("0100" to first)).getValue(cmd) }
+        assertEquals(setOf(0x05, 0x0C, 0x0D), ObdSession(mudo).supportedPids())
+    }
+
+    @Test
+    fun `si falla el primer bloque si es un error`() {
+        assertFailsWith<IOException> { ObdSession(FakeElm().apply { failWith = IOException("sin enlace") }).supportedPids() }
+        assertEquals(ObdError.BAD_RESPONSE, assertFailsWith<ObdException> { session("0100" to "ALGO RARO\r").first.supportedPids() }.error)
+    }
+
+    @Test
+    fun `no se consultan bloques de PIDs que la app no usa`() {
+        val (s, elm) = session(
+            "0100" to "410000000001", "0120" to "412000000001", "0140" to "414000000001",
+            "0160" to "416000000001", "0180" to "418000000001", "01A0" to "41A000000001", "01C0" to "41C000000000",
+        )
+        s.supportedPids()
+        assertTrue("01C0" !in elm.sent, "el bloque C0 no hace falta: ${elm.sent}")
     }
 
     @Test
@@ -256,7 +306,7 @@ class ObdSessionTest {
 
     @Test
     fun `solo se aceptan comandos de la lista blanca`() {
-        for (ok in listOf("0100", "010C", "01A6", "0902", "03", "04", "07", "0A", "ATZ", "ATE0", "ATL0", "ATS0", "ATH0", "ATSP0", "ATDPN", "ATRV")) {
+        for (ok in listOf("0100", "010C", "01A6", "0902", "03", "04", "07", "0A", "ATZ", "ATE0", "ATL0", "ATS0", "ATH0", "ATAT1", "ATSP0", "ATDPN", "ATRV")) {
             assertTrue(ObdCommands.isAllowed(ok), ok)
         }
         for (bad in listOf("", "AT", "010", "01GG", "010c", "0100 ", "0100\r", "0A00", "0600", "0200", "0901", "2701", "3101", "22F190", "2F0301", "ATPP", "ATWS", "ATSH7E0", "ATMA", "ATD", "ATSP6")) {
@@ -280,7 +330,7 @@ class ObdSessionTest {
     @Test
     fun `los comandos siguen limpios con adaptadores que repiten el eco`() {
         val elm = FakeElm(
-            mapOf("ATZ" to "ATZ\r\rELM327 v2.1\r\r", "ATE0" to "ATE0\rOK\r", "ATL0" to "ATL0\rOK\r", "ATS0" to "ATS0\rOK\r", "ATH0" to "ATH0\rOK\r", "ATSP0" to "ATSP0\rOK\r", "010D" to "010D\rSEARCHING...\r41 0D 3C \r"),
+            mapOf("ATZ" to "ATZ\r\rELM327 v2.1\r\r", "ATE0" to "ATE0\rOK\r", "ATL0" to "ATL0\rOK\r", "ATS0" to "ATS0\rOK\r", "ATH0" to "ATH0\rOK\r", "ATAT1" to "ATAT1\rOK\r", "ATSP0" to "ATSP0\rOK\r", "010D" to "010D\rSEARCHING...\r41 0D 3C \r"),
         )
         val s = ObdSession(elm)
         s.init()

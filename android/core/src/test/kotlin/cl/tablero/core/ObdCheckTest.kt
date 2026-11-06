@@ -57,7 +57,7 @@ class ObdCheckTest {
 
     @Test
     fun `un dispositivo que no es ELM327 se rechaza con una explicacion`() {
-        val elm = FakeElm(FakeElm.INIT_OK + ("ATZ" to "HOLA\r\r"))
+        val elm = FakeElm(FakeElm.INIT_OK + ("ATE0" to "HOLA\r\r"))
         val r = ObdCheck.run { elm }
         assertFalse(r.adapterOk)
         assertTrue(r.report.contains("no parece un adaptador ELM327"), r.report)

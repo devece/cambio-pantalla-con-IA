@@ -3,6 +3,7 @@ package cl.tablero.core
 import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -107,13 +108,53 @@ class ObdPollerTest {
     }
 
     @Test
-    fun `si se corta la conexion reintenta esperando mas cada vez, hasta un tope`() {
+    fun `si nunca logra conectar reintenta un par de veces y se rinde`() {
         val rec = Recorder()
-        val p = ObdPoller(ObdConnector { throw IOException("sin conexión") }, rec)
-        val waits = (1..8).map { p.step() }
-        assertEquals(listOf(2_000L, 4_000L, 8_000L, 16_000L, 30_000L, 30_000L, 30_000L, 30_000L), waits)
-        assertEquals(listOf(ObdState.CONNECTING, ObdState.DISCONNECTED), rec.kinds, "un solo aviso por motivo, no uno por reintento")
-        assertEquals("sin conexión", rec.states.last().second)
+        var opens = 0
+        val p = ObdPoller(ObdConnector { opens++; throw IOException("sin conexión") }, rec)
+        val waits = (1..3).map { p.step() }
+        assertEquals(listOf(2_000L, 4_000L, ObdPoller.STOPPED_MS), waits, "dos esperas crecientes y a la tercera se rinde")
+        assertEquals(3, opens)
+        assertTrue(p.finished)
+        assertEquals(listOf(ObdState.CONNECTING, ObdState.DISCONNECTED, ObdState.DISCONNECTED), rec.kinds, "un aviso por motivo, no uno por reintento")
+        assertTrue(rec.states[1].second == "sin conexión")
+        assertTrue(rec.states.last().second.contains("Se dejó de reintentar"), rec.states.last().second)
+        assertTrue(rec.states.last().second.contains("sin conexión"), "conserva el motivo")
+        // Rendido, no vuelve a tocar el adaptador por más que se le llame.
+        repeat(5) { assertEquals(ObdPoller.STOPPED_MS, p.step()) }
+        assertEquals(3, opens)
+    }
+
+    @Test
+    fun `si se cae estando conectado reintenta con espera creciente y despues se rinde`() {
+        val good = car()
+        var opens = 0
+        val rec = Recorder()
+        val p = ObdPoller(ObdConnector { if (opens++ == 0) good else throw IOException("el adaptador ya no está") }, rec)
+        p.step(); p.step(); p.step() // conectado y leyendo bien
+        assertEquals(ObdState.CONNECTED, rec.kinds.last())
+        good.failWith = IOException("se cayó")
+        val waits = (1..6).map { p.step() }
+        assertEquals(listOf(2_000L, 4_000L, 8_000L, 16_000L, 30_000L, ObdPoller.STOPPED_MS), waits, "la espera sube hasta 30 s y al sexto fallo se rinde")
+        assertTrue(p.finished)
+        assertTrue(rec.states.last().second.contains("Se dejó de reintentar"), rec.states.last().second)
+        assertEquals(6, opens, "una apertura buena y cinco reintentos")
+    }
+
+    @Test
+    fun `una conexion que vuelve y se mantiene borra la cuenta de fallos`() {
+        val made = ArrayList<FakeElm>()
+        val rec = Recorder()
+        val p = ObdPoller(ObdConnector { car().also { made += it } }, rec)
+        p.step(); p.step(); p.step()
+        // Cinco caídas en total, pero separadas por conexiones que sí leyeron bien: nunca llega a rendirse.
+        repeat(5) { i ->
+            made.last().failWith = IOException("caída $i")
+            assertEquals(2_000L, p.step(), "la espera siempre parte de cero")
+            p.step(); p.step(); p.step() // reabre, averigua y lee bien
+            assertFalse(p.finished)
+        }
+        assertEquals(6, made.size)
         p.close()
     }
 
@@ -141,7 +182,7 @@ class ObdPollerTest {
 
     @Test
     fun `un dispositivo que no es ELM327 se informa y se sigue intentando`() {
-        val notElm = FakeElm(FakeElm.INIT_OK + ("ATZ" to "HOLA\r\r"))
+        val notElm = FakeElm(FakeElm.INIT_OK + ("ATE0" to "HOLA\r\r"))
         val rec = Recorder()
         val p = ObdPoller(connector(notElm).connector, rec)
         assertEquals(2_000, p.step())

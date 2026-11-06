@@ -99,6 +99,7 @@ como el «Scanner Automotriz OBD2 ELM327 Bluetooth V2.1» (Bluetooth clásico).
 - **Dónde quedó:**
   - `core`: `ObdLink.kt` (tipos y configuración, con validación), `ElmStreamTransport.kt` (transporte por flujos, con plazos y sin colgarse si el adaptador calla), `ObdPoller.kt` (lectura continua con reconexión), `ObdCheck.kt` (la prueba) y `ObdMessages.kt` (errores en español). 40 pruebas nuevas.
   - `app`: `ObdConnectors.kt` (Bluetooth y Wi-Fi), `ObdClient.kt` (mantiene la conexión), sección en `SettingsActivity`, y `TBApp.setObd` en `public/js/launcher.js` (por ahora solo guarda los datos).
+- **Hoy el ciclo de lectura en vivo está apagado** (`MainActivity.OBD_LIVE_DATA = false`) porque ninguna pantalla muestra todavía los datos: leer algo que nadie ve solo cansa al adaptador. Lo único que se conecta hoy es **Probar conexión**. Se enciende junto con la pantalla del Taller (fase 3), y entonces conviene que solo se pregunte al auto lo que se está mostrando.
 - **Decisión: la conexión vive solo mientras el inicio está a la vista**, no en un servicio. Así el adaptador descansa cuando se usa Waze o Maps (menos gasto de batería del auto) y no hay otro aviso fijo ni otro permiso. El costo es que al volver al inicio se reconecta (unos segundos). Un servicio propio queda para la fase 4 (alertas con el motor caliente, registro de viajes).
 - **Comportamiento:** reconecta solo con espera creciente (2, 4, 8... hasta 30 s); con el auto apagado avisa y reintenta cada 5 s sin cerrar el adaptador; con el motor apagado (0 rpm) consulta cada 3 s.
 - **Permisos:** Bluetooth (`BLUETOOTH_CONNECT` en Android 12 o más, que se pide en pantalla; los antiguos en Android 11 o menos). Se usa solo para conectarse al scanner ya emparejado que elige el usuario; no se busca ni se lee ningún otro dispositivo. Privacidad y CHANGELOG actualizados.
@@ -107,7 +108,7 @@ como el «Scanner Automotriz OBD2 ELM327 Bluetooth V2.1» (Bluetooth clásico).
   1. Que el scanner emparejado aparezca en la lista y la prueba conecte.
   2. Que con el auto apagado diga "falta el auto", y con el auto encendido muestre los datos.
   3. Que al desenchufar y volver a enchufar el scanner se recupere solo.
-  4. Que la lectura no haga lenta la pantalla de inicio.
+  4. (Cuando se encienda el ciclo en vivo, en la fase 3) Que la lectura no haga lenta la pantalla de inicio.
   5. Con un scanner Wi-Fi: que la radio pueda hablar con la red del scanner (Android a veces prefiere otra red sin internet).
   6. Qué pasa con un clon "v2.1" que responde distinto (anotar la respuesta exacta para ajustar el lector).
 - **Límites conocidos:** un solo programa a la vez puede hablar con un scanner Bluetooth (si el teléfono está conectado, la radio no podrá); no se lee el VIN todavía.
@@ -126,6 +127,25 @@ Cambios en `public/js/launcher.js` y `preview.js` (la vista previa del sitio mue
 
 ### Fase 5 — Opcionales
 Adaptadores Wi-Fi (`192.168.0.10:35000` es el habitual) y USB; presión de llantas (TPMS). Dependen de hardware y se evalúan aparte.
+
+## Lo que se aprendió de otros proyectos (LiteDash)
+
+Se leyó el repositorio público de LiteDash (`IrvingGuerra/litedash`, licencia **GPL-3.0**) para saber cómo se comportan los adaptadores reales. **No se copió código**: se tomaron comportamientos y datos de los aparatos, y el código de Tablero es propio (la fase 2 original se escribió antes de abrir ese repositorio). Copiar su código obligaría a publicar todo Tablero bajo GPL-3.0; si algún día se quiere eso, hay que decidirlo a propósito.
+
+**Ya aplicado en Tablero:**
+- El reinicio (`ATZ`) falla o contesta distinto en muchos clones: no se corta por eso; lo que decide si sirve es que acepte la configuración. Un saludo sin «ELM» tampoco lo descarta.
+- `ATAT1` (tiempos adaptables) se activa si el adaptador lo entiende; si contesta `?` se sigue.
+- Los bloques altos de PIDs a veces no contestan: se queda con lo ya sabido. Solo se pregunta hasta el bloque `A0`.
+- No reintentar sin parar: tras unos intentos se rinde (3 si nunca conectó, 5 si se cayó estando conectado). En una radio que reproduce música por Bluetooth, los intentos repetidos de conexión pueden entrecortarla.
+- Solo se pregunta al auto lo que se muestra (por eso el ciclo en vivo está apagado hasta la fase 3).
+
+**Para cuando se haga Bluetooth LE** (no está hecho; hay que probarlo con un scanner LE real):
+- No se empareja: se busca y se conecta directo. La búsqueda necesita `BLUETOOTH_SCAN` (Android 12 o más) o la ubicación (Android 11 o menos). **No buscar y conectar a la vez**: en varios Android la conexión falla.
+- Servicios de los scanners LE más comunes, para probar primero: `FFF0` (la mayoría de los clones), `FFE0` (módulos tipo HM-10), `18F0` y el de los Vgate iCar Pro BLE (`E7810A71-73AE-499D-8C15-FAA9AEF0C3F2`). Si no está ninguno, tomar cualquier servicio que tenga una característica que avise (notify/indicate) y otra que se pueda escribir, ignorando los genéricos (`1800`, `1801`, `180A`, `180F`).
+- Hay que activar los avisos escribiendo el descriptor `2902`. Se escribe de a 20 bytes (el MTU de fábrica es 23 menos 3 de encabezado).
+- Se arma como un flujo de bytes para reutilizar `ElmStreamTransport` tal cual.
+
+**Otras ideas para después:** adaptadores por cable USB (necesita un controlador de puerto serie y probar velocidades), y la guía de qué adaptador comprar.
 
 ## 5. Archivos que se tocarían
 

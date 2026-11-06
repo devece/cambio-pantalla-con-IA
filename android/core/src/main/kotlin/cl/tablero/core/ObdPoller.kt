@@ -42,7 +42,10 @@ interface ObdListener {
  * Así la app solo tiene que llamarlo en un bucle desde un hilo, y las pruebas lo llevan paso a paso sin esperar.
  *
  * Qué hace según lo que encuentra:
- * - sin conexión con el adaptador: reintenta esperando 2, 4, 8... hasta 30 segundos;
+ * - sin conexión con el adaptador: reintenta esperando 2, 4, 8... hasta 30 segundos, pero **se rinde**: tras 3 intentos
+ *   si nunca llegó a conectar, o tras 5 reintentos si se cayó estando conectado. Insistir sin parar cansa al adaptador
+ *   y, en una radio que reproduce música por Bluetooth, puede entrecortarla. Una vez rendido ya no hace nada hasta que
+ *   la app lo vuelva a crear (por ejemplo al volver a la pantalla de inicio);
  * - el adaptador responde pero el auto no (auto apagado): lo avisa y reintenta cada 5 segundos sin cerrar la conexión;
  * - con el motor apagado (0 rpm) consulta cada 3 segundos para no cansar el adaptador;
  * - ya conectado, lee velocidad y revoluciones en cada paso y los demás datos de a uno.
@@ -66,13 +69,21 @@ class ObdPoller(
     private var reconnectDelay = RECONNECT_MIN_MS
     private var carSilence = 0
     private var badReplies = 0
+    private var everConnected = false
+    private var failedAttempts = 0
+    private var dropsInRow = 0
+    @Volatile
+    private var gaveUp = false
 
     @Volatile
     private var closed = false
 
+    /** True cuando ya no hará nada más (se cerró o se rindió): quien lo maneja puede dejar de llamar a [step]. */
+    val finished: Boolean get() = closed || gaveUp
+
     /** Hace un poco de trabajo y devuelve cuántos milisegundos esperar antes de volver a llamarlo. */
     fun step(): Long {
-        if (closed) return STOPPED_MS
+        if (closed || gaveUp) return STOPPED_MS
         return try {
             val s = session
             when {
@@ -115,6 +126,7 @@ class ObdPoller(
         val s = ObdSession(ch)
         s.init()
         session = s
+        everConnected = true
         reconnectDelay = RECONNECT_MIN_MS
         return 0
     }
@@ -166,6 +178,7 @@ class ObdPoller(
         }
         carSilence = 0
         badReplies = 0
+        dropsInRow = 0 // leyendo bien: la conexión es estable
         if (state != ObdState.CONNECTED) publish(ObdState.CONNECTED, "Conectado")
         listener.onSnapshot(ObdSnapshot(LinkedHashMap(latest), supported ?: emptySet(), s.adapter, clock()))
         return if (latest["rpm"] == 0.0) ENGINE_OFF_MS else FAST_MS
@@ -179,6 +192,12 @@ class ObdPoller(
     /** Se perdió la conexión: se cierra todo y se vuelve a empezar desde cero, esperando más cada vez. */
     private fun lose(detail: String): Long {
         dropChannel()
+        val giveUp = if (everConnected) ++dropsInRow > MAX_RECONNECTS else ++failedAttempts >= MAX_FIRST_ATTEMPTS
+        if (giveUp) {
+            gaveUp = true
+            publish(ObdState.DISCONNECTED, "$detail Se dejó de reintentar para no cansar el adaptador. Vuelve a abrir la pantalla de inicio para probar de nuevo.")
+            return STOPPED_MS
+        }
         publish(ObdState.DISCONNECTED, detail)
         val wait = reconnectDelay
         reconnectDelay = minOf(reconnectDelay * 2, RECONNECT_MAX_MS)
@@ -218,6 +237,8 @@ class ObdPoller(
         const val FAST_MS = 100L
         const val STOPPED_MS = 1_000L
         private const val CAR_SILENCE_LIMIT = 3
+        private const val MAX_FIRST_ATTEMPTS = 3
+        private const val MAX_RECONNECTS = 5
         private const val BAD_REPLY_LIMIT = 5
         private const val ADAPTER_VOLTAGE_EVERY = 10
     }

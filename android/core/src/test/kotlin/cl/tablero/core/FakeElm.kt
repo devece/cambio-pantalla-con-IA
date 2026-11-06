@@ -40,6 +40,7 @@ class FakeElm(replies: Map<String, String> = emptyMap()) : ObdChannel {
             "ATL0" to "OK\r\r",
             "ATS0" to "OK\r\r",
             "ATH0" to "OK\r\r",
+            "ATAT1" to "OK\r\r",
             "ATSP0" to "OK\r\r",
         )
     }

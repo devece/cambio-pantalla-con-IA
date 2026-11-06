@@ -1,5 +1,6 @@
 package cl.tablero.core
 
+import java.io.IOException
 import java.util.TreeSet
 
 /**
@@ -10,7 +11,7 @@ import java.util.TreeSet
  * parámetros ni modos de servicio del fabricante.
  */
 object ObdCommands {
-    private val adapter = setOf("ATZ", "ATE0", "ATL0", "ATS0", "ATH0", "ATSP0", "ATDPN", "ATRV")
+    private val adapter = setOf("ATZ", "ATE0", "ATL0", "ATS0", "ATH0", "ATAT1", "ATSP0", "ATDPN", "ATRV")
     private val data = Regex("^(01[0-9A-F]{2}|0902|03|04|07|0A)$")
 
     fun isAllowed(command: String): Boolean = command in adapter || data.matches(command)
@@ -30,28 +31,56 @@ class ObdSession(private val transport: ObdTransport) {
 
     private var protocol: Int? = null
 
-    /** Prepara el adaptador. Hay que llamarlo una vez al conectar. */
+    /**
+     * Prepara el adaptador. Hay que llamarlo una vez al conectar.
+     *
+     * El reinicio (`ATZ`) es lo que más cambia entre adaptadores: los clones baratos a veces tardan, no contestan o dicen
+     * otra cosa. Por eso un fallo ahí no corta nada; lo que decide si el aparato sirve es que acepte los comandos de configuración.
+     */
     fun init() {
-        val reply = send("ATZ")
-        ObdParser.lines(reply, "ATZ") // si el adaptador avisó un error, sale aquí
-        adapter = reply.split('\r', '\n').map { it.trim().trimStart('>').trim() }.firstOrNull { it.uppercase().contains("ELM") }
-            ?: throw ObdException(ObdError.NOT_ELM327, "El dispositivo no se presentó como un adaptador ELM327")
-        // Sin eco, sin saltos de línea extra, sin espacios, sin cabeceras, y buscar el protocolo del auto solo.
-        for (c in listOf("ATE0", "ATL0", "ATS0", "ATH0", "ATSP0")) {
-            val lines = ObdParser.lines(send(c), c)
-            if (lines.none { it.endsWith("OK") }) throw ObdException(ObdError.BAD_RESPONSE, "El adaptador no aceptó «$c»")
+        adapter = try {
+            val reply = send("ATZ")
+            ObdParser.lines(reply, "ATZ") // si avisó un error, se ignora: se ve abajo si el adaptador sirve
+            reply.split('\r', '\n').map { it.trim().trimStart('>').trim() }.firstOrNull { it.uppercase().contains("ELM") }
+        } catch (e: ObdException) {
+            null
+        } catch (e: IOException) {
+            null // si el enlace de verdad está caído, el siguiente comando lo dirá
         }
+        // Sin eco, sin saltos de línea extra, sin espacios y sin cabeceras.
+        for ((i, c) in listOf("ATE0", "ATL0", "ATS0", "ATH0").withIndex()) {
+            val lines = ObdParser.lines(send(c), c)
+            if (lines.none { it.endsWith("OK") }) {
+                // Si ya el primer comando recibe algo que no es «OK», eso no habla como un ELM327.
+                throw ObdException(if (i == 0) ObdError.NOT_ELM327 else ObdError.BAD_RESPONSE, "El adaptador no aceptó «$c»")
+            }
+        }
+        // Tiempos adaptables: mejora la velocidad en la mayoría; los adaptadores que no lo conocen contestan «?» y no importa.
+        try {
+            ObdParser.lines(send("ATAT1"), "ATAT1")
+        } catch (e: ObdException) {
+            // opcional
+        }
+        // Que el adaptador busque solo el protocolo del auto.
+        val lines = ObdParser.lines(send("ATSP0"), "ATSP0")
+        if (lines.none { it.endsWith("OK") }) throw ObdException(ObdError.BAD_RESPONSE, "El adaptador no aceptó «ATSP0»")
     }
 
-    /** Los datos (PIDs) que el auto dice entregar. Los marcadores de bloque (0x20, 0x40...) no se incluyen. */
+    /**
+     * Los datos (PIDs) que el auto dice entregar. Los marcadores de bloque (0x20, 0x40...) no se incluyen.
+     * Algunos adaptadores tardan o no contestan los bloques de más arriba: en ese caso se queda con lo que ya sabe.
+     */
     fun supportedPids(): Set<Int> {
         val found = TreeSet<Int>()
         var base = 0x00
-        while (base <= 0xC0) {
+        while (base <= LAST_PID_BLOCK) {
             val mask = try {
                 readMode01(base)
             } catch (e: ObdException) {
-                if (e.error == ObdError.NO_DATA && base > 0) break // el auto no tiene más bloques
+                if (base > 0) break // el auto no tiene más bloques, o este adaptador no los contesta
+                throw e
+            } catch (e: IOException) {
+                if (base > 0) break // si el enlace de verdad se cayó, la próxima lectura lo dirá
                 throw e
             }
             found += ObdPids.supportedFrom(base, mask)
@@ -185,4 +214,9 @@ class ObdSession(private val transport: ObdTransport) {
     }
 
     private fun hex2(n: Int): String = n.toString(16).uppercase().padStart(2, '0')
+
+    private companion object {
+        /** El último bloque de PIDs que esta app necesita (el que trae el kilometraje, 0xA6). */
+        const val LAST_PID_BLOCK = 0xA0
+    }
 }

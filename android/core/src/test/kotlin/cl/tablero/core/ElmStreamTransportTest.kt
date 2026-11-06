@@ -175,7 +175,7 @@ class ElmStreamTransportTest {
         val s = FakeAdapterStreams { c ->
             when (c) {
                 "ATZ" -> "\r\rELM327 v2.1\r\r>"
-                "ATE0", "ATL0", "ATS0", "ATH0", "ATSP0" -> "OK\r\r>"
+                "ATE0", "ATL0", "ATS0", "ATH0", "ATAT1", "ATSP0" -> "OK\r\r>"
                 "010C" -> "SEARCHING...\r410C1AF8\r\r>"
                 else -> "?\r\r>"
             }

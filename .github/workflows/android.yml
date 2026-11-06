@@ -102,7 +102,10 @@ jobs:
 
       # Descarga pública y siempre igual:
       # https://github.com/devece/cambio-pantalla-con-IA/releases/download/app-latest/tablero.apk
+      # Solo desde main: la gente descarga de aquí, así que una rama a medio probar no puede reemplazarla.
+      # El APK de cualquier rama igual queda como artefacto de esta ejecución ("tablero-apk", arriba) para probarlo.
       - name: Publicar la descarga
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: app-latest

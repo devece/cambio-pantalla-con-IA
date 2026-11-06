@@ -34,6 +34,8 @@ data class LauncherConfig(
     val voice: Boolean = false,
     /** Botones del volante que el usuario asignó (código de tecla -> acción). */
     val wheelKeys: Map<Int, WheelAction> = emptyMap(),
+    /** El primer arranque guiado ya se terminó o se omitió. */
+    val welcomeDone: Boolean = false,
 )
 
 /** El "candado": ajusta una configuración a lo que permite el nivel de la radio. */

@@ -1,0 +1,25 @@
+name: Mi radio
+description: Cuéntanos cómo se ve y qué hace Tablero en tu radio
+title: "Radio: marca y modelo"
+labels: ["radio"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias. Con el diagnóstico sabemos qué hace tu radio sin adivinar.
+        En la radio: **Tablero → Ajustes → Diagnóstico de la radio → Copiar** (o toma una captura).
+  - type: textarea
+    id: diagnostico
+    attributes:
+      label: Diagnóstico
+      description: Pega aquí el texto copiado. No lleva tu nombre ni tu ubicación.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: que-paso
+    attributes:
+      label: Qué esperabas y qué pasó
+      description: Por ejemplo "los botones del volante no cambian de canción" o "la pantalla se ve cortada abajo".
+    validations:
+      required: true

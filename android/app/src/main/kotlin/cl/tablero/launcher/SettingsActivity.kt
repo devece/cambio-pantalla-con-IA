@@ -196,6 +196,12 @@ class SettingsActivity : Activity() {
         section("Apps en la barra (máximo ${limits.maxApps})")
         Ui.KNOWN_APPS.forEach { (id, app) -> apps[id] = check(app.label, id in c.apps, true) }
 
+        section("Ayuda")
+        form.addView(Button(this).apply {
+            text = "Diagnóstico de la radio"
+            setOnClickListener { startActivity(android.content.Intent(this@SettingsActivity, DiagnosticActivity::class.java)) }
+        })
+
         form.addView(Button(this).apply {
             text = "Guardar"
             setOnClickListener { save(c) }

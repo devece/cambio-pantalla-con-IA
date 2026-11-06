@@ -9,6 +9,8 @@
   const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
   const MI = 0.621371;
   const GAL = 3.78541;
+  /** Faltan tantos km o menos y el aviso pasa a alerta (mismo valor que Reminders.kt). */
+  const WARN_KM = 500;
   const imp = (state) => !!(state && state.features && state.features.miles);
   const dist = (km, state) => (imp(state) ? Math.round(km * MI) : Math.round(km));
   const du = (state) => (imp(state) ? 'mi' : 'km');
@@ -73,14 +75,32 @@
     if (f.oilOn) {
       const left = f.lastOil + f.oilEvery - f.odometer;
       out.push({
+        id: 'aceite',
         key: 'Aceite',
         text: left >= 0 ? `faltan ${fmt(dist(left, state))} ${du(state)}` : `pasado por ${fmt(dist(-left, state))} ${du(state)}`,
         pct: clamp(1 - left / f.oilEvery, 0, 1),
-        warn: left <= 500,
+        warn: left <= WARN_KM,
+        nextKm: f.odometer + f.oilEvery,
       });
     }
     TBCatalog.maintenance.forEach((m) => {
-      if (f.others.includes(m.id)) out.push({ key: m.name, text: `faltan ${fmt(dist(m.every, state))} ${du(state)}`, pct: 0.02, warn: false });
+      if (!f.others.includes(m.id)) return;
+      const last = f.maintDone && f.maintDone[m.id];
+      const nextKm = f.odometer + m.every;
+      if (typeof last !== 'number') {
+        // Sin anotar cuándo se hizo solo sabemos cada cuánto toca; al marcarlo "Hecho" empieza a contar.
+        out.push({ id: m.id, key: m.name, text: `cada ${fmt(dist(m.every, state))} ${du(state)} (revisa tu manual)`, pct: 0, warn: false, noBar: true, untracked: true, nextKm });
+        return;
+      }
+      const left = last + m.every - f.odometer;
+      out.push({
+        id: m.id,
+        key: m.name,
+        text: left >= 0 ? `faltan ${fmt(dist(left, state))} ${du(state)}` : `pasado por ${fmt(dist(-left, state))} ${du(state)}`,
+        pct: clamp(1 - left / m.every, 0, 1),
+        warn: left <= Math.max(WARN_KM, m.every / 10),
+        nextKm,
+      });
     });
     if (f.docsOn) {
       const now = new Date().getMonth() + 1;
@@ -105,6 +125,18 @@
       });
     }
     return out;
+  }
+
+  /**
+   * Botón "Hecho" de un aviso por kilometraje (solo en la radio, donde se guarda): en dos toques para no marcarlo sin querer.
+   * Al confirmar, el aviso se reinicia solo: el próximo toca "cada N km" más adelante.
+   */
+  function doneButton(i, state) {
+    const app = TB.preview.app;
+    if (!app || !app.markDone || !i.id || !(i.warn || i.untracked)) return '';
+    const sure = live.confirmDone === i.id;
+    const label = sure ? `¿Confirmas? Próximo aviso a los ${fmt(dist(i.nextKm, state))} ${du(state)}` : i.untracked ? 'Contar desde hoy' : 'Hecho';
+    return `<button class="done-btn${sure ? ' sure' : ''}" data-done="${esc(i.id)}">${label}</button>`;
   }
 
   /** Tarjeta del clima con datos reales (Open-Meteo); sin datos todavía, lo dice. */
@@ -319,7 +351,7 @@
       return `<div class="pane mt-pane">${items
         .slice(0, 7)
         .map(
-          (i) => `<div class="card mrow${i.warn ? ' warn' : ''}"><b>${esc(i.key)}</b><span>${esc(i.text)}</span>${i.noBar ? '' : `<div class="bar"><i style="width:${Math.round(i.pct * 100)}%"></i></div>`}</div>`
+          (i) => `<div class="card mrow${i.warn ? ' warn' : ''}"><b>${esc(i.key)}</b><span>${esc(i.text)}</span>${i.noBar ? '' : `<div class="bar"><i style="width:${Math.round(i.pct * 100)}%"></i></div>`}${doneButton(i, state)}</div>`
         )
         .join('')}</div>`;
     },
@@ -483,6 +515,14 @@
         return;
       }
       const app = TB.preview.app;
+      const dn = e.target.closest('[data-done]');
+      if (dn && app && app.markDone) {
+        const id = dn.dataset.done;
+        if (live.confirmDone === id) { live.confirmDone = null; app.markDone(id); } else { live.confirmDone = id; }
+        if (current) render(current.state, current.ui);
+        return;
+      }
+      if (live.confirmDone) live.confirmDone = null;
       if (app) {
         const media = e.target.closest('[data-media]');
         if (media && app.media) { app.media(media.dataset.media); return; }
@@ -507,5 +547,5 @@
     if (za) { za.hidden = false; za.className = 'zone-alert' + (n.warn ? ' warn' : ''); za.firstElementChild.textContent = n.text; }
   }
 
-  TB.preview = { mount, render, onGo: null, maintItems, showZoneNotice, updateMusic, updateMap, app: null };
+  TB.preview = { mount, render, onGo: null, maintItems, doneButton, showZoneNotice, updateMusic, updateMap, app: null };
 })();

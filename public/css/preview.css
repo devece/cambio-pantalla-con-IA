@@ -177,6 +177,8 @@
 .scr .mrow .bar { height: 8px; border-radius: 99px; background: rgba(127,127,127,.28); overflow: hidden; margin-top: 4px; }
 .scr .mrow .bar i { display: block; height: 100%; background: var(--accent); }
 .scr .mrow.warn { border-color: var(--accent); }
+.scr .mrow .done-btn { justify-self: start; margin-top: 8px; min-height: 44px; padding: 0 22px; border: 0; border-radius: 99px; background: rgba(127,127,127,.28); color: inherit; font: inherit; font-size: 17px; font-weight: 600; cursor: pointer; }
+.scr .mrow .done-btn.sure { background: var(--accent); color: var(--accent-ink); }
 .scr .empty { display: grid; gap: 6px; place-content: center; text-align: center; height: 100%; }
 .scr .empty b { font-size: 28px; }
 

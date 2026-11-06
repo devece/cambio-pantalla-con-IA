@@ -17,6 +17,8 @@ data class LauncherConfig(
     val lastOil: Int = 0,
     val oilEvery: Int = 5000,
     val otherMaintenance: List<String> = emptyList(),
+    /** Kilometraje al que se hizo por última vez cada mantenimiento de [otherMaintenance] (id -> km). */
+    val maintDone: Map<String, Int> = emptyMap(),
     val docsOn: Boolean = false,
     val rtMonth: Int = 1,
     val fuelOn: Boolean = false,

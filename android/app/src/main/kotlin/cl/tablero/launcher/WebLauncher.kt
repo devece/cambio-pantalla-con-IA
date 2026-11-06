@@ -31,6 +31,9 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import cl.tablero.core.LauncherConfig
+import cl.tablero.core.Maintenance
+import cl.tablero.core.Reminders
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -42,6 +45,11 @@ class WebLauncher(private val activity: Activity, private val designJson: String
     val view: WebView = WebView(activity)
     private var ready = false
     private val pending = ArrayList<String>()
+
+    private val settings = SettingsStore(activity)
+    private val maintenance by lazy {
+        Maintenance.parse(activity.assets.open("maintenance.json").bufferedReader().use { it.readText() })
+    }
 
     private val handler = Handler(Looper.getMainLooper())
     private var lastMusicSig = ""
@@ -94,6 +102,7 @@ class WebLauncher(private val activity: Activity, private val designJson: String
             override fun onPageFinished(v: WebView, url: String) {
                 ready = true
                 v.evaluateJavascript("TBApp.init(" + JSONObject.quote(designJson) + ")", null)
+                progressJson(settings.load())?.let { v.evaluateJavascript("TBApp.setProgress(" + JSONObject.quote(it) + ")", null) }
                 pending.forEach { v.evaluateJavascript(it, null) }
                 pending.clear()
             }
@@ -103,6 +112,19 @@ class WebLauncher(private val activity: Activity, private val designJson: String
 
     private fun js(code: String) {
         if (ready) view.evaluateJavascript(code, null) else pending.add(code)
+    }
+
+    /**
+     * Lo que la radio ya anotó (kilometraje y último servicio de cada aviso), o null si no hay nada:
+     * así no pisa lo que trae el diseño con ceros.
+     */
+    private fun progressJson(c: LauncherConfig): String? {
+        if (c.lastOil <= 0 && c.maintDone.isEmpty() && c.odometer <= 0) return null
+        val out = JSONObject()
+        if (c.odometer > 0) out.put("odometer", c.odometer)
+        if (c.lastOil > 0) out.put("lastOil", c.lastOil)
+        out.put("maintDone", JSONObject().apply { c.maintDone.forEach { (id, km) -> put(id, km) } })
+        return out.toString()
     }
 
     fun setSpeed(kmh: Int) = js("TBApp.setSpeed($kmh)")
@@ -129,6 +151,24 @@ class WebLauncher(private val activity: Activity, private val designJson: String
                 }
                 val app = Ui.KNOWN_APPS[id]
                 if (app == null) toast("Ese atajo aún no está disponible en la radio.") else launch(app.pkg, app.label)
+            }
+        }
+
+        /** "Hecho" en un aviso por kilometraje: guarda el servicio al kilometraje de hoy y el aviso se reinicia solo. */
+        @JavascriptInterface
+        fun done(json: String) {
+            activity.runOnUiThread {
+                try {
+                    val req = JSONObject(json)
+                    val saved = settings.load()
+                    val odometer = req.optInt("odometer", saved.odometer).coerceIn(0, 999_999)
+                    val updated = Reminders.markDone(saved.copy(odometer = odometer), req.getString("id"), maintenance)
+                    settings.save(updated)
+                    progressJson(updated)?.let { js("TBApp.setProgress(" + JSONObject.quote(it) + ")") }
+                    toast("Anotado. El próximo aviso toca más adelante.")
+                } catch (e: Exception) {
+                    toast("No se pudo anotar. Inténtalo de nuevo.")
+                }
             }
         }
 

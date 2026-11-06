@@ -73,6 +73,8 @@
     speed: 0,
     weather: null,
     music: { access: null, active: false },
+    // La radio FM de fábrica, según lo que publica su app: { access, found, playing, freq, name } (ver WebLauncher.pushRadio).
+    radio: { access: null, found: false },
     loc: null,
     media(cmd) { bridge('media', cmd); },
     open(kind) {
@@ -86,6 +88,8 @@
       bridge('open', kind);
     },
     openApp(id) { bridge('openApp', id); },
+    /** Siguiente, anterior y play/pausa de la radio FM. */
+    radioCmd(cmd) { bridge('radio', cmd); },
     /** "Hecho": la app guarda el kilometraje de hoy y devuelve el avance con TBApp.setProgress. */
     markDone(id) { bridge('done', JSON.stringify({ id, odometer: state.features.odometer })); },
   };
@@ -266,6 +270,10 @@
     },
     /** Cambia entre día y noche a mano (botón del volante); manda sobre el sol hasta que la app avise otra cosa. */
     toggleNight() { nightForced = !ui.night; render(); },
+    setRadio(json) {
+      try { app.radio = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }
+      if (TB.preview.updateRadio) TB.preview.updateRadio();
+    },
     /** Avance del guardado del mapa que hace la app: cuadros listos, total, los que no se pudieron bajar, y si terminó. */
     mapProgress(done, total, failed, fin) {
       if (!fin) { mapSaveText('Guardando… ' + Math.round((done / Math.max(1, total)) * 100) + '%'); return; }

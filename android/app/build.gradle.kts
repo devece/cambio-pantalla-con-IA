@@ -11,8 +11,9 @@ android {
         applicationId = "cl.tablero.launcher"
         minSdk = 21 // las radios chinas de auto suelen traer Android 5 a 10
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        // En un release el workflow las pasa desde la etiqueta (-PtableroVersion=1.2.3 -PtableroVersionCode=10203); a mano, estas.
+        versionCode = providers.gradleProperty("tableroVersionCode").map { it.toInt() }.getOrElse(1)
+        versionName = providers.gradleProperty("tableroVersion").getOrElse("0.1.0")
 
         // Dónde corre /api/license. Cámbialo con -PtableroApiBase=https://tu-dominio.com
         val apiBase = providers.gradleProperty("tableroApiBase").getOrElse("https://TU-DOMINIO.vercel.app")

@@ -32,6 +32,8 @@ data class LauncherConfig(
     val restrDigit: String = "",
     val restrDays: List<String> = emptyList(),
     val voice: Boolean = false,
+    /** Botones del volante que el usuario asignó (código de tecla -> acción). */
+    val wheelKeys: Map<Int, WheelAction> = emptyMap(),
 )
 
 /** El "candado": ajusta una configuración a lo que permite el nivel de la radio. */

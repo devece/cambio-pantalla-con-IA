@@ -2,6 +2,7 @@ package cl.tablero.launcher
 
 import android.content.Context
 import cl.tablero.core.LauncherConfig
+import cl.tablero.core.WheelKeys
 
 /** Guarda en la radio lo que el usuario eligió en Ajustes. Funciona sin internet. */
 class SettingsStore(context: Context) {
@@ -38,6 +39,7 @@ class SettingsStore(context: Context) {
             restrDigit = p.getString("restrDigit", d.restrDigit) ?: d.restrDigit,
             restrDays = list("restrDays", d.restrDays),
             voice = p.getBoolean("voice", d.voice),
+            wheelKeys = WheelKeys.parse(p.getString("wheelKeys", null)),
         )
     }
 
@@ -68,6 +70,7 @@ class SettingsStore(context: Context) {
             .putString("restrDigit", c.restrDigit)
             .putString("restrDays", c.restrDays.joinToString(","))
             .putBoolean("voice", c.voice)
+            .putString("wheelKeys", WheelKeys.serialize(c.wheelKeys))
             .apply()
     }
 

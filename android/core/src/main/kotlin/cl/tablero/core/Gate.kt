@@ -38,6 +38,8 @@ data class LauncherConfig(
     val welcomeDone: Boolean = false,
     /** Sumar al kilometraje los km que mide el GPS mientras se maneja (solo si ya se anotó un kilometraje). */
     val odometerAuto: Boolean = true,
+    /** El adaptador OBD que el usuario eligió (por defecto ninguno). */
+    val obd: ObdLinkConfig = ObdLinkConfig(),
 )
 
 /** El "candado": ajusta una configuración a lo que permite el nivel de la radio. */

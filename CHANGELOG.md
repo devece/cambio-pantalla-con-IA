@@ -8,6 +8,12 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 ## [Sin publicar]
 
 ### Agregado
+- **Conectar un scanner OBD (primera parte).** En Ajustes, en **Scanner OBD**, puedes elegir cómo se conecta tu scanner
+  (**Bluetooth**, el más común, como el «Scanner Automotriz OBD2 ELM327 Bluetooth V2.1», o **Wi-Fi**), elegirlo entre los
+  ya emparejados con la radio y pulsar **Probar conexión**: te muestra el voltaje, si el auto responde y unos datos
+  (revoluciones, velocidad, temperatura del motor) y si la luz del motor está encendida. Es opcional. Por ahora los datos
+  no aparecen en la pantalla de inicio: eso llega en una próxima versión. Android pide el permiso de Bluetooth solo al
+  elegir un scanner Bluetooth.
 - **Kilometraje automático.** Si ya anotaste el kilometraje de tu auto, la app le suma sola los km que recorres (con el GPS),
   así los avisos de aceite y mantención bajan sin que tengas que actualizar el número. Sigue contando aunque uses Waze o Maps,
   y por eso muestra un aviso fijo en la barra de notificaciones. Es una estimación: no cuenta cuando el auto está detenido ni

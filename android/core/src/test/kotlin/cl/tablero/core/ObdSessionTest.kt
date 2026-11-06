@@ -10,21 +10,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** Un adaptador ELM327 simulado: contesta lo que se le preparó y anota cada comando que recibe. */
-private class FakeElm(replies: Map<String, String> = emptyMap()) : ObdTransport {
-    private val replies = HashMap(replies)
-    val sent = ArrayList<String>()
-    var failWith: IOException? = null
-
-    fun reply(command: String, response: String) = apply { replies[command] = response }
-
-    override fun exchange(command: String): String {
-        sent += command
-        failWith?.let { throw it }
-        return replies[command] ?: throw IllegalStateException("No se preparó respuesta para «$command»")
-    }
-}
-
 class ObdSessionTest {
     private val initOk = mapOf(
         "ATZ" to "\r\rELM327 v1.5\r\r",

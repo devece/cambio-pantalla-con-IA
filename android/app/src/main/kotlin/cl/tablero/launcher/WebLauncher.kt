@@ -130,6 +130,9 @@ class WebLauncher(private val activity: Activity, private val designJson: String
         return out.toString()
     }
 
+    /** Le pasa a la pantalla el estado del scanner OBD y sus últimos valores (ver [ObdClient.toJson]). Solo en el hilo principal. */
+    fun setObd(json: String) = js("TBApp.setObd(" + JSONObject.quote(json) + ")")
+
     /** Vuelve a mandar a la pantalla lo anotado en la radio (por ejemplo, el kilometraje que acaba de sumar el GPS). Solo en el hilo principal. */
     fun setProgress(c: LauncherConfig) {
         progressJson(c)?.let { js("TBApp.setProgress(" + JSONObject.quote(it) + ")") }

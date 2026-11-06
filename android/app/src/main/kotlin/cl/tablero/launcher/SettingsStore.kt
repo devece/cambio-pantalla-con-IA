@@ -3,6 +3,7 @@ package cl.tablero.launcher
 import android.content.Context
 import android.content.SharedPreferences
 import cl.tablero.core.LauncherConfig
+import cl.tablero.core.ObdLinkConfig
 import cl.tablero.core.WheelKeys
 
 /** Guarda en la radio lo que el usuario eligió en Ajustes. Funciona sin internet. */
@@ -43,6 +44,12 @@ class SettingsStore(context: Context) {
             wheelKeys = WheelKeys.parse(p.getString("wheelKeys", null)),
             welcomeDone = p.getBoolean("welcomeDone", d.welcomeDone),
             odometerAuto = p.getBoolean("odometerAuto", d.odometerAuto),
+            obd = ObdLinkConfig.fromStored(
+                p.getString("obdKind", null),
+                p.getString("obdAddress", null),
+                p.getString("obdName", null),
+                p.getInt("obdPort", ObdLinkConfig.DEFAULT_WIFI_PORT),
+            ),
         )
     }
 
@@ -79,6 +86,10 @@ class SettingsStore(context: Context) {
             .putString("wheelKeys", WheelKeys.serialize(c.wheelKeys))
             .putBoolean("welcomeDone", c.welcomeDone)
             .putBoolean("odometerAuto", c.odometerAuto)
+            .putString("obdKind", c.obd.kind.id)
+            .putString("obdAddress", c.obd.address)
+            .putString("obdName", c.obd.name)
+            .putInt("obdPort", c.obd.port)
             .apply()
     }
 

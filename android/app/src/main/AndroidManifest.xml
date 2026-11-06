@@ -9,6 +9,13 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
+    <!-- Scanner OBD por Bluetooth: conectarse al adaptador que el usuario eligió (y solo a ese). -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- No todas las radios declaran Bluetooth; el scanner es opcional y la app debe poder instalarse igual. -->
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+
     <!-- Ver todas las apps instaladas (el APK no se publica en Play Store): así las reconoce aunque la radio use otro tipo de icono. -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 

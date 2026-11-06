@@ -1,7 +1,9 @@
 package cl.tablero.launcher
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -22,6 +24,9 @@ import cl.tablero.core.LauncherConfig
 import cl.tablero.core.Limits
 import cl.tablero.core.Maintenance
 import cl.tablero.core.MaintenanceItem
+import cl.tablero.core.ObdCheck
+import cl.tablero.core.ObdLinkConfig
+import cl.tablero.core.ObdLinkKind
 import cl.tablero.core.RestrictionRules
 import cl.tablero.core.WheelAction
 import cl.tablero.core.WheelKeys
@@ -64,6 +69,16 @@ class SettingsActivity : Activity() {
     private val apps = linkedMapOf<String, CheckBox>()
     private var wheelKeys: Map<Int, WheelAction> = emptyMap()
     private lateinit var wheelList: LinearLayout
+    private lateinit var obdKind: RadioGroup
+    private lateinit var obdBluetoothBox: LinearLayout
+    private lateinit var obdDeviceText: TextView
+    private lateinit var obdWifiBox: LinearLayout
+    private lateinit var obdHost: EditText
+    private lateinit var obdPort: EditText
+    private lateinit var obdTest: Button
+    private var obdName = ""
+    private var obdAddress = ""
+    private var afterBluetoothPermission: (() -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -198,6 +213,8 @@ class SettingsActivity : Activity() {
         section("Apps en la barra (máximo ${limits.maxApps})")
         Ui.KNOWN_APPS.forEach { (id, app) -> apps[id] = check(app.label, id in c.apps, true) }
 
+        buildObdSection(c)
+
         section("Ayuda")
         form.addView(Button(this).apply {
             text = "Diagnóstico de la radio"
@@ -213,6 +230,10 @@ class SettingsActivity : Activity() {
     }
 
     private fun save(old: LauncherConfig) {
+        validateObd()?.let {
+            Toast.makeText(this, it, Toast.LENGTH_LONG).show()
+            return
+        }
         val chosenApps = apps.filterValues { it.isChecked }.keys.toList()
         if (chosenApps.size > limits.maxApps) {
             Toast.makeText(this, "Tu plan permite hasta ${limits.maxApps} apps", Toast.LENGTH_LONG).show()
@@ -233,6 +254,7 @@ class SettingsActivity : Activity() {
                 oilOn = oilOn.isChecked,
                 odometer = int(odometer, old.odometer, 0..999_999),
                 odometerAuto = odometerAuto.isChecked,
+                obd = readObd(),
                 lastOil = int(lastOil, old.lastOil, 0..999_999),
                 oilEvery = int(oilEvery, old.oilEvery, 1_000..30_000),
                 otherMaintenance = others.filterValues { it.isChecked }.keys.toList(),
@@ -373,6 +395,206 @@ class SettingsActivity : Activity() {
         }
         form.addView(box)
         return box
+    }
+
+    /* ---------- scanner OBD ---------- */
+
+    private fun buildObdSection(c: LauncherConfig) {
+        section("Scanner OBD (opcional)")
+        form.addView(TextView(this).apply {
+            text = "Conecta un scanner OBD2 con chip ELM327 (por ejemplo, el «Scanner Automotriz OBD2 ELM327 Bluetooth V2.1») para que la app lea datos de tu auto. " +
+                "Por ahora esta versión solo comprueba que se conecta: las pantallas con los datos llegan en una próxima versión."
+            setTextColor(Ui.SUB)
+        })
+        obdAddress = if (ObdLinkConfig.isValidMac(c.obd.address)) c.obd.address else ""
+        obdName = if (obdAddress.isNotEmpty()) c.obd.name else ""
+
+        obdKind = RadioGroup(this).apply {
+            orientation = RadioGroup.VERTICAL
+            ObdLinkKind.entries.forEach { kind ->
+                addView(RadioButton(this@SettingsActivity).apply {
+                    id = View.generateViewId()
+                    tag = kind.id
+                    text = when (kind) {
+                        ObdLinkKind.OFF -> "Sin scanner"
+                        ObdLinkKind.BLUETOOTH -> "Bluetooth (el más común)"
+                        ObdLinkKind.WIFI -> "Wi-Fi"
+                    }
+                    isChecked = c.obd.kind == kind
+                    setTextColor(Ui.TEXT)
+                })
+            }
+        }
+        form.addView(obdKind)
+
+        obdBluetoothBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        obdDeviceText = TextView(this).apply { setTextColor(Ui.TEXT) }
+        obdBluetoothBox.addView(obdDeviceText)
+        obdBluetoothBox.addView(Button(this).apply {
+            text = "Elegir el scanner Bluetooth"
+            setOnClickListener { pickBluetoothDevice() }
+        })
+        obdBluetoothBox.addView(TextView(this).apply {
+            text = "Primero empareja el scanner desde los ajustes de Bluetooth de la radio (la clave suele ser 1234 o 0000)."
+            setTextColor(Ui.SUB)
+        })
+        form.addView(obdBluetoothBox)
+
+        obdWifiBox = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        obdWifiBox.addView(TextView(this).apply {
+            text = "Conecta antes la radio a la red Wi-Fi del scanner. Mientras tanto la radio no tendrá internet por esa red."
+            setTextColor(Ui.SUB)
+        })
+        val wifiHost = if (c.obd.kind == ObdLinkKind.WIFI) c.obd.address else ObdLinkConfig.DEFAULT_WIFI_HOST
+        obdHost = EditText(this).apply {
+            hint = "Dirección del scanner Wi-Fi"
+            setText(wifiHost)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+            setTextColor(Ui.TEXT)
+            setHintTextColor(Ui.SUB)
+        }
+        obdPort = EditText(this).apply {
+            hint = "Puerto"
+            setText(c.obd.port.toString())
+            inputType = InputType.TYPE_CLASS_NUMBER
+            setTextColor(Ui.TEXT)
+            setHintTextColor(Ui.SUB)
+        }
+        obdWifiBox.addView(obdHost, LinearLayout.LayoutParams(dp(420), LinearLayout.LayoutParams.WRAP_CONTENT))
+        obdWifiBox.addView(obdPort, LinearLayout.LayoutParams(dp(420), LinearLayout.LayoutParams.WRAP_CONTENT))
+        form.addView(obdWifiBox)
+
+        obdTest = Button(this).apply {
+            text = "Probar conexión"
+            setOnClickListener { testObd() }
+        }
+        form.addView(obdTest)
+
+        // Recién ahora (con todas las piezas creadas) se engancha el cambio de tipo.
+        obdKind.setOnCheckedChangeListener { _, _ -> refreshObd() }
+        refreshObd()
+    }
+
+    private fun selectedObdKind(): ObdLinkKind =
+        ObdLinkKind.of(obdKind.findViewById<RadioButton>(obdKind.checkedRadioButtonId)?.tag as? String)
+
+    private fun refreshObd() {
+        val kind = selectedObdKind()
+        obdBluetoothBox.visibility = if (kind == ObdLinkKind.BLUETOOTH) View.VISIBLE else View.GONE
+        obdWifiBox.visibility = if (kind == ObdLinkKind.WIFI) View.VISIBLE else View.GONE
+        obdTest.visibility = if (kind == ObdLinkKind.OFF) View.GONE else View.VISIBLE
+        obdDeviceText.text = if (obdAddress.isEmpty()) "Scanner elegido: ninguno" else "Scanner elegido: " + obdName.ifBlank { obdAddress }
+    }
+
+    /** Lo que el usuario dejó en la pantalla, ya limpio. */
+    private fun readObd(): ObdLinkConfig {
+        val kind = selectedObdKind()
+        val port = obdPort.text.toString().trim().toIntOrNull() ?: ObdLinkConfig.DEFAULT_WIFI_PORT
+        return when (kind) {
+            ObdLinkKind.WIFI -> ObdLinkConfig.fromStored(kind.id, obdHost.text.toString(), "", port)
+            else -> ObdLinkConfig.fromStored(kind.id, obdAddress, obdName, port)
+        }
+    }
+
+    /** Un mensaje si lo elegido no sirve para conectar; null si está bien. */
+    private fun validateObd(): String? = when (selectedObdKind()) {
+        ObdLinkKind.BLUETOOTH -> if (obdAddress.isEmpty()) "Elige primero el scanner Bluetooth, o marca «Sin scanner»." else null
+        ObdLinkKind.WIFI ->
+            if (!ObdLinkConfig.isValidHost(obdHost.text.toString())) "La dirección del scanner Wi-Fi no es válida (por ejemplo 192.168.0.10)."
+            else if ((obdPort.text.toString().trim().toIntOrNull() ?: 0) !in 1..65535) "El puerto debe ser un número entre 1 y 65535."
+            else null
+        ObdLinkKind.OFF -> null
+    }
+
+    /** Desde Android 12 el permiso de Bluetooth se pide en pantalla; se sigue con [block] cuando el usuario lo da. */
+    private fun withBluetoothPermission(block: () -> Unit) {
+        if (ObdBluetooth.hasPermission(this)) {
+            block()
+            return
+        }
+        afterBluetoothPermission = block
+        requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQ_BLUETOOTH)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != REQ_BLUETOOTH) return
+        val next = afterBluetoothPermission
+        afterBluetoothPermission = null
+        if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
+            next?.invoke()
+        } else {
+            Toast.makeText(this, "Sin el permiso de Bluetooth no se puede conectar el scanner.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun pickBluetoothDevice() = withBluetoothPermission {
+        val paired = ObdBluetooth.paired(this)
+        when {
+            ObdBluetooth.adapter(this) == null -> Toast.makeText(this, "Esta radio no tiene Bluetooth.", Toast.LENGTH_LONG).show()
+            paired == null -> Toast.makeText(this, "No se pudo leer la lista de Bluetooth. Revisa que esté encendido.", Toast.LENGTH_LONG).show()
+            paired.isEmpty() -> AlertDialog.Builder(this)
+                .setTitle("No hay dispositivos emparejados")
+                .setMessage("Empareja primero el scanner desde los ajustes de Bluetooth de la radio (la clave suele ser 1234 o 0000) y vuelve aquí.")
+                .setPositiveButton("Entendido", null)
+                .show()
+            else -> {
+                val labels = paired.map { (if (it.looksLikeObd) "★ " else "") + it.name + "\n" + it.address }.toTypedArray()
+                AlertDialog.Builder(this)
+                    .setTitle("Elige tu scanner OBD")
+                    .setItems(labels) { _, i ->
+                        obdName = paired[i].name
+                        obdAddress = paired[i].address
+                        refreshObd()
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+            }
+        }
+    }
+
+    private fun testObd() {
+        validateObd()?.let {
+            Toast.makeText(this, it, Toast.LENGTH_LONG).show()
+            return
+        }
+        val config = readObd()
+        if (config.kind == ObdLinkKind.BLUETOOTH) withBluetoothPermission { runObdTest(config) } else runObdTest(config)
+    }
+
+    private fun runObdTest(config: ObdLinkConfig) {
+        val connector = ObdConnectors.create(this, config)
+        if (connector == null) {
+            Toast.makeText(this, "Elige primero un scanner.", Toast.LENGTH_LONG).show()
+            return
+        }
+        val waiting = AlertDialog.Builder(this)
+            .setTitle("Probando...")
+            .setMessage("Conectando con ${config.display}. Puede tardar hasta unos 20 segundos.")
+            .setCancelable(false)
+            .show()
+        Thread({
+            val result = ObdCheck.run(connector) // fuera del hilo principal: espera al adaptador
+            runOnUiThread {
+                if (isFinishing) return@runOnUiThread
+                waiting.dismiss()
+                AlertDialog.Builder(this)
+                    .setTitle(
+                        when {
+                            result.adapterOk && result.carOk -> "Todo bien"
+                            result.adapterOk -> "El scanner responde, falta el auto"
+                            else -> "No se pudo conectar"
+                        },
+                    )
+                    .setMessage(result.report)
+                    .setPositiveButton("Entendido", null)
+                    .show()
+            }
+        }, "obd-prueba").start()
+    }
+
+    private companion object {
+        const val REQ_BLUETOOTH = 71
     }
 
     private fun field(hint: String, value: String): EditText {

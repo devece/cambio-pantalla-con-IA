@@ -88,13 +88,29 @@ Kotlin puro, sin Android, detrás de una interfaz `ObdTransport` (enviar un coma
   - **Todavía no se usa desde la app**: no hay conexión Bluetooth ni pantalla. Es la fase 2.
 - **Lo que no está verificado:** las respuestas de los adaptadores reales. Las pruebas usan respuestas simuladas según el estándar y lo que se sabe de los ELM327; los clones baratos pueden desviarse. Se ajustará con un adaptador de verdad.
 
-### Fase 2 — Conexión en la app Android (necesita adaptador)
-- **Permisos:** Android 12 o más pide `BLUETOOTH_CONNECT` (y `BLUETOOTH_SCAN` si se busca) en tiempo de ejecución; en Android 11 o menos, `BLUETOOTH` y `BLUETOOTH_ADMIN` con `maxSdkVersion="30"`. La búsqueda en Android 11 o menos requiere ubicación, que ya está. `minSdk` sigue en 21.
-- **Pantalla "Conectar OBD"** en Ajustes: lista los dispositivos ya emparejados, prueba la conexión, guarda la dirección elegida.
-- **Servicio `ObdService`:** abre el socket (Bluetooth clásico, UUID SPP `00001101-0000-1000-8000-00805F9B34FB`; para BLE, los servicios más comunes son `FFF0` y `FFE0`, **a confirmar con el adaptador real**), consulta en bucle con frecuencia adaptativa (rápida para revoluciones y velocidad, lenta para temperatura y voltaje) y se reconecta con espera creciente.
-- **Puente a la pantalla web:** nuevo `TBApp.setObd(json)` en `WebLauncher`, igual que `setSpeed` y `setLocation`.
-- **Qué pasa si se cae:** la pantalla vuelve a GPS y avisa una vez, sin molestar.
-- **Listo cuando:** se conecta a un adaptador real, muestra datos y se recupera tras desenchufarlo y volver a enchufarlo.
+### Fase 2 — Conexión en la app Android (necesita adaptador) — **hecha, falta probarla con un adaptador real**
+Se conecta a un scanner ELM327 y deja la opción de elegir el tipo. Está pensada para los scanners básicos más comunes,
+como el «Scanner Automotriz OBD2 ELM327 Bluetooth V2.1» (Bluetooth clásico).
+- **Tipos de scanner:**
+  - **Bluetooth clásico** (SPP): el más común. Se prueban tres formas de conexión, porque los clones baratos son caprichosos.
+  - **Wi-Fi** (TCP, por defecto `192.168.0.10:35000`): la radio debe estar conectada a la red del scanner.
+  - **Bluetooth LE: todavía no.** Hay que hacerlo con un scanner BLE real a mano (los servicios `FFF0` y `FFE0` se confirman con el aparato). Para sumarlo basta un valor nuevo en `ObdLinkKind` y un conector en `ObdConnectors.kt`; el resto no cambia.
+- **Cómo se usa:** Ajustes → **Scanner OBD**: elegir tipo, elegir el scanner entre los emparejados (o escribir la dirección Wi-Fi) y **Probar conexión**. La prueba muestra el voltaje, si el auto responde, revoluciones, velocidad, temperatura y la luz del motor, y explica en palabras simples qué hacer si algo falla.
+- **Dónde quedó:**
+  - `core`: `ObdLink.kt` (tipos y configuración, con validación), `ElmStreamTransport.kt` (transporte por flujos, con plazos y sin colgarse si el adaptador calla), `ObdPoller.kt` (lectura continua con reconexión), `ObdCheck.kt` (la prueba) y `ObdMessages.kt` (errores en español). 40 pruebas nuevas.
+  - `app`: `ObdConnectors.kt` (Bluetooth y Wi-Fi), `ObdClient.kt` (mantiene la conexión), sección en `SettingsActivity`, y `TBApp.setObd` en `public/js/launcher.js` (por ahora solo guarda los datos).
+- **Decisión: la conexión vive solo mientras el inicio está a la vista**, no en un servicio. Así el adaptador descansa cuando se usa Waze o Maps (menos gasto de batería del auto) y no hay otro aviso fijo ni otro permiso. El costo es que al volver al inicio se reconecta (unos segundos). Un servicio propio queda para la fase 4 (alertas con el motor caliente, registro de viajes).
+- **Comportamiento:** reconecta solo con espera creciente (2, 4, 8... hasta 30 s); con el auto apagado avisa y reintenta cada 5 s sin cerrar el adaptador; con el motor apagado (0 rpm) consulta cada 3 s.
+- **Permisos:** Bluetooth (`BLUETOOTH_CONNECT` en Android 12 o más, que se pide en pantalla; los antiguos en Android 11 o menos). Se usa solo para conectarse al scanner ya emparejado que elige el usuario; no se busca ni se lee ningún otro dispositivo. Privacidad y CHANGELOG actualizados.
+- **Todavía sin decidir:** en qué edición va (hoy lo puede usar cualquiera: no se tocó `editions.json`).
+- **Qué verificar con un adaptador real** (nada de esto se pudo probar sin hardware):
+  1. Que el scanner emparejado aparezca en la lista y la prueba conecte.
+  2. Que con el auto apagado diga "falta el auto", y con el auto encendido muestre los datos.
+  3. Que al desenchufar y volver a enchufar el scanner se recupere solo.
+  4. Que la lectura no haga lenta la pantalla de inicio.
+  5. Con un scanner Wi-Fi: que la radio pueda hablar con la red del scanner (Android a veces prefiere otra red sin internet).
+  6. Qué pasa con un clon "v2.1" que responde distinto (anotar la respuesta exacta para ajustar el lector).
+- **Límites conocidos:** un solo programa a la vez puede hablar con un scanner Bluetooth (si el teléfono está conectado, la radio no podrá); no se lee el VIN todavía.
 
 ### Fase 3 — Pantalla "Taller" (web)
 Cambios en `public/js/launcher.js` y `preview.js` (la vista previa del sitio muestra datos de ejemplo, como ya hace con el resto).

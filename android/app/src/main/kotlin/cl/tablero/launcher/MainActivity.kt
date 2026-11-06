@@ -29,6 +29,7 @@ import cl.tablero.core.Gate
 import cl.tablero.core.LauncherConfig
 import cl.tablero.core.Maintenance
 import cl.tablero.core.MaintenanceItem
+import cl.tablero.core.ObdState
 import cl.tablero.core.Reminder
 import cl.tablero.core.Reminders
 import cl.tablero.core.RestrictionNotice
@@ -63,6 +64,9 @@ class MainActivity : Activity() {
     private var zoneView: TextView? = null
     private var web: WebLauncher? = null
     private var odometerListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
+    private var obdClient: ObdClient? = null
+    private var obdState = ObdState.IDLE
+    private var obdDetail = ""
     private var insideZone = false
     private val handler = Handler(Looper.getMainLooper())
     private val hideZone = Runnable { zoneView?.visibility = View.GONE }
@@ -121,11 +125,26 @@ class MainActivity : Activity() {
                 web?.setProgress(config)
             }
         }
+        // Scanner OBD (si el usuario eligió uno en Ajustes): se conecta mientras el inicio está a la vista y descansa al salir.
+        obdClient?.stop()
+        obdState = ObdState.IDLE
+        obdDetail = ""
+        obdClient = ObdClient(
+            this,
+            onState = { state, detail ->
+                obdState = state
+                obdDetail = detail
+                web?.setObd(ObdClient.toJson(state, detail, null))
+            },
+            onSnapshot = { snapshot -> web?.setObd(ObdClient.toJson(obdState, obdDetail, snapshot)) },
+        ).also { it.start(config.obd) }
         greetOnce()
     }
 
     override fun onPause() {
         super.onPause()
+        obdClient?.stop()
+        obdClient = null
         odometerListener?.let { settings.removeOdometerListener(it) }
         odometerListener = null
         handler.removeCallbacks(hideZone)

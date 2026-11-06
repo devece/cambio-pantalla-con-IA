@@ -190,7 +190,15 @@
       if (p.maintDone && typeof p.maintDone === 'object') f.maintDone = Object.assign({}, p.maintDone);
       render();
     },
-    goHome() { ui.screen = 'inicio'; ui.step = 1; render(); },
+    /** Va a una pantalla (lo piden los botones del volante). Solo las que existen; cualquier otro nombre se ignora. */
+    goTo(screen) {
+      if (!['inicio', 'radio', 'mantenimiento', 'bluetooth'].includes(screen)) return;
+      ui.screen = screen;
+      ui.step = 1;
+      render();
+    },
+    /** Cambia entre día y noche a mano (botón del volante); manda sobre el sol hasta que la app avise otra cosa. */
+    toggleNight() { nightForced = !ui.night; render(); },
     setRadio(json) {
       try { app.radio = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }
       if (TB.preview.updateRadio) TB.preview.updateRadio();

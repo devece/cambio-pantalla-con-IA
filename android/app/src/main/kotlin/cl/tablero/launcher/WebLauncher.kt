@@ -125,8 +125,11 @@ class WebLauncher(private val activity: Activity, private val designJson: String
         }
     }
 
-    /** Vuelve a la pantalla de inicio del diseño. */
-    fun goHome() = js("TBApp.goHome()")
+    /** Va a una pantalla de Tablero por su id ("inicio", "radio" o "mantenimiento"). */
+    fun goTo(screen: String) = js("TBApp.goTo(" + JSONObject.quote(screen) + ")")
+
+    /** Cambia entre el tema de día y el de noche (se queda así hasta que se reinicie la app). */
+    fun toggleNight() = js("TBApp.toggleNight()")
 
     fun setSpeed(kmh: Int) = js("TBApp.setSpeed($kmh)")
 

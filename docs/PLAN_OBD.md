@@ -49,7 +49,7 @@ Suma la distancia recorrida al `odometer` guardado, con filtros: descartar punto
 - **Límites:** el GPS pierde precisión en túneles y subterráneos; es una estimación. El OBD, cuando exista (fases 1 a 4), pasará a mandar.
 - **Android 14:** el servicio de ubicación no puede arrancar desde el arranque del sistema, por eso lo enciende la pantalla de inicio al abrirse.
 
-### Fase 1 — Núcleo OBD en `core` (sin hardware, todo probable por CI)
+### Fase 1 — Núcleo OBD en `core` (sin hardware, todo probable por CI) — **hecha, falta probar con un adaptador real**
 Kotlin puro, sin Android, detrás de una interfaz `ObdTransport` (enviar un comando, recibir texto) para poder simularlo.
 - **Inicialización ELM327:** `ATZ`, `ATE0`, `ATL0`, `ATS0`, `ATH0`, `ATSP0`.
 - **Lectura de datos (modo 01):**
@@ -74,6 +74,19 @@ Kotlin puro, sin Android, detrás de una interfaz `ObdTransport` (enviar un coma
 - **Lista blanca de comandos:** el núcleo solo permite los modos 01, 03, 04, 07, 09 y 0A. Nunca se envía texto libre al adaptador.
 - **Pruebas:** transcripciones reales/simuladas de respuestas ELM327 (casos buenos y malos), cálculo de cada PID y decodificación de códigos.
 - **Listo cuando:** `./gradlew :core:test` pasa con cobertura de cada PID y de los errores típicos.
+- **Dónde quedó:**
+  - `ObdTransport.kt`: el canal con el adaptador (interfaz) y los errores (`ObdError`, `ObdException`).
+  - `ObdParser.kt`: limpia las respuestas (eco, `SEARCHING...`, espacios, respuestas en varias líneas) y detecta los errores del adaptador.
+  - `ObdPids.kt`: fórmulas de cada dato. Además de la tabla de arriba se agregaron el **acelerador** (`11`) y la **presión de admisión** (`0B`).
+  - `ObdDiagnostics.kt`: códigos de falla (`DtcKind`, `Dtc.decode`) y estado de los monitores (`MonitorStatus`, para motores a bencina y diésel).
+  - `ObdSession.kt`: el cliente (`init`, `supportedPids`, `read`, `readDtcs`, `clearDtcs`, `monitorStatus`, `vin`, `adapterVoltage`) y la **lista blanca** (`ObdCommands`).
+  - `ObdCodes.kt` y `public/shared/obd-codes.json`: 98 códigos explicados en palabras simples (textos propios) y una explicación general por letra y primer dígito para los que no están.
+  - 62 pruebas nuevas, con un adaptador ELM327 simulado. Se comprobó que fallan si se rompen las fórmulas.
+- **Detalles que salieron al construirlo:**
+  - Para leer los códigos de falla se pregunta el protocolo (`ATDPN`): en CAN el primer dato es cuántos códigos vienen, en los antiguos no. Si el adaptador no lo dice, se deduce por el largo.
+  - Se agregó `ATRV` (voltaje que mide el propio adaptador), útil con el motor apagado.
+  - **Todavía no se usa desde la app**: no hay conexión Bluetooth ni pantalla. Es la fase 2.
+- **Lo que no está verificado:** las respuestas de los adaptadores reales. Las pruebas usan respuestas simuladas según el estándar y lo que se sabe de los ELM327; los clones baratos pueden desviarse. Se ajustará con un adaptador de verdad.
 
 ### Fase 2 — Conexión en la app Android (necesita adaptador)
 - **Permisos:** Android 12 o más pide `BLUETOOTH_CONNECT` (y `BLUETOOTH_SCAN` si se busca) en tiempo de ejecución; en Android 11 o menos, `BLUETOOTH` y `BLUETOOTH_ADMIN` con `maxSdkVersion="30"`. La búsqueda en Android 11 o menos requiere ubicación, que ya está. `minSdk` sigue en 21.
@@ -118,7 +131,7 @@ Adaptadores Wi-Fi (`192.168.0.10:35000` es el habitual) y USB; presión de llant
 
 - **Adaptadores falsos.** Hay muchos clones ELM327 baratos (los que dicen "v2.1") que responden mal o se cuelgan. Se recomendará un modelo probado y el núcleo debe tolerar fallas.
 - **Datos que el auto no da.** Nivel de combustible, odómetro y otros PIDs varían por marca y año. La app debe preguntar qué soporta (`PID 00/20/40`) y ocultar lo que no hay, sin mostrar ceros falsos.
-- **Borrar códigos puede perjudicar.** Al borrarlos se reinician los monitores de verificación del auto. Si se hace poco antes de la **revisión técnica**, el auto puede salir "no listo" y reprobar. Por eso: doble confirmación y un aviso claro, y nunca borrar sin que el usuario lo pida.
+- **Borrar códigos puede perjudicar.** Al borrarlos se reinician los chequeos internos del auto (los "monitores") y vuelven a tardar en completarse, por lo general varios días de manejo. En algunos países y centros de inspección se exige que estén completos; **no verifiqué si pasa en la revisión técnica de Chile**, así que el aviso no debe afirmarlo: solo decir que el auto necesita manejar unos días para terminarlos. Además, si la falla sigue, el código vuelve. Por eso: doble confirmación y un aviso claro, y nunca borrar sin que el usuario lo pida.
 - **Seguridad.** Solo comandos de la lista blanca (fase 1). Nada de texto libre.
 - **Batería del auto.** Algunos adaptadores quedan consumiendo con el auto apagado. Se informa al usuario y se evita consultar sin motor andando.
 - **Privacidad.** Los datos del OBD se quedan en la radio. Hay que actualizar `privacidad.html` (Bluetooth, qué se lee, que el VIN no se guarda).

@@ -1,0 +1,407 @@
+{
+ "version": 1,
+ "_nota": "Códigos de falla del auto (OBD-II) explicados en palabras simples. Textos propios de Tablero. Los códigos que no están aquí se explican por su letra y su primer dígito. Lo usa la app de la radio.",
+ "genericos": {
+  "P0": "Código estándar de motor o caja de cambios. Es igual en todas las marcas, pero esta app todavía no lo explica. Búscalo por su número o consulta a un mecánico.",
+  "P1": "Código propio de la marca del auto: el significado cambia según el fabricante. Búscalo con la marca y el modelo, o consulta a un mecánico.",
+  "P2": "Código estándar ampliado de motor o caja de cambios (muchos son de inyección y turbo). Esta app todavía no lo explica; búscalo por su número.",
+  "P3": "Código de motor poco común: puede ser estándar o de la marca. Búscalo con la marca y el modelo.",
+  "B": "Falla en la carrocería o la cabina (por ejemplo airbags, alarma o aire acondicionado). Hay que verla con el scanner de la marca.",
+  "C": "Falla en el chasis (frenos, suspensión o dirección). Hay que verla con el scanner de la marca.",
+  "U": "Falla de comunicación entre los computadores del auto."
+ },
+ "codigos": {
+  "C0035": {
+   "sistema": "Frenos y estabilidad",
+   "texto": "El sensor de velocidad de la rueda delantera izquierda tiene un problema."
+  },
+  "C0040": {
+   "sistema": "Frenos y estabilidad",
+   "texto": "El sensor de velocidad de la rueda delantera derecha tiene un problema."
+  },
+  "C0045": {
+   "sistema": "Frenos y estabilidad",
+   "texto": "El sensor de velocidad de la rueda trasera izquierda tiene un problema."
+  },
+  "C0050": {
+   "sistema": "Frenos y estabilidad",
+   "texto": "El sensor de velocidad de la rueda trasera derecha tiene un problema."
+  },
+  "P0016": {
+   "sistema": "Sensores del motor",
+   "texto": "El computador no logra sincronizar el cigüeñal con el árbol de levas. Puede ser un sensor, o la cadena o correa de distribución desfasada."
+  },
+  "P0100": {
+   "sistema": "Aire y admisión",
+   "texto": "El sensor que mide el aire que entra al motor (MAF) tiene un problema eléctrico: el cable, el conector o el propio sensor."
+  },
+  "P0101": {
+   "sistema": "Aire y admisión",
+   "texto": "El medidor de aire (MAF) da lecturas que no cuadran. Puede estar sucio o haber una entrada de aire que no pasa por él."
+  },
+  "P0102": {
+   "sistema": "Aire y admisión",
+   "texto": "El medidor de aire (MAF) manda una señal demasiado baja. Revisa el conector y límpialo; si sigue, puede estar dañado."
+  },
+  "P0103": {
+   "sistema": "Aire y admisión",
+   "texto": "El medidor de aire (MAF) manda una señal demasiado alta. Puede estar sucio o dañado."
+  },
+  "P0105": {
+   "sistema": "Aire y admisión",
+   "texto": "El sensor de presión del aire de admisión (MAP) tiene un problema eléctrico."
+  },
+  "P0106": {
+   "sistema": "Aire y admisión",
+   "texto": "El sensor de presión de admisión (MAP) da lecturas que no cuadran. Busca mangueras sueltas o fugas de aire."
+  },
+  "P0107": {
+   "sistema": "Aire y admisión",
+   "texto": "El sensor de presión de admisión (MAP) manda una señal demasiado baja."
+  },
+  "P0108": {
+   "sistema": "Aire y admisión",
+   "texto": "El sensor de presión de admisión (MAP) manda una señal demasiado alta."
+  },
+  "P0110": {
+   "sistema": "Aire y admisión",
+   "texto": "El sensor de temperatura del aire de admisión tiene un problema eléctrico."
+  },
+  "P0112": {
+   "sistema": "Aire y admisión",
+   "texto": "El sensor de temperatura del aire de admisión manda una señal demasiado baja."
+  },
+  "P0113": {
+   "sistema": "Aire y admisión",
+   "texto": "El sensor de temperatura del aire de admisión manda una señal demasiado alta."
+  },
+  "P0115": {
+   "sistema": "Refrigeración",
+   "texto": "El sensor de temperatura del motor (refrigerante) tiene un problema eléctrico."
+  },
+  "P0116": {
+   "sistema": "Refrigeración",
+   "texto": "El sensor de temperatura del motor da lecturas que no cuadran. Puede ser el sensor o el termostato."
+  },
+  "P0117": {
+   "sistema": "Refrigeración",
+   "texto": "El sensor de temperatura del motor manda una señal demasiado baja."
+  },
+  "P0118": {
+   "sistema": "Refrigeración",
+   "texto": "El sensor de temperatura del motor manda una señal demasiado alta."
+  },
+  "P0120": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor de posición del acelerador tiene un problema eléctrico."
+  },
+  "P0121": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor del acelerador da lecturas que no cuadran."
+  },
+  "P0122": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor del acelerador manda una señal demasiado baja."
+  },
+  "P0123": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor del acelerador manda una señal demasiado alta."
+  },
+  "P0125": {
+   "sistema": "Refrigeración",
+   "texto": "El motor tarda demasiado en calentarse. Lo más común es el termostato o el sensor de temperatura."
+  },
+  "P0128": {
+   "sistema": "Refrigeración",
+   "texto": "El motor no llega a su temperatura normal. Lo más común es un termostato que queda abierto."
+  },
+  "P0130": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor de oxígeno delantero (banco 1) tiene un problema eléctrico."
+  },
+  "P0131": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor de oxígeno delantero (banco 1) manda una señal demasiado baja."
+  },
+  "P0132": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor de oxígeno delantero (banco 1) manda una señal demasiado alta."
+  },
+  "P0133": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor de oxígeno delantero (banco 1) reacciona lento. Suele ser un sensor gastado."
+  },
+  "P0134": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor de oxígeno delantero (banco 1) no da señal."
+  },
+  "P0135": {
+   "sistema": "Sensores del motor",
+   "texto": "El calefactor del sensor de oxígeno delantero (banco 1) tiene un problema eléctrico."
+  },
+  "P0136": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor de oxígeno trasero (banco 1, después del catalizador) tiene un problema eléctrico."
+  },
+  "P0137": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor de oxígeno trasero (banco 1) manda una señal demasiado baja."
+  },
+  "P0138": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor de oxígeno trasero (banco 1) manda una señal demasiado alta."
+  },
+  "P0139": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor de oxígeno trasero (banco 1) reacciona lento. Suele ser un sensor gastado."
+  },
+  "P0140": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor de oxígeno trasero (banco 1) no da señal."
+  },
+  "P0141": {
+   "sistema": "Sensores del motor",
+   "texto": "El calefactor del sensor de oxígeno trasero (banco 1) tiene un problema eléctrico."
+  },
+  "P0171": {
+   "sistema": "Combustible",
+   "texto": "La mezcla es muy pobre (mucho aire para el combustible), banco 1. Suele ser una entrada de aire falsa, el medidor de aire sucio o poca presión de bencina."
+  },
+  "P0172": {
+   "sistema": "Combustible",
+   "texto": "La mezcla es muy rica (demasiado combustible), banco 1. Puede ser un inyector que gotea, un filtro de aire tapado o un sensor defectuoso."
+  },
+  "P0174": {
+   "sistema": "Combustible",
+   "texto": "La mezcla es muy pobre (mucho aire para el combustible), banco 2. Suele ser una entrada de aire falsa, el medidor de aire sucio o poca presión de bencina."
+  },
+  "P0175": {
+   "sistema": "Combustible",
+   "texto": "La mezcla es muy rica (demasiado combustible), banco 2. Puede ser un inyector que gotea, un filtro de aire tapado o un sensor defectuoso."
+  },
+  "P0201": {
+   "sistema": "Combustible",
+   "texto": "El circuito eléctrico del inyector del cilindro 1 tiene un problema."
+  },
+  "P0202": {
+   "sistema": "Combustible",
+   "texto": "El circuito eléctrico del inyector del cilindro 2 tiene un problema."
+  },
+  "P0203": {
+   "sistema": "Combustible",
+   "texto": "El circuito eléctrico del inyector del cilindro 3 tiene un problema."
+  },
+  "P0204": {
+   "sistema": "Combustible",
+   "texto": "El circuito eléctrico del inyector del cilindro 4 tiene un problema."
+  },
+  "P0217": {
+   "sistema": "Refrigeración",
+   "texto": "El motor se recalentó. Si la aguja de temperatura está alta, detente de forma segura y no sigas manejando."
+  },
+  "P0230": {
+   "sistema": "Combustible",
+   "texto": "El circuito eléctrico de la bomba de bencina tiene un problema."
+  },
+  "P0300": {
+   "sistema": "Encendido",
+   "texto": "El motor falla en varios cilindros, o en uno distinto cada vez. Puede ser bujías, bobinas, combustible o aire. Si tiembla mucho, no lo fuerces."
+  },
+  "P0301": {
+   "sistema": "Encendido",
+   "texto": "El cilindro 1 falla (no quema bien). Revisa la bujía, la bobina y el inyector de ese cilindro."
+  },
+  "P0302": {
+   "sistema": "Encendido",
+   "texto": "El cilindro 2 falla (no quema bien). Revisa la bujía, la bobina y el inyector de ese cilindro."
+  },
+  "P0303": {
+   "sistema": "Encendido",
+   "texto": "El cilindro 3 falla (no quema bien). Revisa la bujía, la bobina y el inyector de ese cilindro."
+  },
+  "P0304": {
+   "sistema": "Encendido",
+   "texto": "El cilindro 4 falla (no quema bien). Revisa la bujía, la bobina y el inyector de ese cilindro."
+  },
+  "P0305": {
+   "sistema": "Encendido",
+   "texto": "El cilindro 5 falla (no quema bien). Revisa la bujía, la bobina y el inyector de ese cilindro."
+  },
+  "P0306": {
+   "sistema": "Encendido",
+   "texto": "El cilindro 6 falla (no quema bien). Revisa la bujía, la bobina y el inyector de ese cilindro."
+  },
+  "P0325": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor de detonación (golpeteo del motor) tiene un problema eléctrico."
+  },
+  "P0335": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor de posición del cigüeñal tiene un problema eléctrico. Si falla del todo, el motor puede no arrancar."
+  },
+  "P0336": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor del cigüeñal da lecturas que no cuadran."
+  },
+  "P0340": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor del árbol de levas tiene un problema eléctrico."
+  },
+  "P0341": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor del árbol de levas da lecturas que no cuadran."
+  },
+  "P0351": {
+   "sistema": "Encendido",
+   "texto": "El circuito de la bobina de encendido A (suele ser el cilindro 1) tiene un problema."
+  },
+  "P0352": {
+   "sistema": "Encendido",
+   "texto": "El circuito de la bobina de encendido B (suele ser el cilindro 2) tiene un problema."
+  },
+  "P0353": {
+   "sistema": "Encendido",
+   "texto": "El circuito de la bobina de encendido C (suele ser el cilindro 3) tiene un problema."
+  },
+  "P0354": {
+   "sistema": "Encendido",
+   "texto": "El circuito de la bobina de encendido D (suele ser el cilindro 4) tiene un problema."
+  },
+  "P0401": {
+   "sistema": "Escape y emisiones",
+   "texto": "La recirculación de gases (EGR) deja pasar menos gas del necesario. Suele ser una válvula tapada con hollín."
+  },
+  "P0402": {
+   "sistema": "Escape y emisiones",
+   "texto": "La recirculación de gases (EGR) deja pasar más gas del necesario."
+  },
+  "P0403": {
+   "sistema": "Escape y emisiones",
+   "texto": "El circuito de la válvula EGR tiene un problema eléctrico."
+  },
+  "P0420": {
+   "sistema": "Escape y emisiones",
+   "texto": "El catalizador (banco 1) no limpia lo suficiente. Puede estar gastado o haber un sensor de oxígeno con problemas."
+  },
+  "P0430": {
+   "sistema": "Escape y emisiones",
+   "texto": "El catalizador (banco 2) no limpia lo suficiente. Puede estar gastado o haber un sensor de oxígeno con problemas."
+  },
+  "P0440": {
+   "sistema": "Escape y emisiones",
+   "texto": "Falla en el sistema que atrapa los vapores de bencina (EVAP)."
+  },
+  "P0441": {
+   "sistema": "Escape y emisiones",
+   "texto": "El sistema de vapores de bencina (EVAP) no purga como debe."
+  },
+  "P0442": {
+   "sistema": "Escape y emisiones",
+   "texto": "Hay una fuga pequeña en el sistema de vapores de bencina (EVAP). Revisa que la tapa del estanque cierre bien."
+  },
+  "P0443": {
+   "sistema": "Escape y emisiones",
+   "texto": "La válvula de purga del sistema de vapores (EVAP) tiene un problema eléctrico."
+  },
+  "P0446": {
+   "sistema": "Escape y emisiones",
+   "texto": "La válvula de ventilación del sistema de vapores (EVAP) tiene un problema."
+  },
+  "P0455": {
+   "sistema": "Escape y emisiones",
+   "texto": "Hay una fuga grande en el sistema de vapores de bencina (EVAP). Revisa primero que la tapa del estanque esté puesta y cierre bien."
+  },
+  "P0456": {
+   "sistema": "Escape y emisiones",
+   "texto": "Hay una fuga muy pequeña en el sistema de vapores de bencina (EVAP)."
+  },
+  "P0457": {
+   "sistema": "Escape y emisiones",
+   "texto": "El sistema de vapores detecta una fuga: la tapa del estanque puede estar suelta o sin poner."
+  },
+  "P0480": {
+   "sistema": "Refrigeración",
+   "texto": "El circuito del ventilador de enfriamiento 1 tiene un problema eléctrico."
+  },
+  "P0500": {
+   "sistema": "Sensores del motor",
+   "texto": "El sensor de velocidad del auto no entrega una señal correcta."
+  },
+  "P0505": {
+   "sistema": "Sensores del motor",
+   "texto": "El control del ralentí (marcha mínima) no funciona bien."
+  },
+  "P0506": {
+   "sistema": "Sensores del motor",
+   "texto": "El ralentí está más bajo de lo esperado."
+  },
+  "P0507": {
+   "sistema": "Sensores del motor",
+   "texto": "El ralentí está más alto de lo esperado."
+  },
+  "P0560": {
+   "sistema": "Electricidad",
+   "texto": "El voltaje del sistema eléctrico no es el correcto."
+  },
+  "P0562": {
+   "sistema": "Electricidad",
+   "texto": "El voltaje del sistema eléctrico está bajo. Revisa la batería y el alternador."
+  },
+  "P0563": {
+   "sistema": "Electricidad",
+   "texto": "El voltaje del sistema eléctrico está alto. Puede ser el alternador."
+  },
+  "P0601": {
+   "sistema": "Computador",
+   "texto": "El computador del motor detectó un error en su memoria."
+  },
+  "P0606": {
+   "sistema": "Computador",
+   "texto": "El computador del motor detectó un error en su procesador."
+  },
+  "P0700": {
+   "sistema": "Transmisión",
+   "texto": "La caja automática avisó una falla. Hace falta un scanner de la marca para ver el detalle."
+  },
+  "P0705": {
+   "sistema": "Transmisión",
+   "texto": "El sensor de posición de la palanca de la caja automática tiene un problema."
+  },
+  "P0715": {
+   "sistema": "Transmisión",
+   "texto": "El sensor de velocidad de entrada de la caja automática tiene un problema."
+  },
+  "P0720": {
+   "sistema": "Transmisión",
+   "texto": "El sensor de velocidad de salida de la caja automática tiene un problema."
+  },
+  "P0730": {
+   "sistema": "Transmisión",
+   "texto": "La caja automática no está engranando bien (relación de marcha incorrecta)."
+  },
+  "P0740": {
+   "sistema": "Transmisión",
+   "texto": "El embrague del convertidor de torque de la caja automática tiene un problema eléctrico."
+  },
+  "U0100": {
+   "sistema": "Comunicación",
+   "texto": "Se perdió la comunicación con el computador del motor."
+  },
+  "U0101": {
+   "sistema": "Comunicación",
+   "texto": "Se perdió la comunicación con el computador de la caja automática."
+  },
+  "U0121": {
+   "sistema": "Comunicación",
+   "texto": "Se perdió la comunicación con el módulo de frenos ABS."
+  },
+  "U0140": {
+   "sistema": "Comunicación",
+   "texto": "Se perdió la comunicación con el módulo de la carrocería."
+  },
+  "U0155": {
+   "sistema": "Comunicación",
+   "texto": "Se perdió la comunicación con el tablero de instrumentos."
+  }
+ }
+}

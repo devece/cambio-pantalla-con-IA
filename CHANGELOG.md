@@ -26,6 +26,9 @@ Cómo se publica una versión: `docs/RELEASE.md`.
   emisora anterior, siguiente y play/pausa. Si la radio FM está sonando, el botón Radio y la tarjeta del inicio abren esta
   pantalla; si no, abren su app de siempre. Depende de que la app de radio de tu equipo publique la emisora (muchas lo
   hacen, algunas no): si no la publica, la pantalla lo explica y ofrece abrir su app. Pide una vez el acceso a las notificaciones.
+- **Diagnóstico de la radio** (Ajustes → Diagnóstico de la radio): muestra qué Android y qué pantalla tiene tu radio, si su
+  radio FM publica la emisora y qué código manda cada botón del volante al apretarlo. Se puede copiar o compartir para
+  reportar un problema, sin adb ni Android Studio. No lleva tu nombre ni tu ubicación.
 
 ### Cambiado
 - En el botón de música de la pantalla, si no hay música sonando ahora avisa qué hacer en vez de no hacer nada.

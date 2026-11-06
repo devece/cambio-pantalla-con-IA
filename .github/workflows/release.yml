@@ -1,0 +1,157 @@
+name: Release
+
+# Publica una versión de la app de la radio: APK firmado en GitHub Releases, con las notas de CHANGELOG.md.
+# Se dispara al crear una etiqueta vX.Y.Z (por ejemplo v1.0.0). Pasos y requisitos: docs/RELEASE.md.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+# Dos etiquetas seguidas no se pisan: la segunda espera a la primera.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write   # para crear el Release y subir el APK
+    env:
+      REF_NAME: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # para comprobar que la etiqueta está en main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Todo lo que puede fallar por descuido se revisa antes de gastar 15 minutos compilando.
+      - name: Revisar la versión y las notas
+        id: version
+        run: |
+          VERSION="${REF_NAME#v}"
+          CODE="$(node scripts/changelog.js code "$VERSION")"
+          node scripts/changelog.js notes "$VERSION" > "$RUNNER_TEMP/notas.md"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "Versión $VERSION (versionCode $CODE). Notas:"
+          cat "$RUNNER_TEMP/notas.md"
+
+      - name: Revisar que la etiqueta está en main
+        run: |
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::La etiqueta $REF_NAME no está en main. Une tus cambios a main y crea la etiqueta desde ahí."
+            exit 1
+          fi
+
+      - name: Revisar que está la clave de firma
+        env:
+          KS: ${{ secrets.TB_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.TB_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.TB_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.TB_KEY_PASSWORD }}
+        run: |
+          for v in KS KS_PASS KEY_ALIAS KEY_PASS; do
+            if [ -z "${!v}" ]; then
+              echo "::error::Falta un secreto de firma. Una versión publicada siempre va firmada: sigue docs/FIRMA_APK.md."
+              exit 1
+            fi
+          done
+
+      - name: Instalar dependencias del servidor
+        run: npm ci --omit=dev
+
+      - name: Pruebas del sitio y del servidor
+        run: npm test
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: SDK de Android
+        run: |
+          SDKM="$(command -v sdkmanager || echo "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager")"
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" "platforms;android-34" "build-tools;34.0.0"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Pruebas de las reglas (sin Android)
+        working-directory: android
+        run: ./gradlew --no-daemon :core:test
+
+      - name: Preparar la firma
+        env:
+          KS: ${{ secrets.TB_KEYSTORE_B64 }}
+        run: echo "$KS" | base64 -d > "$RUNNER_TEMP/tablero.jks"
+
+      - name: Compilar el APK firmado
+        working-directory: android
+        env:
+          TB_KEYSTORE_FILE: ${{ runner.temp }}/tablero.jks
+          TB_KEYSTORE_PASSWORD: ${{ secrets.TB_KEYSTORE_PASSWORD }}
+          TB_KEY_ALIAS: ${{ secrets.TB_KEY_ALIAS }}
+          TB_KEY_PASSWORD: ${{ secrets.TB_KEY_PASSWORD }}
+        run: |
+          ./gradlew --no-daemon :app:assembleRelease \
+            -PtableroApiBase=https://tablero-pearl.vercel.app \
+            -PtableroVersion="${{ steps.version.outputs.version }}" \
+            -PtableroVersionCode="${{ steps.version.outputs.code }}"
+
+      - name: Revisar el APK (versión, firma y datos)
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          BT="$ANDROID_HOME/build-tools/34.0.0"
+
+          # Que lleve la versión de la etiqueta: si no, las radios no se actualizarían encima.
+          "$BT/aapt2" dump badging "$APK" > badging.txt
+          grep -q "versionName='${{ steps.version.outputs.version }}'" badging.txt || { echo "::error::El APK no trae la versión ${{ steps.version.outputs.version }}"; exit 1; }
+          grep -q "versionCode='${{ steps.version.outputs.code }}'" badging.txt || { echo "::error::El APK no trae el versionCode ${{ steps.version.outputs.code }}"; exit 1; }
+
+          # Firmado con la clave fija (no la de prueba).
+          "$BT/apksigner" verify --print-certs "$APK" | tee firma.txt
+          grep -q "Signer #1 certificate DN" firma.txt || { echo "::error::El APK no está firmado"; exit 1; }
+          if grep -qi "CN=Android Debug" firma.txt; then echo "::error::El APK está firmado con la clave de prueba"; exit 1; fi
+
+          # Que traiga sus datos y la pantalla de inicio (como en el workflow Android).
+          unzip -l "$APK" > contenido.txt
+          for f in editions maintenance restriction; do
+            grep -q "assets/$f.json" contenido.txt || { echo "::error::Falta assets/$f.json dentro del APK"; exit 1; }
+          done
+          for f in launcher.html css/preview.css js/preview.js js/launcher.js js/art.js js/themes.js js/fx.js shared/catalog.js shared/daylight.js img/auto.png; do
+            grep -q "assets/web/$f" contenido.txt || { echo "::error::Falta assets/web/$f dentro del APK"; exit 1; }
+          done
+          echo "El APK está firmado, trae la versión correcta y sus datos."
+
+      - name: Dejar el APK con su nombre y su huella
+        run: |
+          NAME="tablero-${{ steps.version.outputs.version }}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "$NAME"
+          sha256sum "$NAME" > "$NAME.sha256"
+          cat "$NAME.sha256"
+
+      - name: Publicar el Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Tablero ${{ steps.version.outputs.version }}
+          body_path: ${{ runner.temp }}/notas.md
+          files: |
+            tablero-${{ steps.version.outputs.version }}.apk
+            tablero-${{ steps.version.outputs.version }}.apk.sha256
+          prerelease: false
+          make_latest: 'true'
+          fail_on_unmatched_files: true
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: reportes-de-error
+          path: |
+            android/core/build/reports/tests
+            android/app/build/reports

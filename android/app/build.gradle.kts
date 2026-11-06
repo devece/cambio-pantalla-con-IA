@@ -11,8 +11,9 @@ android {
         applicationId = "cl.tablero.launcher"
         minSdk = 21 // las radios chinas de auto suelen traer Android 5 a 10
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        // En un release el workflow las pasa desde la etiqueta (-PtableroVersion=1.2.3 -PtableroVersionCode=10203); a mano, estas.
+        versionCode = providers.gradleProperty("tableroVersionCode").map { it.toInt() }.getOrElse(1)
+        versionName = providers.gradleProperty("tableroVersion").getOrElse("0.1.0")
 
         // Dónde corre /api/license. Cámbialo con -PtableroApiBase=https://tu-dominio.com
         val apiBase = providers.gradleProperty("tableroApiBase").getOrElse("https://TU-DOMINIO.vercel.app")
@@ -69,7 +70,7 @@ android.sourceSets.getByName("main").assets.srcDir(
 // para que funcione sin internet y siempre dibuje igual que la vista previa.
 val copyWeb = tasks.register<Copy>("copyWeb") {
     from(rootProject.file("../public")) {
-        include("launcher.html", "css/preview.css", "js/art.js", "js/themes.js", "js/fx.js", "js/preview.js", "js/launcher.js", "shared/catalog.js", "img/auto.png", "img/camioneta.png")
+        include("launcher.html", "css/preview.css", "js/art.js", "js/themes.js", "js/fx.js", "js/preview.js", "js/launcher.js", "shared/catalog.js", "shared/daylight.js", "img/auto.png", "img/camioneta.png")
     }
     into(layout.buildDirectory.dir("generated/web/web"))
 }

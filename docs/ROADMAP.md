@@ -18,3 +18,4 @@ Antes de cobrar se publica una versión gratis con funciones limitadas (ver `FRE
 - Procesar la foto de fondo (hoy se queda en el navegador y el complemento está oculto).
 - Panel simple para ver pedidos y reenviar códigos.
 - Confirmar precios con costos reales y soporte postventa.
+- **Conexión OBD (el "Taller")**: km automático, datos del motor y códigos de falla. Plan por fases en [`PLAN_OBD.md`](PLAN_OBD.md).

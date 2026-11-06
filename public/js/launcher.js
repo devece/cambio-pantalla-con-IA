@@ -40,8 +40,31 @@
   const bridge = (fn, arg) => { try { if (window.Android && typeof window.Android[fn] === 'function') window.Android[fn](arg); } catch (e) { /* sin puente: probando en un navegador */ } };
   const hourNight = () => { const h = new Date().getHours(); return h >= 19 || h < 7; };
 
+  /* ---------- día y noche por la hora del sol ---------- */
+  // Dónde está el auto: el último GPS (se guarda para el próximo arranque, aunque aún no haya señal); si nunca hubo, Santiago.
+  const SANTIAGO = { lat: -33.45, lon: -70.65 };
+  const D = window.TBDaylight;
+  const loadPlace = () => {
+    try {
+      const p = JSON.parse(localStorage.getItem('tb-place'));
+      if (p && Math.abs(p.lat) <= 90 && Math.abs(p.lon) <= 180) return p;
+    } catch (e) { /* sin almacenamiento: se usa Santiago */ }
+    return { lat: SANTIAGO.lat, lon: SANTIAGO.lon };
+  };
+  let place = loadPlace();
+  function rememberPlace(lat, lon) {
+    // Con moverse unos kilómetros el amanecer casi no cambia: no se escribe en cada fix del GPS.
+    if (Math.abs(place.lat - lat) < 0.5 && Math.abs(place.lon - lon) < 0.5 && place.known) return;
+    place = { lat, lon, known: true };
+    try { localStorage.setItem('tb-place', JSON.stringify(place)); } catch (e) { /* sin almacenamiento */ }
+  }
+  /** Noche según el sol; sin el cálculo (algo falló al cargar) vuelve a la hora fija de antes. */
+  const sunNight = () => (D ? D.isNight(new Date(), place.lat, place.lon) : hourNight());
+  // El fondo "automático" (amanecer, día, atardecer, noche) sigue al sol en la radio.
+  if (D) TB.sunPhase = () => D.phase(new Date(), place.lat, place.lon);
+
   let state = defaults();
-  const ui = { step: 1, screen: 'inicio', night: hourNight() };
+  const ui = { step: 1, screen: 'inicio', night: sunNight() };
   let nightForced = null; // true/false si la radio avisa que las luces del auto están (o no) encendidas
   let mounted = false;
 
@@ -66,7 +89,7 @@
 
   function render() {
     if (!mounted) return;
-    ui.night = nightForced === null ? hourNight() : nightForced;
+    ui.night = nightForced === null ? sunNight() : nightForced;
     TB.preview.render(state, ui);
   }
 
@@ -126,7 +149,12 @@
       setDesign(design);
     },
     setSpeed(kmh) { app.speed = Number(kmh) || 0; },
-    setLocation(lat, lon) { if (isFinite(lat) && isFinite(lon)) loadWeather(lat, lon); },
+    setLocation(lat, lon) {
+      if (!isFinite(lat) || !isFinite(lon)) return;
+      rememberPlace(lat, lon);
+      loadWeather(lat, lon);
+      if (mounted && nightForced === null && ui.night !== sunNight()) render();
+    },
     setMusic(json) {
       try { app.music = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }
       if (TB.preview.updateMusic) TB.preview.updateMusic();
@@ -148,7 +176,7 @@
 
   document.getElementById('key').addEventListener('click', () => bridge('open', 'activate'));
   document.querySelector('[data-gear]').addEventListener('click', () => bridge('open', 'settings'));
-  setInterval(() => { if (mounted && nightForced === null && ui.night !== hourNight()) render(); }, 60000);
+  setInterval(() => { if (mounted && nightForced === null && ui.night !== sunNight()) render(); }, 60000);
 
   // Para probar en un navegador: launcher.html?demo=1
   if (/[?&]demo=1/.test(location.search)) {

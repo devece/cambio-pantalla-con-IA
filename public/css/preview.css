@@ -130,6 +130,8 @@
 .scr .alert { position: absolute; left: 50%; top: 5px; transform: translateX(-50%); z-index: 6; background: #d2352b; color: #fff; font-weight: 700; font-size: 20px;
   padding: 4px 24px; border-radius: 99px; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
 .scr .alert[hidden] { display: none; }
+/* En Consola la barra superior tiene hora, fecha y clima: la etiqueta se achica y se corre para no taparlos */
+.scr[data-layout='consola'] .alert { left: 53%; font-size: 17px; padding: 3px 16px; }
 
 /* ---- Dock ---- */
 .scr .dock { position: absolute; left: 0; right: 0; bottom: 0; height: 92px; z-index: 5; display: flex; justify-content: space-around; align-items: center; padding: 0 14px;

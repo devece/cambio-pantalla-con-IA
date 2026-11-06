@@ -2,8 +2,8 @@
   "version": 1,
   "_nota": "Qué incluye cada edición del launcher. 'free' es la edición gratis (sin código); 'esencial' y 'completo' son los planes de catalog.js que desbloquea un código de licencia. '*' = sin límite. El sitio y el launcher Android leen este mismo archivo.",
   "free": {
-    "themes": ["ruta"],
-    "layouts": ["tarjetas", "minimal"],
+    "themes": ["ruta", "sobrio"],
+    "layouts": ["tarjetas", "minimal", "consola"],
     "scenes": ["tema", "color"],
     "seasons": ["ninguna"],
     "maxApps": 2,
@@ -19,7 +19,7 @@
     }
   },
   "esencial": {
-    "themes": ["ruta", "papel", "cristal"],
+    "themes": ["sobrio", "ruta", "papel", "cristal"],
     "layouts": "*",
     "scenes": "*",
     "seasons": ["ninguna"],

@@ -1,0 +1,407 @@
+{
+ "descripcion": "Casos de prueba que no dependen del lenguaje. 'fecha' es hora local (AAAA-MM-DDTHH:MM). Cada implementación debe dar exactamente lo esperado.",
+ "campos": [
+  "expired",
+  "notStarted",
+  "inSeason",
+  "restricted",
+  "inHours",
+  "remaining"
+ ],
+ "reglas": [
+  {
+   "nombre": "Bogotá: día impar, placa 7 (restringen 6-0)",
+   "ciudad": "bogota",
+   "digito": 7,
+   "fecha": "2026-09-21T10:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": true,
+    "remaining": true
+   }
+  },
+  {
+   "nombre": "Bogotá: día impar, placa 3 (circula)",
+   "ciudad": "bogota",
+   "digito": 3,
+   "fecha": "2026-09-21T10:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": false,
+    "inHours": true,
+    "remaining": true
+   }
+  },
+  {
+   "nombre": "Bogotá: día par, placa 3 (restringen 1-5)",
+   "ciudad": "bogota",
+   "digito": 3,
+   "fecha": "2026-09-22T10:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": true,
+    "remaining": true
+   }
+  },
+  {
+   "nombre": "Bogotá: sábado no rige",
+   "ciudad": "bogota",
+   "digito": 7,
+   "fecha": "2026-09-26T10:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": false,
+    "inHours": true,
+    "remaining": true
+   }
+  },
+  {
+   "nombre": "Bogotá: después del horario",
+   "ciudad": "bogota",
+   "digito": 7,
+   "fecha": "2026-09-21T22:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": false,
+    "remaining": false
+   }
+  },
+  {
+   "nombre": "Bogotá: antes del horario",
+   "ciudad": "bogota",
+   "digito": 7,
+   "fecha": "2026-09-21T05:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": false,
+    "remaining": true
+   }
+  },
+  {
+   "nombre": "Quito: martes, placa 3, franja de la mañana",
+   "ciudad": "quito",
+   "digito": 3,
+   "fecha": "2026-06-23T07:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": true,
+    "remaining": true
+   }
+  },
+  {
+   "nombre": "Quito: martes, placa 3, entre franjas",
+   "ciudad": "quito",
+   "digito": 3,
+   "fecha": "2026-06-23T11:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": false,
+    "remaining": true
+   }
+  },
+  {
+   "nombre": "Quito: martes, placa 3, ya pasó todo",
+   "ciudad": "quito",
+   "digito": 3,
+   "fecha": "2026-06-23T21:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": false,
+    "remaining": false
+   }
+  },
+  {
+   "nombre": "Quito: martes, placa 5 (no le toca)",
+   "ciudad": "quito",
+   "digito": 5,
+   "fecha": "2026-06-23T07:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": false,
+    "inHours": true,
+    "remaining": true
+   }
+  },
+  {
+   "nombre": "Quito: viernes, placa 9",
+   "ciudad": "quito",
+   "digito": 9,
+   "fecha": "2026-06-26T17:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": true,
+    "remaining": true
+   }
+  },
+  {
+   "nombre": "Medellín: lunes, placa 5",
+   "ciudad": "medellin",
+   "digito": 5,
+   "fecha": "2026-12-28T10:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": true,
+    "remaining": true
+   }
+  },
+  {
+   "nombre": "Medellín: regla vencida",
+   "ciudad": "medellin",
+   "digito": 5,
+   "fecha": "2027-01-04T10:00",
+   "esperado": {
+    "expired": true,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": false,
+    "inHours": true,
+    "remaining": true
+   }
+  },
+  {
+   "nombre": "Medellín: antes de que empiece la regla",
+   "ciudad": "medellin",
+   "digito": 5,
+   "fecha": "2026-07-27T10:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": true,
+    "inSeason": true,
+    "restricted": false,
+    "inHours": true,
+    "remaining": true
+   }
+  },
+  {
+   "nombre": "Cali: lunes, placa 9, dentro del horario",
+   "ciudad": "cali",
+   "digito": 9,
+   "fecha": "2026-11-02T08:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": true,
+    "remaining": true
+   }
+  },
+  {
+   "nombre": "Cali: lunes, placa 9, 19:30 ya terminó",
+   "ciudad": "cali",
+   "digito": 9,
+   "fecha": "2026-11-02T19:30",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": false,
+    "remaining": false
+   }
+  },
+  {
+   "nombre": "Santiago con sello: lunes de junio, placa 8",
+   "ciudad": "santiago",
+   "digito": 8,
+   "fecha": "2026-06-01T10:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": true,
+    "remaining": true
+   },
+   "clase": "sello"
+  },
+  {
+   "nombre": "Santiago con sello: 7:00 todavía no rige",
+   "ciudad": "santiago",
+   "digito": 8,
+   "fecha": "2026-06-01T07:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": false,
+    "remaining": true
+   },
+   "clase": "sello"
+  },
+  {
+   "nombre": "Santiago con sello: fuera de temporada",
+   "ciudad": "santiago",
+   "digito": 8,
+   "fecha": "2026-09-21T10:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": false,
+    "restricted": false,
+    "inHours": true,
+    "remaining": true
+   },
+   "clase": "sello"
+  },
+  {
+   "nombre": "Santiago con sello: placa 1 el lunes (no le toca)",
+   "ciudad": "santiago",
+   "digito": 1,
+   "fecha": "2026-06-01T10:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": false,
+    "inHours": true,
+    "remaining": true
+   },
+   "clase": "sello"
+  },
+  {
+   "nombre": "Santiago sin sello: lunes, placa 6",
+   "ciudad": "santiago",
+   "digito": 6,
+   "fecha": "2026-06-01T10:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": true,
+    "remaining": true
+   },
+   "clase": "sin"
+  },
+  {
+   "nombre": "Santiago sin sello: lunes, placa 1 (queda por la prohibición del anillo)",
+   "ciudad": "santiago",
+   "digito": 1,
+   "fecha": "2026-06-01T10:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": true,
+    "inHours": true,
+    "remaining": true
+   },
+   "clase": "sin"
+  },
+  {
+   "nombre": "Santiago sin sello: sábado no rige",
+   "ciudad": "santiago",
+   "digito": 1,
+   "fecha": "2026-06-06T10:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": false,
+    "inHours": true,
+    "remaining": true
+   },
+   "clase": "sin"
+  },
+  {
+   "nombre": "Santiago inscrito desde 2011: sin restricción permanente",
+   "ciudad": "santiago",
+   "digito": 8,
+   "fecha": "2026-06-01T10:00",
+   "esperado": {
+    "expired": false,
+    "notStarted": false,
+    "inSeason": true,
+    "restricted": false,
+    "inHours": true,
+    "remaining": true
+   },
+   "clase": "nuevo"
+  }
+ ],
+ "geo": [
+  {
+   "lat": 4.65,
+   "lon": -74.08,
+   "pais": "CO",
+   "ciudad": "bogota"
+  },
+  {
+   "lat": 6.25,
+   "lon": -75.57,
+   "pais": "CO",
+   "ciudad": "medellin"
+  },
+  {
+   "lat": 3.45,
+   "lon": -76.53,
+   "pais": "CO",
+   "ciudad": "cali"
+  },
+  {
+   "lat": -0.18,
+   "lon": -78.47,
+   "pais": "EC",
+   "ciudad": "quito"
+  },
+  {
+   "lat": -33.45,
+   "lon": -70.66,
+   "pais": "CL",
+   "ciudad": "santiago"
+  },
+  {
+   "lat": 4.65,
+   "lon": -74.08,
+   "pais": "EC",
+   "ciudad": null
+  },
+  {
+   "lat": -33.45,
+   "lon": -70.66,
+   "pais": "CO",
+   "ciudad": null
+  },
+  {
+   "lat": -41.47,
+   "lon": -72.94,
+   "pais": "CL",
+   "ciudad": null
+  }
+ ]
+}

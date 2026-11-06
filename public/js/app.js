@@ -16,14 +16,14 @@
   const defaults = () => ({
     radio: { type: null, model: '', screen: null, analysis: null },
     car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', phrase: '', plate: '', photo: null, photoCut: false, photoNight: null },
-    style: { theme: 'ruta', layout: 'tarjetas', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
+    style: { theme: 'sobrio', layout: 'consola', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
       oilOn: true, odometer: 45000, lastOil: 42000, oilEvery: 5000,
       others: ['neumaticos'], docsOn: true, rtMonth: 6,
       fuelOn: false, tankL: 45, kmPerL: 12,
-      speedShow: true, speedAlert: 'auto', manualLimit: 60, restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: true, miles: false, gallons: false,
+      speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: true, miles: false, gallons: false,
     },
-    plan: 'esencial',
+    plan: 'completo',
     addons: {},
     contact: { kind: 'whatsapp', value: '' },
     terms: false,
@@ -74,6 +74,7 @@
   };
 
   /* ---------- catálogos para las opciones ---------- */
+  const TB_PICO = window.TBPico;
   const CHOICES = {
     'radio.type': () => [
       { id: 'android', thumb: TB.radioThumbs.android, name: 'Pantalla grande con apps', desc: 'Se instaló después. Tiene Play Store, YouTube, Waze o similares.' },
@@ -97,6 +98,7 @@
       { id: 'off', name: 'Sin aviso' },
     ],
     'features.restrType': () => C.restriction.types,
+    'features.country': () => TB_PICO.countries.map((c) => ({ id: c.id, name: c.name })),
     plan: () => C.plans.map((p) => ({ id: p.id, name: p.name, desc: p.blurb, price: p.price })),
     'contact.kind': () => [
       { id: 'whatsapp', name: 'WhatsApp' },
@@ -167,25 +169,19 @@
 
   const vehicleLevel = () => TB.vehicleLevel[state.car.type] || 0;
   const VEHICLE_HINT = {
-    '4x4': 'Te armamos un estilo 4x4: diseño Todoterreno y escena de barro. Puedes cambiar todo abajo.',
-    suv: 'Te pusimos la escena de montaña. Puedes cambiarla abajo.',
+    '4x4': 'Con la 4x4 se desbloquean el diseño Todoterreno y las escenas de barro, rocas y nieve. Tu diseño no cambia: tú eliges.',
+    suv: 'Con SUV se desbloquea la escena de montaña.',
     camioneta: 'Con camioneta se desbloquea la escena de montaña.',
   };
+  /** Elegir el tipo de vehículo NO cambia tu diseño: solo desbloquea opciones y devuelve a lo básico lo que ya no te corresponde. */
   function applyVehicle() {
     const lv = vehicleLevel();
-    const t = state.car.type;
-    if (t === '4x4') { state.style.layout = 'todoterreno'; state.style.scene = 'barro'; }
-    else if (t === 'suv' || t === 'camioneta') {
-      if (state.style.layout === 'todoterreno') state.style.layout = 'tarjetas';
-      state.style.scene = 'montana';
-    } else {
-      if (state.style.layout === 'todoterreno') state.style.layout = 'tarjetas';
-      const sc = TB.scenes.find((s) => s.id === state.style.scene);
-      if (sc && sc.level > lv) state.style.scene = 'tema';
-    }
+    if (state.style.layout === 'todoterreno' && state.car.type !== '4x4') state.style.layout = 'consola';
+    const sc = TB.scenes.find((x) => x.id === state.style.scene);
+    if (sc && sc.level > lv) state.style.scene = 'tema';
     const hint = $('#vt-hint');
-    hint.textContent = VEHICLE_HINT[t] || '';
-    hint.hidden = !VEHICLE_HINT[t];
+    hint.textContent = VEHICLE_HINT[state.car.type] || '';
+    hint.hidden = !VEHICLE_HINT[state.car.type];
   }
 
   function syncChoices() {
@@ -248,10 +244,26 @@
     if (!sel.options.length) sel.innerHTML = '<option value="">Elige un dígito</option>' + [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => `<option value="${d}">${d}</option>`).join('');
     sel.value = f.restrDigit;
     $('#restr-year').textContent = r.year;
+    const country = TB_PICO.countryOf(f.country);
+    $('#restr-label').textContent = country.label;
+    $('#restr-digit-field').hidden = f.country === 'CL' && f.restrType === 'nuevo';
     $$('[data-show-not]').forEach((el) => {
       const [p, v] = el.dataset.showNot.split('=');
       el.hidden = String(get(state, p)) === v;
     });
+    if (f.country !== 'CL') {
+      const list = TB_PICO.citiesOf(f.country);
+      $('#pico-hint').textContent = `La radio usa el GPS: cuando entres a ${list.map((c) => c.name).join(', ').replace(/, ([^,]*)$/, ' o $1')} te avisa si ese día te toca. En el resto de ${country.name} no te molesta.`;
+      const n2 = $('#restr-note');
+      if (f.restrDigit === '') {
+        n2.className = 'note warn';
+        n2.textContent = 'Elige el último dígito de tu patente para calcular tu día.';
+      } else {
+        n2.className = 'note';
+        n2.textContent = list.map((c) => TB_PICO.describe(c, f.restrDigit)).join('\n\n');
+      }
+      return;
+    }
     const n = $('#restr-note');
     const win = `Rige del ${r.season.from} al ${r.season.to}, ${r.season.days}, de ${r.season.hours}.`;
     let cls = '';
@@ -307,7 +319,7 @@
     if (f.fuelOn) feats.push('combustible');
     if (f.speedAlert !== 'off') feats.push('aviso de velocidad');
     if (f.voice) feats.push('saludo por voz');
-    if (f.restrOn && f.restrDays.length) feats.push('restricción vehicular');
+    if (f.restrOn && (f.country === 'CL' ? f.restrDays.length : f.restrDigit !== '')) feats.push(TB_PICO.countryOf(f.country).label);
     const radio = { android: 'Android de pantalla grande', nose: 'Por confirmar', original: 'Original del auto (no compatible)' }[state.radio.type] || 'Sin elegir';
     const apps = state.style.apps.map((id) => (TB.apps.find((a) => a.id === id) || {}).name).filter(Boolean);
     const rows = [
@@ -321,7 +333,7 @@
     ];
     $('#summary').innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
     const q = O.quote(state);
-    $('#total').textContent = O.money(q.total);
+    $('#total').textContent = q.total > 0 ? O.money(q.total) : 'Gratis';
     $('#pay').textContent = (TB.site || {}).payment === 'transfer' ? `Pagar ${O.money(q.total)} por transferencia` : (TB.site || {}).payment === 'contact' ? `Pedir mi pantalla · ${O.money(q.total)}` : `Pagar ${O.money(q.total)}`;
   }
 
@@ -352,10 +364,13 @@
     $('#bg-mode').hidden = !state.style.bg;
   }
 
+  const PHONE_EXAMPLE = { CL: '+56 9 1234 5678', CO: '+57 300 123 4567', EC: '+593 99 123 4567' };
   function update() {
-    state.features.restrDays = O.restrDaysFor(state.features);
+    state.features.restrDays = state.features.country === 'CL' ? O.restrDaysFor(state.features) : [];
     applyConstraints();
     TB.preview.render(state, ui);
+    const tel = document.querySelector('input[type=tel][data-bind="contact.value"]');
+    if (tel) tel.placeholder = PHONE_EXAMPLE[state.features.country] || PHONE_EXAMPLE.CL;
     syncChoices();
     syncBindings();
     showHide();
@@ -452,6 +467,16 @@
 
     $('#restr-demo').addEventListener('click', () => {
       const f = state.features;
+      if (f.country !== 'CL') {
+        const box2 = $('#restr-note');
+        const city = TB_PICO.citiesOf(f.country).find((c) => f.restrDigit !== '' && TB_PICO.sampleDate(c, f.restrDigit));
+        if (!city) { box2.className = 'note warn'; box2.textContent = f.restrDigit === '' ? 'Elige el último dígito de tu patente para ver el aviso.' : 'No encontramos un día cercano en que te toque con la regla guardada (puede haber vencido).'; return; }
+        const n2 = TB_PICO.notice(city, f.restrDigit, TB_PICO.sampleDate(city, f.restrDigit));
+        ui.screen = 'inicio';
+        update();
+        if (n2) TB.preview.showZoneNotice(n2);
+        return;
+      }
       // Ejemplo: un día de tu restricción, en plena temporada y a media mañana.
       const ctx = { weekday: f.restrDays[0] || 'lun', month: 6, minutes: 9 * 60 };
       const n = O.restrictionNotice(f, ctx);
@@ -850,7 +875,7 @@
     const done = $('#pay-done');
     done.hidden = false;
     done.innerHTML = `<b>Pedido ${esc(data.orderId)}</b>
-      <p>Tu pedido está listo por <b>${esc(O.money(data.total))}</b>. El pago se coordina en el contacto de <b>${esc(web.name || 'Daniexpress')}</b>: allá te indican cómo pagar y, cuando confirman el pago, te mandan tu código.</p>
+      <p>Tu pedido está listo. Tu pantalla es <b>gratis</b>. Envíaselo a <b>${esc(web.name || 'Daniexpress')}</b> y ellos te mandan tu código de activación.</p>
       <ol class="mini-steps">
         <li>Copia tu pedido (botón de abajo).</li>
         <li>Ábrelo en ${esc(web.name || 'Daniexpress')} y pégalo en el mensaje de contacto.</li>
@@ -945,11 +970,10 @@
     $('#contact-links').innerHTML = links.join('') || 'Pronto publicaremos aquí nuestros datos de contacto.';
     const extra = [site.supportEmail && 'por correo', site.instagram && 'por Instagram'].filter(Boolean).join(' o ');
     const how = web ? `Contáctanos en ${web.name}${extra ? ' o ' + extra : ''}` : extra ? `Escríbenos ${extra}` : '';
-    if (how) $('#contact-text').textContent = `${how} y te respondemos. Cuando se apruebe tu pago te damos un WhatsApp de soporte.`;
-    if (site.freeUrl) { $('#free-link').href = site.freeUrl; $('#free-option').hidden = false; }
+    if (how) $('#contact-text').textContent = `${how} y te respondemos. Te respondemos por WhatsApp.`;
     const plans = C.plans;
     const prices = plans ? Object.values(plans).map((p) => p.price).filter((n) => typeof n === 'number') : [];
-    if (prices.length) $('#price-from').textContent = 'Desde ' + O.money(Math.min(...prices));
+    if (prices.length) $('#price-from').textContent = Math.min(...prices) > 0 ? 'Desde ' + O.money(Math.min(...prices)) : 'Gratis.';
 
     load();
     build();

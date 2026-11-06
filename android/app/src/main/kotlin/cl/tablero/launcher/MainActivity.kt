@@ -66,7 +66,7 @@ class MainActivity : Activity() {
             val kmh = if (location.hasSpeed()) (location.speed * 3.6f).roundToInt() else 0
             showSpeed(kmh)
             web?.setSpeed(kmh)
-            web?.setLocation(location.latitude, location.longitude)
+            web?.setLocation(location.latitude, location.longitude, if (location.hasBearing()) location.bearing else -1f)
             checkZone(location.latitude, location.longitude)
         }
 

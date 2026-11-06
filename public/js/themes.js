@@ -8,6 +8,19 @@
 
   TB.themes = [
     {
+      id: 'sobrio',
+      name: 'Sobrio',
+      desc: 'Plano y limpio, de alto contraste. Oscuro de noche y claro de día.',
+      tier: 'base',
+      scene: 'none',
+      radius: 24,
+      blur: 0,
+      shadow: 'none',
+      swatch: ['#1b1d22', '#ff3a1a'],
+      day: { bg1: '#e8ecf1', bg2: '#e8ecf1', ink: '#14171c', ink2: '#5d6672', card: '#ffffff', line: 'rgba(20,23,28,.06)', accent: '#ff3a1a', accentInk: '#ffffff', sceneRgb: '0,0,0' },
+      night: { bg1: '#0d0e11', bg2: '#0d0e11', ink: '#f5f6f8', ink2: '#8e95a0', card: '#1a1c21', line: 'rgba(255,255,255,.05)', accent: '#ff3a1a', accentInk: '#ffffff', sceneRgb: '255,255,255' },
+    },
+    {
       id: 'ruta',
       name: 'Ruta',
       desc: 'Vidrio sobre un degradado vivo. Moderno y limpio.',
@@ -114,6 +127,7 @@
   ];
 
   TB.layouts = [
+    { id: 'consola', name: 'Consola', desc: 'Tu auto, mapa en vivo, música con progreso y accesos a Android Auto y CarPlay.' },
     { id: 'estelar', name: 'Estelar', desc: 'Tu auto con reflejo y luces en movimiento, reloj grande y reproductor de música.' },
     { id: 'tarjetas', name: 'Tarjetas', desc: 'Clima, radio y música a la vista.' },
     { id: 'centro', name: 'Auto al centro', desc: 'Tu auto como protagonista.' },

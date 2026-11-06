@@ -182,7 +182,7 @@ class SettingsActivity : Activity() {
         section("Botones del volante")
         wheelKeys = c.wheelKeys
         form.addView(TextView(this).apply {
-            text = "Elige qué hace cada botón de tu volante mientras LiteDash está al frente. Los que no asignes hacen lo de siempre."
+            text = "Elige qué hace cada botón de tu volante mientras Tablero está al frente. Los que no asignes hacen lo de siempre."
             setTextColor(Ui.SUB)
         })
         wheelList = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }

@@ -1,0 +1,12 @@
+CC0 1.0 Universal (dedicación al dominio público)
+
+Los datos de este paquete (data/restricciones.json y pruebas/casos.json) se entregan
+bajo CC0 1.0 Universal: la persona que los reunió renuncia, en la medida que la ley
+lo permita, a todos sus derechos sobre ellos, para que cualquiera pueda copiarlos,
+modificarlos, distribuirlos y usarlos, incluso con fines comerciales, sin pedir permiso.
+
+Texto legal completo: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+Los datos se entregan «tal cual», sin garantía de ningún tipo. Las reglas de circulación
+cambian y pueden estar desactualizadas o equivocadas: confirma siempre con la autoridad
+de tránsito de tu ciudad (ver aviso en el archivo de datos y en docs/FUENTES.md).

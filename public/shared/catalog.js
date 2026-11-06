@@ -1,7 +1,6 @@
 /*
  * Catálogo compartido entre el navegador y el servidor (api/).
- * Los precios están en dólares (USD) y se guardan en CENTAVOS (300 = US$ 3,00).
- * Los PRECIOS SON DE EJEMPLO: confírmalos tú antes de vender.
+ * Por ahora todo es GRATIS (precio 0). Si más adelante vuelves a cobrar, cambia los precios aquí.
  * El servidor siempre recalcula el total con este archivo; nunca confía en el precio que manda el navegador.
  */
 (function (root, factory) {
@@ -12,14 +11,14 @@
     {
       id: 'esencial',
       name: 'Esencial',
-      price: 300,
-      blurb: 'Tu pantalla con 3 diseños visuales y todas las funciones de manejo.',
+      price: 0,
+      blurb: 'Tu pantalla con diseños básicos y todas las funciones de manejo.',
     },
     {
       id: 'completo',
       name: 'Completo',
-      price: 800,
-      blurb: 'Los 8 diseños visuales, decoraciones de temporada y cambios ilimitados.',
+      price: 0,
+      blurb: 'Todos los diseños visuales y las decoraciones de temporada.',
     },
   ];
 
@@ -36,6 +35,7 @@
 
   // 'base' viene en Esencial; 'plus' requiere el plan Completo.
   const themeTiers = {
+    sobrio: 'base',
     ruta: 'base',
     papel: 'base',
     cristal: 'base',
@@ -48,7 +48,7 @@
 
   const seasons = ['ninguna', 'auto', 'patrias', 'halloween', 'navidad', 'anonuevo'];
   const plusSeasons = ['auto', 'patrias', 'halloween', 'navidad', 'anonuevo'];
-  const layouts = ['estelar', 'tarjetas', 'centro', 'manejo', 'minimal', 'tablero', 'lateral', 'todoterreno'];
+  const layouts = ['consola', 'estelar', 'tarjetas', 'centro', 'manejo', 'minimal', 'tablero', 'lateral', 'todoterreno'];
   const scenes = ['tema', 'cordillera', 'costa', 'desierto', 'bosque', 'ciudad', 'carretera', 'montana', 'nieve', 'rocas', 'barro', 'color'];
   const sceneTimes = ['auto', 'amanecer', 'dia', 'atardecer', 'noche'];
   const vehicles = ['auto', 'suv', 'camioneta', '4x4'];

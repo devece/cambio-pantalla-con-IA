@@ -376,6 +376,9 @@
   function sceneTime(state) {
     const s = state.style.sceneTime || 'auto';
     if (s !== 'auto') return s;
+    // En la radio, TB.sunPhase (launcher.js) lo calcula con la hora del sol del lugar; sin ella, por hora fija.
+    const sun = TB.sunPhase && TB.sunPhase();
+    if (sun) return sun;
     const h = new Date().getHours();
     return h >= 6 && h < 9 ? 'amanecer' : h >= 9 && h < 18 ? 'dia' : h >= 18 && h < 21 ? 'atardecer' : 'noche';
   }

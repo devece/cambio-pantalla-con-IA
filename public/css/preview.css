@@ -149,6 +149,14 @@
 .scr .dial u { width: 2px; height: 16px; background: var(--ink2); opacity: .7; }
 .scr .dial u.big { height: 30px; opacity: 1; background: var(--ink); }
 .scr .dial i { position: absolute; top: -8px; width: 5px; height: 56px; background: var(--accent); border-radius: 3px; transform: translateX(-50%); transition: left .3s; }
+.scr .radio-pane.live { gap: 14px; }
+.scr .radio-pane.live .r-main b { font-size: 150px; }
+.scr .r-name { font: 600 34px/1.1 'Rubik', 'Segoe UI', sans-serif; text-align: center; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scr .r-note { margin: 0; max-width: 78%; text-align: center; color: var(--ink2); font-size: 22px; line-height: 1.35; }
+.scr .r-ctl { display: flex; align-items: center; justify-content: center; gap: 36px; }
+.scr .r-ctl .rbtn { width: 76px; height: 76px; }
+.scr .r-ctl .rbtn.big { width: 104px; height: 104px; }
+.scr .r-open { min-height: 56px; padding: 0 30px; border: 0; color: inherit; font: inherit; font-size: 20px; cursor: pointer; }
 .scr .presets { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; width: 100%; }
 .scr .preset { padding: 14px 0; text-align: center; font: 700 30px 'Rubik', 'Segoe UI', sans-serif; }
 .scr .preset.on { background: var(--accent); color: var(--accent-ink); }

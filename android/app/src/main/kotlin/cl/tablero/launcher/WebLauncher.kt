@@ -23,6 +23,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import cl.tablero.core.FmRadio
 import cl.tablero.core.LauncherConfig
 import cl.tablero.core.Maintenance
 import cl.tablero.core.Reminders
@@ -45,9 +46,11 @@ class WebLauncher(private val activity: Activity, private val designJson: String
     private val handler = Handler(Looper.getMainLooper())
     private var lastMusicSig = ""
     private var lastArt = ""
+    private var lastRadioSig = ""
     private val musicPoll = object : Runnable {
         override fun run() {
             try { pushMusic() } catch (e: Exception) { /* la música es un extra: nunca debe tumbar la pantalla */ }
+            try { pushRadio() } catch (e: Exception) { /* la radio FM también */ }
             handler.postDelayed(this, 1500)
         }
     }
@@ -169,6 +172,12 @@ class WebLauncher(private val activity: Activity, private val designJson: String
             }
         }
 
+        /** Botones de la pantalla de Radio ("prev", "next" o "toggle"). */
+        @JavascriptInterface
+        fun radio(cmd: String) {
+            activity.runOnUiThread { controlRadio(cmd) }
+        }
+
         @JavascriptInterface
         fun media(cmd: String) {
             activity.runOnUiThread { this@WebLauncher.media(cmd) }
@@ -206,6 +215,60 @@ class WebLauncher(private val activity: Activity, private val designJson: String
         } catch (e: SecurityException) {
             null
         }
+    }
+
+    /** La sesión de medios de la app de radio FM de fábrica (si suena una, esa), o null si no hay o falta el acceso a las notificaciones. */
+    private fun radioController(): MediaController? {
+        if (!hasListenerAccess()) return null
+        return try {
+            val msm = activity.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
+            val radios = msm.getActiveSessions(ComponentName(activity, MediaListener::class.java)).filter { FmRadio.isRadioPackage(it.packageName) }
+            radios.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING } ?: radios.firstOrNull()
+        } catch (e: SecurityException) {
+            null
+        }
+    }
+
+    /**
+     * Siguiente, anterior y play/pausa de la radio FM. Si la radio no entrega una sesión de medios (muchas no lo hacen),
+     * no hay forma de manejarla desde aquí: se avisa y se abre su app, que sí la controla.
+     */
+    private fun controlRadio(cmd: String) {
+        try {
+            val c = radioController()
+            if (c == null) {
+                toast("Esta radio no se deja controlar desde aquí. Se abre su app de radio.")
+                openRadio()
+                return
+            }
+            when (cmd) {
+                "prev" -> c.transportControls.skipToPrevious()
+                "next" -> c.transportControls.skipToNext()
+                "toggle" -> if (c.playbackState?.state == PlaybackState.STATE_PLAYING) c.transportControls.pause() else c.transportControls.play()
+            }
+        } catch (e: Exception) {
+            toast("No se pudo controlar la radio.")
+        }
+    }
+
+    /** Le dice a la pantalla qué emisora suena (frecuencia y nombre) según lo que publica la app de radio. Solo manda cuando cambia algo. */
+    private fun pushRadio() {
+        val access = hasListenerAccess()
+        val c = if (access) radioController() else null
+        val md = c?.metadata
+        val json = JSONObject().put("access", access).put("found", c != null)
+        if (c != null) {
+            val title = md?.getString(MediaMetadata.METADATA_KEY_TITLE) ?: md?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)
+            val artist = md?.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: md?.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE)
+            val station = FmRadio.parse(title, artist)
+            json.put("playing", c.playbackState?.state == PlaybackState.STATE_PLAYING)
+                .put("freq", station.frequency ?: JSONObject.NULL)
+                .put("name", station.name)
+        }
+        val sig = json.toString()
+        if (sig == lastRadioSig) return
+        lastRadioSig = sig
+        js("TBApp.setRadio(" + JSONObject.quote(sig) + ")")
     }
 
     private fun bitmapToDataUrl(b: Bitmap): String {
@@ -248,7 +311,7 @@ class WebLauncher(private val activity: Activity, private val designJson: String
     }
 
     private fun openRadio() {
-        val pkg = RADIO_PACKAGES.firstOrNull { Apps.isInstalled(activity.packageManager, it) }
+        val pkg = FmRadio.PACKAGES.firstOrNull { Apps.isInstalled(activity.packageManager, it) }
         if (pkg == null) toast("No encontramos la app de radio de tu equipo.") else launch(pkg)
     }
 
@@ -281,12 +344,4 @@ class WebLauncher(private val activity: Activity, private val designJson: String
     }
 
     private fun toast(text: String) = Toast.makeText(activity, text, Toast.LENGTH_SHORT).show()
-
-    private companion object {
-        // Apps de radio FM de fábrica más comunes en radios de auto chinas.
-        val RADIO_PACKAGES = listOf(
-            "com.nwd.radio", "com.nwd.android.radio", "com.syu.radio", "com.mediatek.fmradio",
-            "com.android.fmradio", "com.caf.fmradio", "com.qualcomm.fmradio",
-        )
-    }
 }

@@ -21,6 +21,10 @@ Cómo se publica una versión: `docs/RELEASE.md`.
   cambio) y hacer de Tablero la pantalla de inicio de la radio. Sale una sola vez.
 - Sin un código activado, la pantalla de inicio ya muestra tu nombre, saludo, frase, tipo de auto y color de Ajustes
   (antes solo los veía quien tenía un diseño del sitio).
+- **Pantalla de Radio FM.** Muestra la frecuencia y el nombre de la emisora que suena en la radio de tu equipo, con
+  emisora anterior, siguiente y play/pausa. Si la radio FM está sonando, el botón Radio y la tarjeta del inicio abren esta
+  pantalla; si no, abren su app de siempre. Depende de que la app de radio de tu equipo publique la emisora (muchas lo
+  hacen, algunas no): si no la publica, la pantalla lo explica y ofrece abrir su app. Pide una vez el acceso a las notificaciones.
 
 ### Cambiado
 - En el botón de música de la pantalla, si no hay música sonando ahora avisa qué hacer en vez de no hacer nada.

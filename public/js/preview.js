@@ -39,6 +39,8 @@
    * acciones para abrir apps. Sin él (en el sitio) todo es la demostración de siempre. */
   const appMode = () => !!TB.preview.app;
   const WX = (c) => (c >= 51 && c <= 67) || (c >= 80 && c <= 99) ? 'lluvia' : 'sol';
+  /** ¿La app de radio FM de la radio publica la emisora? Solo entonces la pantalla de Radio puede controlarla. */
+  const radioFound = () => appMode() && !!(TB.preview.app.radio && TB.preview.app.radio.found);
   const openAttr = (kind) => (appMode() ? `data-open="${kind}"` : `data-go="${kind === 'bluetooth' ? 'bluetooth' : 'radio'}"`);
 
   /* ---------- helpers de estado ---------- */
@@ -169,6 +171,42 @@
     scr.querySelectorAll('.music-card .music').forEach((el) => { el.innerHTML = playerInner(); });
   }
 
+  /* ---------- radio FM de fábrica (solo en la radio) ---------- */
+  /** Tarjeta del inicio cuando la radio FM suena: frecuencia y emisora; al tocarla se abre la pantalla de Radio. */
+  function radioTile() {
+    const r = TB.preview.app.radio;
+    const sub = r.name || (r.playing ? 'Sonando' : 'En pausa');
+    return `<div class="radio-mini"><div><small>FM</small><b>${r.freq ? r.freq.toFixed(1) : 'FM'}</b><i>${esc(sub)}</i></div><button class="rbtn play" data-go="radio" aria-label="Abrir la pantalla de radio">${icon('radio', 26)}</button></div>`;
+  }
+
+  /** Pantalla de Radio real: la emisora que dice la app de FM, con siguiente, anterior y play/pausa. */
+  function liveRadio() {
+    const r = TB.preview.app.radio || {};
+    const open = (kind, label) => `<button class="card r-open" data-open="${kind}">${label}</button>`;
+    if (!r.found) {
+      const msg = r.access === false
+        ? ['Falta un permiso', 'Para ver la emisora y cambiarla desde aquí, Tablero necesita acceso a las notificaciones (una sola vez).', open('musicaccess', 'Dar el permiso')]
+        : ['Abre tu radio', 'Cuando la radio FM de tu equipo esté sonando, aquí verás la emisora y podrás cambiarla. Algunas radios no lo permiten: ahí se usa desde su propia app.', open('radio', 'Abrir la app de radio')];
+      return `<div class="pane radio-pane live"><div class="r-main"><small>FM</small><b>--.-</b><span>MHz</span></div><div class="r-name">${msg[0]}</div><p class="r-note">${msg[1]}</p>${msg[2]}</div>`;
+    }
+    const has = typeof r.freq === 'number' && r.freq >= 87.5 && r.freq <= 108;
+    const pos = has ? ((r.freq - 87.5) / 20.5) * 100 : 0;
+    let ticks = '';
+    for (let i = 0; i <= 40; i++) ticks += `<u class="${i % 5 === 0 ? 'big' : ''}"></u>`;
+    const btn = (cmd, ic, label, cls) => `<button class="rbtn${cls || ''}" data-radio="${cmd}" aria-label="${label}">${icon(ic, cls ? 34 : 28)}</button>`;
+    return `<div class="pane radio-pane live">
+      <div class="r-main"><small>FM</small><b>${has ? r.freq.toFixed(1) : '--.-'}</b><span>MHz</span></div>
+      <div class="r-name">${esc(r.name || (r.playing ? 'Sonando' : 'En pausa'))}</div>
+      ${has ? `<div class="dial">${ticks}<i style="left:${pos}%"></i></div>` : ''}
+      <div class="r-ctl">${btn('prev', 'prev', 'Emisora anterior')}${btn('toggle', r.playing ? 'pausa' : 'play', r.playing ? 'Pausar' : 'Reproducir', ' play big')}${btn('next', 'next', 'Emisora siguiente')}</div>
+      ${open('radio', 'Abrir la app de radio')}
+    </div>`;
+  }
+  /** La app de radio avisó un cambio: se vuelve a dibujar (pasa pocas veces, solo cuando cambia la emisora o el estado). */
+  function updateRadio() {
+    if (current) render(current.state, current.ui);
+  }
+
   /* ---------- piezas de la pantalla de inicio ---------- */
   function pieces(state, ui) {
     const f = state.features;
@@ -198,7 +236,9 @@
       dateShort,
       speed: f.speedShow ? `<div class="spd"><b data-speed>${spd}</b><span>${su(state)}</span></div>` : '',
       weather: appMode() ? appWeather(state) : `<div class="weather"><span class="wx">${icon('lluvia', 44)}</span><b>14°</b><span class="wd">Lluvioso<small>Sensación 13° · 82%</small></span></div>`,
-      radio: appMode()
+      radio: radioFound()
+        ? radioTile()
+        : appMode()
         ? `<div class="radio-mini"><div><small>Radio</small><b>FM</b><i>Toca para abrir</i></div><button class="rbtn play" data-open="radio" aria-label="Abrir la radio">${icon('play', 26)}</button></div>`
         : `<div class="radio-mini"><button class="rbtn" data-go="radio" aria-label="Anterior">${icon('prev', 22)}</button><div><small>FM</small><b>${live.freq.toFixed(1)}</b><i>MHz</i></div><button class="rbtn" data-go="radio" aria-label="Siguiente">${icon('next', 22)}</button></div>`,
       player: `<div class="music player">${playerInner()}</div>`,
@@ -260,6 +300,7 @@
   /* ---------- otras pantallas ---------- */
   const SCREENS = {
     radio: () => {
+      if (appMode()) return liveRadio();
       const pos = ((live.freq - 88) / 20) * 100;
       let ticks = '';
       for (let i = 0; i <= 40; i++) ticks += `<u class="${i % 5 === 0 ? 'big' : ''}"></u>`;
@@ -293,7 +334,7 @@
   };
 
   function dock(state, ui) {
-    const items = [{ go: 'inicio', ic: 'casa', t: 'Inicio' }, { go: 'radio', open: 'radio', ic: 'radio', t: 'Radio' }, { go: 'bluetooth', open: 'bluetooth', ic: 'bluetooth', t: 'Bluetooth' }];
+    const items = [{ go: 'inicio', ic: 'casa', t: 'Inicio' }, { go: 'radio', open: radioFound() ? null : 'radio', ic: 'radio', t: 'Radio' }, { go: 'bluetooth', open: 'bluetooth', ic: 'bluetooth', t: 'Bluetooth' }];
     state.style.apps.forEach((id) => {
       const a = TB.apps.find((x) => x.id === id);
       if (a) items.push({ app: id, ic: id, t: id === 'telefono' ? 'Teléfono' : a.name });
@@ -449,6 +490,8 @@
       }
       if (live.confirmDone) live.confirmDone = null;
       if (app) {
+        const rad = e.target.closest('[data-radio]');
+        if (rad && app.radioCmd) { app.radioCmd(rad.dataset.radio); return; }
         const media = e.target.closest('[data-media]');
         if (media && app.media) { app.media(media.dataset.media); return; }
         const open = e.target.closest('[data-open]');
@@ -472,5 +515,5 @@
     if (za) { za.hidden = false; za.className = 'zone-alert' + (n.warn ? ' warn' : ''); za.firstElementChild.textContent = n.text; }
   }
 
-  TB.preview = { mount, render, onGo: null, maintItems, doneButton, showZoneNotice, updateMusic, app: null };
+  TB.preview = { mount, render, onGo: null, maintItems, doneButton, showZoneNotice, updateMusic, updateRadio, app: null };
 })();

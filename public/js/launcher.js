@@ -73,6 +73,8 @@
     speed: 0,
     weather: null,
     music: { access: null, active: false },
+    // La radio FM de fábrica, según lo que publica su app: { access, found, playing, freq, name } (ver WebLauncher.pushRadio).
+    radio: { access: null, found: false },
     media(cmd) { bridge('media', cmd); },
     open(kind) {
       if (kind === 'music') {
@@ -83,6 +85,8 @@
       bridge('open', kind);
     },
     openApp(id) { bridge('openApp', id); },
+    /** Siguiente, anterior y play/pausa de la radio FM. */
+    radioCmd(cmd) { bridge('radio', cmd); },
     /** "Hecho": la app guarda el kilometraje de hoy y devuelve el avance con TBApp.setProgress. */
     markDone(id) { bridge('done', JSON.stringify({ id, odometer: state.features.odometer })); },
   };
@@ -187,6 +191,10 @@
       render();
     },
     goHome() { ui.screen = 'inicio'; ui.step = 1; render(); },
+    setRadio(json) {
+      try { app.radio = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }
+      if (TB.preview.updateRadio) TB.preview.updateRadio();
+    },
     setNight(on) { nightForced = on === null || on === undefined ? null : !!on; render(); },
     zoneNotice(text, warn) { TB.preview.showZoneNotice({ text: String(text), warn: !!warn }); },
   };

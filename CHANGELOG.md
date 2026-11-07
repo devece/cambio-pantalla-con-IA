@@ -41,6 +41,7 @@ Cómo se publica una versión: `docs/RELEASE.md`.
   reportar un problema, sin adb ni Android Studio. No lleva tu nombre ni tu ubicación.
 
 ### Cambiado
+- **El sitio ya no promete el límite automático de velocidad.** La app todavía no lee el límite de cada calle, y en modo «Automático» no avisa nada; los textos del sitio decían lo contrario. Ahora dicen que, para recibir el aviso, hay que elegir «Manual» y poner el límite. En la radio, sin límite fijado ya no dice «Límite de la vía».
 - En el botón de música de la pantalla, si no hay música sonando ahora avisa qué hacer en vez de no hacer nada.
 
 ### Para quien publica

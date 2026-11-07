@@ -93,7 +93,7 @@
     ],
     'style.season': () => TB.seasons.map((s) => ({ id: s.id, name: s.name, desc: s.desc, tier: s.id === 'ninguna' ? 'base' : 'plus' })),
     'features.speedAlert': () => [
-      { id: 'auto', name: 'Automático' },
+      { id: 'auto', name: 'Automático (aún no disponible)' },
       { id: 'manual', name: 'Manual' },
       { id: 'off', name: 'Sin aviso' },
     ],

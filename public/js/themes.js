@@ -131,7 +131,7 @@
     { id: 'estelar', name: 'Estelar', desc: 'Tu auto con reflejo y luces en movimiento, reloj grande y reproductor de música.' },
     { id: 'tarjetas', name: 'Tarjetas', desc: 'Clima, radio y música a la vista.' },
     { id: 'centro', name: 'Auto al centro', desc: 'Tu auto como protagonista.' },
-    { id: 'manejo', name: 'Modo manejo', desc: 'Velocidad grande y límite de la vía.' },
+    { id: 'manejo', name: 'Modo manejo', desc: 'Velocidad grande y el límite que fijes.' },
     { id: 'minimal', name: 'Minimalista', desc: 'Reloj grande y tus apps, sin distracciones.' },
     { id: 'tablero', name: 'Tablero', desc: 'Velocidad y auto a la izquierda; tu ruta y el mapa a la derecha.' },
     { id: 'lateral', name: 'Menú lateral', desc: 'Un menú a la izquierda y las tarjetas al lado.' },

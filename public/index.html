@@ -91,7 +91,7 @@
         <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg></span><h3>Android Auto y CarPlay</h3><p>Un botón para cada uno. Abre el de tu pantalla o la app que ya tengas instalada en la radio.</p></article>
         <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V6.5l10-2V16"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></span><h3>Música con carátula</h3><p>La canción, el artista y la carátula de lo que suene, con anillo de progreso y botones para pausar o cambiar.</p></article>
         <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="12" r="3.5"/><path d="M11.5 12H21M17 12v3M20 12v2"/></svg></span><h3>Mantención al día</h3><p>Te muestra cuánto falta para el aceite, la revisión técnica, el permiso de circulación y otras mantenciones.</p></article>
-        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 17a8 8 0 1 1 15 0"/><path d="M12 13l4-4.5"/></svg></span><h3>Velocidad y límite</h3><p>Velocímetro por GPS, el límite de la calle y un aviso si te pasas.</p></article>
+        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 17a8 8 0 1 1 15 0"/><path d="M12 13l4-4.5"/></svg></span><h3>Velocidad y límite</h3><p>Velocímetro por GPS y un aviso si pasas el límite que tú fijes.</p></article>
         <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s6.5-5.6 6.5-10.5a6.5 6.5 0 1 0-13 0C5.5 15.4 12 21 12 21z"/><path d="M9.5 10.5l2 2 3-3.5"/></svg></span><h3>Restricción y pico y placa</h3><p>Al entrar a la ciudad te avisa si hoy te toca. Santiago, Bogotá, Medellín, Cali y Quito.</p></article>
         <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg></span><h3>Saludo por voz</h3><p>Te saluda por tu nombre al encender el auto, con las frases que tú elijas.</p></article>
         <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></svg></span><h3>De día y de noche</h3><p>Cambia sola entre claro y oscuro, y al encender las luces muestra tu auto de noche.</p></article>
@@ -135,7 +135,7 @@
           <div class="device-screen" id="device" role="img" aria-label="Vista previa de la pantalla de tu radio"></div>
           <span class="knob knob-r" aria-hidden="true"></span>
         </div>
-        <p class="stage-note">Al encender las luces del auto, la pantalla pasa sola a modo noche y muestra tu foto con luces. Desliza la pastilla de mantención para ver cada aviso, o tócala para abrir la lista completa. El clima, la canción y la emisora son de ejemplo.</p>
+        <p class="stage-note">Al encender las luces del auto, la pantalla pasa sola a modo noche y muestra tu foto con luces. Desliza la pastilla de mantención para ver cada aviso, o tócala para abrir la lista completa. El clima, la canción, la emisora y el límite de velocidad son de ejemplo.</p>
       </div>
 
       <div class="panel" id="panel">
@@ -337,7 +337,7 @@
             <div class="sub" data-show="features.speedAlert=manual">
               <label class="field"><span>Límite (km/h)</span><input type="number" inputmode="numeric" min="20" max="140" data-bind="features.manualLimit"></label>
             </div>
-            <p class="hint" data-show="features.speedAlert=auto">Lee el límite de cada calle en los mapas (OpenStreetMap). Donde el mapa no lo tiene, usa referencias generales: 50 en ciudad, 100 en ruta y 120 en autopista.</p>
+            <p class="hint" data-show="features.speedAlert=auto">Todavía no lee el límite de cada calle, así que en este modo no hay aviso. Para recibirlo, elige «Manual» y pon tu límite.</p>
             <label class="check"><input type="checkbox" data-bind="features.voice"><span>Saludarme por voz al encender el auto</span></label>
           </fieldset>
 

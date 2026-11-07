@@ -1,5 +1,5 @@
 /*
- * Lógica de pedido compartida: plan requerido, cotización y validación.
+ * Lógica de pedido compartida: validación, restricción vehicular y celulares.
  * Corre igual en el navegador (window.TBOrder) y en Node (require).
  */
 (function (root, factory) {
@@ -28,18 +28,6 @@
     const h = s && Number.isInteger(s.h) ? s.h : 0;
     return w >= 200 && w <= 8000 && h >= 200 && h <= 8000 ? { w, h } : null;
   };
-  // Los precios están en centavos: 300 -> "US$3" (sin decimales si es exacto, "US$3,50" si no).
-  const money = (cents) =>
-    new Intl.NumberFormat(C.locale, { style: 'currency', currency: C.currency, minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 }).format(cents / 100);
-
-  /** Plan mínimo que necesita lo elegido en "estilo". */
-  function requiredPlan(style) {
-    const s = style || {};
-    const plusTheme = C.themeTiers[s.theme] === 'plus';
-    const plusSeason = C.plusSeasons.includes(s.season);
-    return plusTheme || plusSeason ? 'completo' : 'esencial';
-  }
-
   /** Días de la semana en que le toca restricción a una patente, según la tabla de catalog.restriction. */
   function restrDaysFor(f) {
     const r = C.restriction;
@@ -89,28 +77,6 @@
     return parts.length ? { warn, text: `Entraste a ${r.zone.name}. ${parts.join(' ')}` } : null;
   }
 
-  /** Por qué se necesita el plan Completo (para mostrarlo al cliente). */
-  function planReasons(style) {
-    const s = style || {};
-    const out = [];
-    if (C.themeTiers[s.theme] === 'plus') out.push('el diseño visual que elegiste');
-    if (C.plusSeasons.includes(s.season)) out.push('las decoraciones de temporada');
-    return out;
-  }
-
-  /** Cotización: líneas y total, calculado con el catálogo (nunca con precios del cliente). */
-  function quote(order) {
-    const o = order || {};
-    const plan = C.plans.find((p) => p.id === o.plan) || C.plans[0];
-    const lines = [{ id: plan.id, name: 'Plan ' + plan.name, price: plan.price }];
-    const chosen = o.addons || {};
-    C.addons.forEach((a) => {
-      if (a.available !== false && chosen[a.id]) lines.push({ id: a.id, name: a.name, price: a.price });
-    });
-    const total = lines.reduce((s, l) => s + l.price, 0);
-    return { currency: C.currency, lines, total };
-  }
-
   /** Normaliza un celular del país (Chile por defecto) a +569XXXXXXXX, +573XXXXXXXXX o +5939XXXXXXXX; devuelve null si no corresponde. */
   function normalizeMobile(raw, country) {
     const m = MOBILE[country] || MOBILE.CL;
@@ -137,7 +103,7 @@
     if (radioType === 'original') {
       errors.push('Las radios originales de fábrica que no permiten instalar apps no son compatibles.');
     } else if (radioType === 'nose') {
-      errors.push('Confirma que tu radio es Android de pantalla grande antes de pagar.');
+      errors.push('Confirma que tu radio es Android de pantalla grande antes de hacer tu pedido.');
     }
 
     const apps = Array.isArray(style.apps)
@@ -161,7 +127,7 @@
         plate: str(car.plate, 10).toUpperCase(),
       },
       style: {
-        theme: pick(style.theme, Object.keys(C.themeTiers), 'ruta'),
+        theme: pick(style.theme, C.themes, 'ruta'),
         layout: pick(style.layout, C.layouts, 'tarjetas'),
         scene: pick(style.scene, C.scenes, 'tema'),
         sceneTime: pick(style.sceneTime, C.sceneTimes, 'auto'),
@@ -192,10 +158,7 @@
         miles: !!f.miles,
         gallons: !!f.gallons,
       },
-      plan: pick(o.plan, C.plans.map((p) => p.id), null),
-      addons: {},
       contact: { kind: contact.kind === 'email' ? 'email' : 'whatsapp', value: '' },
-      terms: o.terms === true,
     };
     // Los días de restricción se calculan en el servidor a partir del dígito: nunca se confía en los del navegador.
     const ft = clean.features;
@@ -203,18 +166,6 @@
     if (ft.restrOn && ft.restrDigit === '' && (ft.country !== 'CL' || ft.restrType !== 'nuevo')) {
       errors.push(ft.country === 'CL' ? 'Elige el último dígito de tu patente para la restricción vehicular.' : 'Elige el último dígito de tu patente para el pico y placa.');
     }
-    C.addons.forEach((a) => {
-      if (a.available !== false && o.addons && o.addons[a.id]) clean.addons[a.id] = true;
-    });
-
-    // Plan: debe existir y alcanzar para lo elegido.
-    const needed = requiredPlan(clean.style);
-    if (!clean.plan) {
-      errors.push('Elige un plan.');
-    } else if (needed === 'completo' && clean.plan === 'esencial') {
-      errors.push('Tu diseño usa funciones del plan Completo.');
-    }
-
     // Contacto
     if (clean.contact.kind === 'email') {
       const v = str(contact.value, 254).toLowerCase();
@@ -226,10 +177,8 @@
       else errors.push(`Escribe un celular ${MOBILE[clean.features.country].name} válido, por ejemplo ${MOBILE[clean.features.country].example}.`);
     }
 
-    if (!clean.terms) errors.push('Debes aceptar los términos para continuar.');
-
     return { ok: errors.length === 0, errors, clean };
   }
 
-  return { restrDaysFor, inRestrictionZone, restrictionNotice, requiredPlan, planReasons, quote, validateOrder, normalizeMobile, money };
+  return { restrDaysFor, inRestrictionZone, restrictionNotice, validateOrder, normalizeMobile };
 });

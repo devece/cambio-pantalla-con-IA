@@ -1,27 +1,35 @@
 # Tablero
 
-Configurador web para un launcher de radios Android de auto, pensado para Chile (precios en USD, teléfono +56 9, restricción vehicular por GPS, revisión técnica, permiso de circulación, SOAP).
+Un launcher para radios Android de auto, pensado para Chile (restricción vehicular por GPS, revisión técnica, permiso de circulación, SOAP, teléfono +56 9), y el sitio donde el cliente diseña su pantalla.
 
-El cliente elige radio, auto, diseño y funciones; ve su pantalla funcionando en vivo; paga; y recibe un código para activar el launcher en su radio.
+**Tablero es gratis.** El cliente elige radio, auto, diseño y funciones, ve su pantalla funcionando en vivo, hace su pedido y recibe un código para activar su diseño en la radio. No hay planes, precios ni cobros.
 
-> **Estado: prototipo.** La vista previa, el configurador y la validación de pedidos funcionan. El cobro con PayPal está implementado pero **sin probar contra PayPal real** (solo con simulaciones). **Faltan** el launcher Android nativo y los textos legales. Ver `docs/ROADMAP.md`.
+> **Estado: prototipo.** El sitio, la vista previa y el pedido funcionan. La app Android compila y está en pruebas en radios reales (ver `docs/PRUEBA_EN_RADIO.md`).
 
 ## Qué incluye
 
-- Sitio estático (HTML/CSS/JS sin build) en `public/`.
-- Vista previa de la radio (1024×600) con 8 temas visuales (día y noche), 4 distribuciones, 5 pantallas, fondos, autos generados en SVG y decoración de temporada (Fiestas Patrias, Halloween, Navidad, Año Nuevo).
-- Planes: **Esencial** US$ 3 y **Completo** US$ 8, más un extra de US$ 1 (aún desactivado). Los precios están en centavos en `public/shared/catalog.js`.
-- Funciones de API (Vercel) en `api/`: `checkout` (valida y cotiza; el precio siempre se recalcula en el servidor) y `license` (activa un código vinculado a una sola radio).
-- Esquema de base de datos Supabase en `supabase/schema.sql` (RLS activado, sin políticas públicas).
+- **Sitio** estático (HTML/CSS/JS sin build) en `public/`: vista previa de la radio (1024×600) con 9 temas visuales (día y noche), 9 distribuciones, 5 pantallas, fondos, autos en 3D y decoración de temporada (Fiestas Patrias, Halloween, Navidad, Año Nuevo).
+- **App Android** en `android/` (el launcher de la radio): `core` (reglas en Kotlin puro, con pruebas) y `app` (pantallas, GPS, ajustes, scanner OBD opcional).
+- **Funciones de API** (Vercel) en `api/`: `order` (valida y guarda el pedido), `license` (activa un código vinculado a una sola radio), `admin` (panel para entregar códigos), más el análisis opcional de la captura de la radio y de la foto del auto.
+- **Base de datos** Supabase en `supabase/schema.sql` (RLS activado, sin políticas públicas).
+
+## Cómo funciona un pedido
+
+1. El cliente diseña su pantalla en el sitio y pulsa **Pedir mi pantalla**: `api/order.js` valida y guarda el pedido (y su foto).
+2. Le mostramos su pedido listo para enviarlo por el contacto del sitio.
+3. Quien arma las pantallas lo **aprueba** en `/admin.html` y le entrega su código (`TBL-XXXX-XXXX-XXXX`).
+4. El cliente escribe el código en la app, en su radio: queda ligado a esa radio.
 
 ## Cómo correrlo
 
 ```bash
-npm test          # pruebas de cotización, validación, licencias y pago con PayPal
+npm test          # pruebas del sitio y del servidor
 npm run dev       # http://localhost:3000
 ```
 
-Sin variables de entorno funciona en **modo demostración** (el pedido se confirma pero no se guarda ni se cobra).
+Sin variables de entorno funciona en **modo demostración** (el pedido se acepta pero no se guarda).
+
+Las reglas de la app Android se prueban con Gradle: `cd android && ./gradlew :core:test`.
 
 ## Variables de entorno
 
@@ -31,28 +39,18 @@ Copia `.env.example` a `.env`:
 |---|---|
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Guardar pedidos y licencias |
 | `LICENSE_PEPPER` | Secreto largo y aleatorio para vincular licencias a una radio |
-| `ANTHROPIC_API_KEY` | Analizar con IA la captura de la radio del cliente (opcional) |
-| `SITE_URL` | URL pública del sitio (a donde vuelve PayPal) |
-| `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` | Credenciales de tu app en developer.paypal.com |
-| `PAYPAL_ENV` | `sandbox` (pruebas) o `live` (cobra de verdad) |
-
-## Pago con PayPal
-
-1. El cliente presiona **Pagar**: `api/checkout.js` guarda el pedido, crea la orden en PayPal (en USD) y redirige al cliente.
-2. El cliente aprueba en PayPal y vuelve a `api/paypal-return.js`, que captura el cobro, comprueba que el monto coincide con lo guardado, marca el pedido `paid` y muestra el código de licencia. Es idempotente: recargar no duplica nada.
-3. Si cancela, vuelve al paso de pago con su configuración intacta.
-
-Pruébalo primero en `sandbox` con una cuenta compradora de prueba (developer.paypal.com > Sandbox > Accounts). El cliente ve y paga el mismo total en USD, sin conversión.
+| `ADMIN_TOKEN` | Clave del panel `/admin.html` |
+| `ANTHROPIC_API_KEY` | Analizar con IA la captura de la radio y los faros de la foto (opcional) |
 
 ## Publicar en Vercel
 
 1. Sube el repositorio a GitHub e impórtalo en Vercel (la configuración está en `vercel.json`).
 2. Crea el proyecto en Supabase y ejecuta `supabase/schema.sql`.
 3. Carga las variables de entorno en Vercel.
-4. Completa `supportEmail` y `whatsapp` en `public/js/site.js`.
+4. Completa `supportEmail` y `whatsapp` en `public/js/site.js` si quieres que aparezcan en el sitio.
 
-## Notas legales
+## Privacidad y licencia
 
-- El sitio que inspiró este proyecto (CleanLauncher) es del mismo autor, que autorizó reutilizar su contenido. Aun así, hasta ahora el código, los textos y el diseño de este repositorio son propios; las fotos de autos de terceros (con logos de marca) conviene evitarlas en un producto que se vende.
-- Los textos de términos, privacidad y devoluciones son marcadores: revísalos con un abogado antes de vender.
+- La política de privacidad (`public/privacidad.html`) describe lo que la app y el sitio hacen con los datos (GPS, notificaciones, fotos, scanner OBD). Hay que mantenerla al día cuando cambie algo de eso.
+- El sitio que inspiró este proyecto (CleanLauncher) es del mismo autor, que autorizó reutilizar su contenido. Aun así, el código, los textos y el diseño de este repositorio son propios; conviene evitar fotos de autos de terceros con logos de marca.
 - `package.json` está como `UNLICENSED`; elige la licencia que corresponda antes de hacer público el repo.

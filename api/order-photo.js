@@ -2,7 +2,7 @@
 /*
  * POST /api/order-photo   { orderId, kind: 'day' | 'night', image: "data:image/png;base64,...", cut?: boolean, lights?: [...] }
  * Guarda la foto del auto del cliente (ya sin fondo, hecha en su navegador) junto a su pedido, para que la app de la radio
- * la descargue al activar el código. Solo se acepta mientras el pedido está pendiente de pago.
+ * la descargue al activar el código. Solo se acepta mientras el pedido está pendiente (sin código entregado).
  *
  * Requiere SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY y el bucket privado `tablero-fotos`.
  */
@@ -42,7 +42,7 @@ module.exports = async function handler(req, res) {
     const rows = await db.rest(`orders?public_id=eq.${orderId}&select=status,config&limit=1`);
     const order = rows && rows[0];
     if (!order) return res.status(404).json({ ok: false, error: 'No encontramos ese pedido.' });
-    // Solo quien creó el pedido tiene la llave (se entrega en la respuesta de /api/checkout; aquí solo queda su hash).
+    // Solo quien creó el pedido tiene la llave (se entrega en la respuesta de /api/order; aquí solo queda su hash).
     const expected = order.config && order.config.photoTokenHash;
     const given = typeof body.token === 'string' ? body.token.slice(0, 64) : '';
     const givenHash = crypto.createHash('sha256').update(given).digest('hex');

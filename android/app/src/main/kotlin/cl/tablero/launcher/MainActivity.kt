@@ -338,9 +338,9 @@ class MainActivity : Activity() {
         card.addView(
             text(
                 when (entitlement.tier) {
-                    Tier.FREE -> "Edición gratuita"
-                    Tier.ESENCIAL -> "Plan Esencial"
-                    Tier.COMPLETO -> "Plan Completo"
+                    Tier.FREE -> "Gratis"
+                    Tier.ESENCIAL -> "Activada con tu código"
+                    Tier.COMPLETO -> "Activada con tu código"
                 },
                 14f, Ui.SUB,
             ),

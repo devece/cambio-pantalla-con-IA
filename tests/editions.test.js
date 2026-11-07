@@ -7,16 +7,15 @@ const { free, esencial, completo } = require('../public/shared/editions.json');
 const subset = (list, all) => list === '*' || list.every((x) => all.includes(x));
 
 test('la edición gratis solo usa ids que existen en el catálogo', () => {
-  assert.ok(subset(free.themes, Object.keys(C.themeTiers)));
+  assert.ok(subset(free.themes, C.themes));
   assert.ok(subset(free.layouts, C.layouts));
   assert.ok(subset(free.scenes, C.scenes));
   assert.ok(subset(free.seasons, C.seasons));
   assert.ok(subset(free.features.speedAlerts, C.speedAlerts));
 });
 
-test('por ahora no hay versión de pago: la edición gratis incluye todo', () => {
-  // Si algún día vuelve a haber planes, este es el lugar para decidirlo a propósito.
-  assert.deepEqual(free, completo, "'free' debe ser igual a 'completo' mientras no haya versión de pago");
+test('la edición gratis incluye todo', () => {
+  assert.deepEqual(free, completo, "'free' debe ser igual a 'completo': no hay versión de pago");
   ['themes', 'layouts', 'scenes', 'seasons'].forEach((k) => assert.equal(free[k], '*', k));
   assert.equal(free.features.speedAlerts, '*');
   assert.equal(free.maxApps, 4);
@@ -28,13 +27,12 @@ test('la edición gratis permite el límite de velocidad manual (el único que h
   assert.ok(C.speedAlerts.includes('manual'));
 });
 
-test('Esencial y Completo coinciden con los planes del catálogo', () => {
-  const base = Object.keys(C.themeTiers).filter((t) => C.themeTiers[t] === 'base');
-  assert.deepEqual([...esencial.themes].sort(), [...base].sort(), 'Esencial = temas base');
-  assert.deepEqual(esencial.seasons, ['ninguna'], 'Esencial no incluye temporadas');
-  assert.equal(completo.themes, '*');
-  assert.equal(completo.seasons, '*');
-  assert.deepEqual(C.plans.map((p) => p.id).sort(), ['completo', 'esencial']);
+test('no hay planes: los tres niveles que reconoce la app incluyen todo', () => {
+  // `esencial` y `completo` solo existen porque la app los reconoce en códigos ya emitidos.
+  assert.deepEqual(esencial, free);
+  assert.deepEqual(completo, free);
+  assert.equal(C.plans, undefined, 'el catálogo ya no tiene planes');
+  assert.equal(C.addons, undefined, 'ni extras con precio');
 });
 
 test('maintenance.json (usado por el launcher) coincide con el catálogo del sitio', () => {

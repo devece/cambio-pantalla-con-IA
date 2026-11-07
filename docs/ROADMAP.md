@@ -1,21 +1,15 @@
 # Hoja de ruta
 
-## Primero: edición gratuita
-Antes de cobrar se publica una versión gratis con funciones limitadas (ver `FREE_EDITION.md`).
-1. **Licencia del repositorio** (hoy `UNLICENSED`): elegirla antes de hacerlo público.
-2. **Launcher Android** en modo gratis, que lea `public/shared/editions.json`. El esqueleto ya está en `android/` (ver `ANDROID_LAUNCHER.md`): falta compilarlo en Android Studio, los temas y las funciones.
-3. **APK en GitHub Releases** y guía de instalación para el usuario.
-4. Modo gratis en el launcher: pantalla de activación opcional y estado guardado sin internet.
+Tablero es gratis: no hay planes, precios ni cobros. Lo que sigue es hacer que la app funcione muy bien en radios reales.
 
-## Antes de vender (obligatorio)
-1. **Medio de pago**: PayPal está implementado (`api/checkout.js` + `api/paypal-return.js`). Falta probarlo en sandbox con tus credenciales y luego pasar a `live`. Mejora pendiente: un webhook de PayPal (`PAYMENT.CAPTURE.COMPLETED`) para cubrir al cliente que paga pero cierra el navegador antes de volver al sitio.
-2. **Páginas legales**: términos, privacidad y devoluciones, revisadas por un abogado.
-3. **Correo transaccional** (por ejemplo Resend) con dominio propio para enviar el código.
-4. **Contacto real**: `supportEmail` y `whatsapp` en `public/js/site.js`.
-5. **Launcher Android** (ver `ANDROID_LAUNCHER.md`): sin él, el sitio no entrega producto.
+## Ahora
+1. **Probar la app en radios reales** (ver `PRUEBA_EN_RADIO.md`): kilometraje automático, botones del volante, radio FM, scanner OBD.
+2. **Licencia del repositorio** (hoy `UNLICENSED`): elegirla antes de hacerlo público.
+3. **Contacto real**: `supportEmail` y `whatsapp` en `public/js/site.js`.
 
 ## Después
-- Procesar la foto de fondo (hoy se queda en el navegador y el complemento está oculto).
-- Panel simple para ver pedidos y reenviar códigos.
-- Confirmar precios con costos reales y soporte postventa.
 - **Conexión OBD (el "Taller")**: km automático, datos del motor y códigos de falla. Plan por fases en [`PLAN_OBD.md`](PLAN_OBD.md).
+- **Límite de velocidad automático por calle**: hoy solo existe el límite fijo (ver `FREE_EDITION.md`).
+- Correo con el código (por ejemplo Resend) con dominio propio, para no depender del mensaje manual.
+- Procesar la foto de fondo (hoy se queda en el navegador y el complemento está oculto).
+- Panel simple para ver pedidos y reenviar códigos (hoy `/admin.html` entrega códigos y administra licencias).

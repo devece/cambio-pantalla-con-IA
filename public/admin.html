@@ -45,9 +45,8 @@
     <div id="app" hidden style="display:grid;gap:18px">
       <section class="card2">
         <h2>Nuevo código</h2>
-        <p class="hint">Para una venta que ya cobraste. Crea el pedido como pagado y te da el código.</p>
+        <p class="hint">Para regalar o probar. Crea un código sin que el cliente haya hecho un pedido en el sitio.</p>
         <div class="row">
-          <select id="plan"></select>
           <input type="text" id="note" maxlength="120" placeholder="Cliente (nombre o WhatsApp)">
           <button type="button" class="btn primary" id="create">Crear código</button>
         </div>
@@ -55,11 +54,11 @@
       </section>
 
       <section class="card2">
-        <h2>Confirmar un pedido del sitio</h2>
-        <p class="hint">El cliente te manda su número de pedido (TB-XXXXXXXX). Cuando confirmes su pago, se crea su código.</p>
+        <h2>Aprobar un pedido del sitio</h2>
+        <p class="hint">El cliente te manda su número de pedido (TB-XXXXXXXX). Al aprobarlo, se crea su código.</p>
         <div class="row">
           <input type="text" id="order" maxlength="20" placeholder="TB-XXXXXXXX" style="text-transform:uppercase">
-          <button type="button" class="btn primary" id="confirm">Confirmar pago y crear código</button>
+          <button type="button" class="btn primary" id="confirm">Aprobar y crear código</button>
         </div>
         <div id="confirmed"></div>
         <div id="pending"></div>
@@ -67,18 +66,16 @@
 
       <section class="card2">
         <h2>Códigos</h2>
-        <div class="scroll"><table id="codes"><thead><tr><th>Código</th><th>Plan</th><th>Estado</th><th></th></tr></thead><tbody></tbody></table></div>
+        <div class="scroll"><table id="codes"><thead><tr><th>Código</th><th>Estado</th><th></th></tr></thead><tbody></tbody></table></div>
         <p class="hint" id="codes-empty" hidden>Todavía no hay códigos.</p>
       </section>
     </div>
   </main>
 
-  <script src="shared/catalog.js"></script>
   <script>
   (function () {
     var $ = function (s) { return document.querySelector(s); };
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
-    var money = function (cents) { return 'US$' + (cents / 100).toLocaleString('es-CL', { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 }); };
     var token = '';
     try { token = sessionStorage.getItem('tb-admin') || ''; } catch (e) {}
 
@@ -88,16 +85,16 @@
         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.http = r.status; return d; }); });
     }
 
-    function customerMessage(code, plan) {
+    function customerMessage(code) {
       var link = location.origin + '/listo.html?codigo=' + encodeURIComponent(code);
-      return '¡Listo! Tu código de Tablero (' + (plan === 'completo' ? 'plan Completo' : 'plan Esencial') + ') es:\n\n' + code + '\n\n' +
+      return '¡Listo! Tu código de Tablero es:\n\n' + code + '\n\n' +
         'Para instalarlo en tu radio, sigue estos pasos: ' + link + '\n\n' +
         'El código sirve para una sola radio. Si algo no resulta, escríbeme.';
     }
 
     function showResult(el, d) {
-      var msg = customerMessage(d.code, d.plan);
-      el.innerHTML = '<div class="result"><div>Pedido <b>' + esc(d.orderId) + '</b> · ' + esc(d.plan) + ' · ' + money(d.total) + '</div>' +
+      var msg = customerMessage(d.code);
+      el.innerHTML = '<div class="result"><div>Pedido <b>' + esc(d.orderId) + '</b></div>' +
         '<div class="big">' + esc(d.code) + '</div>' +
         '<textarea class="msg" readonly>' + esc(msg) + '</textarea>' +
         '<div class="row"><button type="button" class="btn primary" data-copy="msg">Copiar mensaje para el cliente</button>' +
@@ -124,14 +121,14 @@
         var body = $('#codes tbody');
         body.innerHTML = d.licenses.map(function (l) {
           return '<tr><td><code>' + esc(l.code) + '</code><br><small>' + esc(l.orderId) + (l.contact ? ' · ' + esc(l.contact) : '') + (l.hasPhoto ? ' · foto ✓' : '') + '</small></td>' +
-            '<td>' + esc(l.plan || '') + '</td><td>' + badge(l) + (l.transfersUsed ? '<br><small>traspasos: ' + l.transfersUsed + '</small>' : '') + '</td>' +
+            '<td>' + badge(l) + (l.transfersUsed ? '<br><small>traspasos: ' + l.transfersUsed + '</small>' : '') + '</td>' +
             '<td><button type="button" class="btn link" data-act="release" data-code="' + esc(l.code) + '">Liberar radio</button> ' +
             (l.status === 'revoked' ? '' : '<button type="button" class="btn link" data-act="revoke" data-code="' + esc(l.code) + '">Anular</button>') + '</td></tr>';
         }).join('');
         $('#codes-empty').hidden = d.licenses.length > 0;
         $('#pending').innerHTML = d.pending.length
-          ? '<p class="hint">Pedidos esperando pago:</p>' + d.pending.map(function (o) {
-              return '<div class="row"><span><b>' + esc(o.public_id) + '</b> · ' + esc(o.plan) + ' · ' + money(o.total) + ' · ' + esc(o.contact_value) + (o.hasPhoto ? ' · foto ✓' : ' · sin foto') + '</span><button type="button" class="btn ghost" data-confirm="' + esc(o.public_id) + '">Confirmar pago</button></div>';
+          ? '<p class="hint">Pedidos esperando tu aprobación:</p>' + d.pending.map(function (o) {
+              return '<div class="row"><span><b>' + esc(o.public_id) + '</b> · ' + esc(o.contact_value) + (o.hasPhoto ? ' · foto ✓' : ' · sin foto') + '</span><button type="button" class="btn ghost" data-confirm="' + esc(o.public_id) + '">Aprobar</button></div>';
             }).join('')
           : '';
       });
@@ -143,7 +140,6 @@
       if (msg) { $('#login-err').textContent = msg; $('#login-err').hidden = false; }
     }
 
-    $('#plan').innerHTML = TBCatalog.plans.map(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + ' · ' + money(p.price) + '</option>'; }).join('');
     $('#enter').onclick = function () {
       token = $('#token').value.trim(); $('#login-err').hidden = true;
       if (!token) return;
@@ -152,14 +148,14 @@
     };
     $('#token').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('#enter').click(); });
     $('#create').onclick = function () {
-      api({ action: 'create', plan: $('#plan').value, note: $('#note').value }).then(function (d) {
+      api({ action: 'create', note: $('#note').value }).then(function (d) {
         if (!d.ok) { $('#created').innerHTML = '<p class="error">' + esc(d.error || 'No se pudo crear.') + '</p>'; return; }
         showResult($('#created'), d); $('#note').value = ''; load();
       });
     };
     function confirmOrder(id) {
-      api({ action: 'confirm', orderId: id }).then(function (d) {
-        if (!d.ok) { $('#confirmed').innerHTML = '<p class="error">' + esc(d.error || 'No se pudo confirmar.') + '</p>'; return; }
+      api({ action: 'approve', orderId: id }).then(function (d) {
+        if (!d.ok) { $('#confirmed').innerHTML = '<p class="error">' + esc(d.error || 'No se pudo aprobar.') + '</p>'; return; }
         showResult($('#confirmed'), d); $('#order').value = ''; load();
       });
     }

@@ -20,16 +20,13 @@ Que Tablero lea datos reales del auto con un adaptador **ELM327** enchufado al p
 | Velocidad | Del GPS (`MainActivity` → `LocationListener` → `WebLauncher.setSpeed`). |
 | CAN bus de la radio | En la radio de prueba aparece **desconectado** (`docs/PRUEBA_EN_RADIO.md`). No sirve como fuente. |
 | Estructura | `android/core` (Kotlin puro, 84 pruebas, corre en CI) y `android/app` (pantallas, GPS, WebView). La pantalla de inicio es web (`public/js/launcher.js`, `preview.js`) y habla con Kotlin por `WebLauncher.Bridge`. |
-| Planes | `public/shared/editions.json` y `core/Gate.kt` ("el candado") definen qué es gratis y qué requiere código. |
+| Ediciones | Todo es gratis. `public/shared/editions.json` y `core/Gate.kt` ("el candado") siguen en el código pero hoy no limitan nada. |
 | Privacidad | `public/privacidad.html` describe GPS y notificaciones. Habría que sumar Bluetooth/OBD. |
 | Permisos | `INTERNET`, `ACCESS_FINE_LOCATION`, `QUERY_ALL_PACKAGES`. |
 
 ## 3. Decisiones que tomas tú
 
-1. **¿Qué edición incluye qué?** Propuesta, a confirmar con el negocio:
-   - **Gratis:** km automático por GPS (fase 0).
-   - **Esencial:** velocidad, revoluciones, temperatura y voltaje por OBD; km real si el auto lo entrega.
-   - **Completo:** Taller (códigos de falla, borrado, gráficas, alertas, registro de viajes).
+1. ~~¿Qué edición incluye qué?~~ **Resuelto:** no hay versión de pago, todo el OBD es gratis y opcional.
 2. **Código propio.** No se copia código de LiteDash (GPL-3.0): copiarlo obligaría a abrir todo Tablero bajo GPL. Se implementa desde el estándar público (SAE J1979 y la hoja de datos del ELM327), con textos y descripciones propias.
 3. **Qué adaptadores primero.** Propuesta: Bluetooth clásico y Bluetooth LE. Wi-Fi y USB después.
 4. **Si el OBD es obligatorio u opcional.** Propuesta: opcional. Sin adaptador todo sigue funcionando como hoy.

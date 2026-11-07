@@ -41,12 +41,14 @@ Cómo se publica una versión: `docs/RELEASE.md`.
   reportar un problema, sin adb ni Android Studio. No lleva tu nombre ni tu ubicación.
 
 ### Cambiado
+- **Se quitó todo lo de pagos y planes.** Tablero es gratis, así que desaparecieron los planes Esencial y Completo, los precios y el total, el cobro con PayPal, los datos de transferencia bancaria, las etiquetas «Completo» en los diseños y la casilla de aceptar términos. El último paso del sitio ahora se llama **Pedir mi pantalla**. Se eliminaron las páginas de **Términos** y **Cambios y ayuda**; la política de **Privacidad** se mantiene porque explica qué hace la app con tus datos.
 - **Todo es gratis, sin necesidad de código.** Por ahora no hay versión de pago: la edición sin código ahora incluye todos los diseños, las decoraciones de temporada y todas las funciones (documentos, combustible, restricción vehicular, saludo por voz, otras mantenciones, hasta 4 atajos y el límite fijo de velocidad). Antes, varias de esas cosas pedían un código. El código sigue sirviendo para traer a la radio la pantalla que diseñaste en el sitio, y nunca da menos que la edición sin código.
 - **El sitio ya no promete el límite automático de velocidad.** La app todavía no lee el límite de cada calle, y en modo «Automático» no avisa nada; los textos del sitio decían lo contrario. Ahora dicen que, para recibir el aviso, hay que elegir «Manual» y poner el límite. En la radio, sin límite fijado ya no dice «Límite de la vía».
 - En el botón de música de la pantalla, si no hay música sonando ahora avisa qué hacer en vez de no hacer nada.
 
 ### Para quien publica
 - Nuevo workflow **Release**: al crear una etiqueta `vX.Y.Z` compila el APK firmado y lo publica en GitHub Releases con estas notas.
+- El pedido ahora se envía a `/api/order` (antes `/api/checkout`). En el panel de administración, «Confirmar pago» pasó a **Aprobar** y el código se crea sin elegir plan. Se eliminaron `api/paypal-return.js`, `lib/paypal.js` y las variables `PAYPAL_*` y `SITE_URL`. La base de datos no cambia: las columnas de plan y cobro se conservan y cada pedido nuevo las trae con un valor fijo.
 
 ## [0.1.0] - 2026-10-30
 

@@ -16,6 +16,23 @@ class CoreTest {
     private val esencial = editions.limits(Tier.ESENCIAL)
     private val completo = editions.limits(Tier.COMPLETO)
 
+    // Un nivel intermedio de ejemplo (lo que era el plan Esencial): no tiene todos los temas ni temporadas.
+    private val intermedio = Limits(
+        themes = linkedSetOf("sobrio", "ruta", "papel", "cristal"),
+        layouts = null,
+        scenes = null,
+        seasons = linkedSetOf("ninguna"),
+        maxApps = 4,
+        oilOn = true,
+        speedShow = true,
+        speedAlerts = null,
+        othersMaintenance = true,
+        docsOn = true,
+        fuelOn = true,
+        restrOn = true,
+        voice = true,
+    )
+
     // Un nivel restringido, como lo era la edición gratis antes de que todo fuera gratis. Hoy ninguna edición lo usa, pero el
     // candado (Gate) sigue siendo la lógica que hay que tener probada por si algún día vuelve a haber un plan de pago.
     private val restringido = Limits(
@@ -36,14 +53,13 @@ class CoreTest {
 
     @Test
     fun `lee los tres niveles del editions json real`() {
-        // Por ahora no hay versión de pago: la edición gratis no tiene límites y es igual a Completo.
+        // No hay planes: los tres niveles que la app reconoce no tienen límites y son iguales.
+        // (Esencial y Completo existen solo por los códigos ya emitidos y las radios que ya activaron uno.)
         assertNull(free.themes, "gratis no tiene límite de temas")
         assertNull(free.speedAlerts)
         assertEquals(4, free.maxApps)
-        assertEquals(completo, free)
-        assertEquals(setOf("sobrio", "ruta", "papel", "cristal"), esencial.themes)
-        assertNull(completo.themes, "Completo no tiene límite de temas")
-        assertNull(completo.seasons)
+        assertEquals(free, esencial)
+        assertEquals(free, completo)
     }
 
     @Test
@@ -89,21 +105,30 @@ class CoreTest {
 
     @Test
     fun `un codigo nunca da menos que la edicion gratis`() {
-        // Hoy gratis lo incluye todo; el plan Esencial por sí solo no (sin temporadas ni temas extra).
-        assertTrue(esencial.seasons != null, "Esencial tiene límites propios")
+        // Con los datos reales (todo igual) activar un código no cambia nada ni quita nada.
         val efectivo = editions.effective(Tier.ESENCIAL)
-        assertNull(efectivo.themes)
-        assertNull(efectivo.seasons)
-        assertEquals(completo, efectivo)
-        // Y con una configuración que usa de todo, activar el código no le quita nada.
+        assertEquals(free, efectivo)
         val todo = LauncherConfig(theme = "patagonia", season = "navidad", apps = listOf("maps", "waze", "spotify", "youtube"), docsOn = true, voice = true)
         assertEquals(todo, Gate.apply(todo, efectivo))
         assertEquals(free, editions.effective(Tier.FREE))
     }
 
     @Test
+    fun `aunque algun dia la edicion gratis fuera mas amplia que un plan, el plan no da menos`() {
+        fun level(themes: String, docs: Boolean) =
+            """{"themes":$themes,"layouts":"*","scenes":"*","seasons":["ninguna"],"maxApps":4,"features":{"oilOn":true,"speedShow":true,"speedAlerts":"*","othersMaintenance":true,"docsOn":$docs,"fuelOn":true,"restrOn":true,"voice":true}}"""
+        val hipotetico = Editions.parse(
+            """{"free":${level("[\"ruta\",\"papel\"]", false)},"esencial":${level("[\"sobrio\"]", true)},"completo":${level("\"*\"", true)}}""",
+        )
+        val e = hipotetico.effective(Tier.ESENCIAL)
+        assertEquals(listOf("sobrio", "ruta", "papel"), e.themes!!.toList(), "los de su plan primero y los de gratis después")
+        assertTrue(e.docsOn, "lo que el plan permite sigue permitido")
+        assertEquals(hipotetico.limits(Tier.FREE), hipotetico.effective(Tier.FREE))
+    }
+
+    @Test
     fun `orMoreOf toma lo mas amplio de cada cosa y conserva el orden`() {
-        val r = restringido.orMoreOf(esencial)
+        val r = restringido.orMoreOf(intermedio)
         assertEquals(listOf("ruta", "sobrio", "papel", "cristal"), r.themes!!.toList(), "primero los de este nivel")
         assertNull(r.layouts, "sin límite en uno de los dos = sin límite")
         assertEquals(4, r.maxApps)
@@ -125,13 +150,13 @@ class CoreTest {
     }
 
     @Test
-    fun `esencial permite documentos pero no los temas ni temporadas de Completo`() {
+    fun `un nivel intermedio permite documentos pero no los temas ni temporadas extra`() {
         val pedido = LauncherConfig(theme = "cordillera", season = "patrias", docsOn = true, voice = true)
-        val r = Gate.apply(pedido, esencial)
+        val r = Gate.apply(pedido, intermedio)
         assertEquals("sobrio", r.theme)
         assertEquals("ninguna", r.season)
         assertTrue(r.docsOn && r.voice)
-        assertEquals(listOf("theme", "season"), Gate.locked(pedido, esencial))
+        assertEquals(listOf("theme", "season"), Gate.locked(pedido, intermedio))
     }
 
     @Test

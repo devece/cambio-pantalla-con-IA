@@ -1,5 +1,5 @@
 /*
- * Configurador de Tablero: estado, pasos, enlace de campos, vista previa y pago.
+ * Configurador de Tablero: estado, pasos, enlace de campos, vista previa y pedido.
  * Todo vive en `state`; cada cambio llama a update(), que repinta la radio y sincroniza la interfaz.
  */
 (function () {
@@ -23,13 +23,9 @@
       fuelOn: false, tankL: 45, kmPerL: 12,
       speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: true, miles: false, gallons: false,
     },
-    plan: 'completo',
-    addons: {},
     contact: { kind: 'whatsapp', value: '' },
-    terms: false,
   });
   const ui = { step: 1, screen: 'inicio', night: false };
-  const flags = { autoPlan: false };
   let state = defaults();
 
   function merge(base, saved) {
@@ -61,7 +57,6 @@
       copy.car.photoNight = null;
       copy.style.bg = null;
       delete copy.contact; // no guardamos datos de contacto en el navegador
-      delete copy.terms;
       localStorage.setItem(STORE, JSON.stringify(copy));
     } catch (_) { /* ignorar */ }
   }
@@ -82,7 +77,7 @@
       { id: 'nose', thumb: TB.radioThumbs.nose, name: 'No sé', desc: 'Te mostramos cómo saberlo en 10 segundos.' },
     ],
     'car.type': () => TB.vehicles,
-    'style.theme': () => TB.themes.map((t) => ({ id: t.id, name: t.name, desc: t.desc, tier: t.tier, swatch: t.swatch })),
+    'style.theme': () => TB.themes.map((t) => ({ id: t.id, name: t.name, desc: t.desc, swatch: t.swatch })),
     'style.layout': () => TB.layouts.map((l) => ({ id: l.id, name: l.name, desc: l.desc, thumb: TB.layoutThumbs[l.id], tag4x4: l.only4x4 })),
     'style.scene': () => TB.scenes,
     'style.sceneTime': () => TB.sceneTimes,
@@ -91,7 +86,7 @@
       { id: 'logo', name: 'Logo de fondo', desc: 'Centrado y suave' },
       { id: 'badge', name: 'Logo pequeño', desc: 'En la barra de arriba' },
     ],
-    'style.season': () => TB.seasons.map((s) => ({ id: s.id, name: s.name, desc: s.desc, tier: s.id === 'ninguna' ? 'base' : 'plus' })),
+    'style.season': () => TB.seasons.map((s) => ({ id: s.id, name: s.name, desc: s.desc })),
     'features.speedAlert': () => [
       { id: 'auto', name: 'Automático (aún no disponible)' },
       { id: 'manual', name: 'Manual' },
@@ -99,7 +94,6 @@
     ],
     'features.restrType': () => C.restriction.types,
     'features.country': () => TB_PICO.countries.map((c) => ({ id: c.id, name: c.name })),
-    plan: () => C.plans.map((p) => ({ id: p.id, name: p.name, desc: p.blurb, price: p.price })),
     'contact.kind': () => [
       { id: 'whatsapp', name: 'WhatsApp' },
       { id: 'email', name: 'Correo' },
@@ -109,7 +103,7 @@
     'style.apps': () => TB.apps,
     'features.others': () => C.maintenance.map((m) => ({ id: m.id, name: m.name, desc: 'cada ' + fmt(m.every) + ' km' })),
   };
-  const STEPS = ['Radio', 'Auto', 'Diseño', 'Funciones', 'Pago'];
+  const STEPS = ['Radio', 'Auto', 'Diseño', 'Funciones', 'Pedido'];
   const SCREENS = [
     { id: 'inicio', name: 'Inicio' },
     { id: 'radio', name: 'Radio' },
@@ -122,10 +116,9 @@
   function choiceHtml(it, role, extra) {
     const th = it.thumb ? `<span class="thumb">${it.thumb}</span>` : '';
     const sw = it.swatch ? `<span class="sw" style="background:linear-gradient(135deg,${it.swatch[0]} 0 55%,${it.swatch[1]} 55%)"></span>` : '';
-    const tag = it.tier === 'plus' ? '<span class="tag">Completo</span>' : it.tag4x4 ? '<span class="tag">4x4</span>' : '';
-    const price = it.price ? `<span class="price">${O.money(it.price)}</span>` : '';
+    const tag = it.tag4x4 ? '<span class="tag">4x4</span>' : '';
     const attr = role === 'radio' ? 'role="radio" aria-checked="false"' : 'role="checkbox" aria-pressed="false"';
-    return `<button type="button" class="choice" ${attr} data-id="${esc(it.id)}"${extra || ''}>${th}${sw}<b>${esc(it.name)}${tag}</b>${it.desc ? `<small>${esc(it.desc)}</small>` : ''}${price}</button>`;
+    return `<button type="button" class="choice" ${attr} data-id="${esc(it.id)}"${extra || ''}>${th}${sw}<b>${esc(it.name)}${tag}</b>${it.desc ? `<small>${esc(it.desc)}</small>` : ''}</button>`;
   }
 
   function build() {
@@ -145,27 +138,10 @@
     $('#rt-month').innerHTML = TB.months.map((m, i) => `<option value="${i + 1}">${m[0].toUpperCase() + m.slice(1)}</option>`).join('');
     $('#screen-tabs').innerHTML = SCREENS.map((s) => `<button type="button" class="tab" role="tab" data-screen="${s.id}" aria-selected="false">${s.name}</button>`).join('');
     $('#route').innerHTML = STEPS.map((n, i) => `<li data-n="${i + 1}"><button type="button" data-n="${i + 1}" aria-label="Paso ${i + 1}: ${n}"><span class="km"></span><small>${i + 1}. ${n}</small></button></li>`).join('');
-
-    const addons = C.addons.filter((a) => a.available !== false);
-    $('#addons').innerHTML = addons
-      .map((a) => `<label class="check"><input type="checkbox" data-bind="addons.${a.id}"><span>${esc(a.name)} · ${O.money(a.price)}<br><small class="hint">${esc(a.blurb)}</small></span></label>`)
-      .join('');
-    if (!addons.length) $('#addons').hidden = true;
   }
 
   /* ---------- sincronizar la interfaz con el estado ---------- */
   const radioOk = () => state.radio.type === 'android' || state.radio.type === 'nose';
-
-  function applyConstraints() {
-    const need = O.requiredPlan(state.style);
-    if (need === 'completo' && state.plan === 'esencial') {
-      state.plan = 'completo';
-      flags.autoPlan = true;
-    } else if (need === 'esencial' && flags.autoPlan && state.plan === 'completo') {
-      state.plan = 'esencial';
-      flags.autoPlan = false;
-    }
-  }
 
   const vehicleLevel = () => TB.vehicleLevel[state.car.type] || 0;
   const VEHICLE_HINT = {
@@ -185,13 +161,11 @@
   }
 
   function syncChoices() {
-    const need = O.requiredPlan(state.style);
     $$('[data-choices]').forEach((el) => {
       const path = el.dataset.choices;
       const cur = get(state, path);
       $$('.choice', el).forEach((b) => {
         b.setAttribute('aria-checked', String(cur === b.dataset.id));
-        if (path === 'plan' && b.dataset.id === 'esencial') b.disabled = need === 'completo';
         if (path === 'style.layout' && b.dataset.id === 'todoterreno') b.disabled = vehicleLevel() < 2;
         if (path === 'style.scene') { const sc = TB.scenes.find((s) => s.id === b.dataset.id); b.disabled = !!(sc && sc.level && sc.level > vehicleLevel()); }
       });
@@ -234,7 +208,7 @@
   const radioNotes = {
     android: ['', 'Muy bien: este es el tipo de radio para el que está pensado Tablero.'],
     original: ['bad', 'Las radios originales de fábrica que no permiten instalar apps no son compatibles. Si solo tiene Android Auto o CarPlay, eso es tu celular mostrándose en la pantalla: no se puede instalar nada dentro de la radio. Con una radio Android de pantalla grande sí funcionaría.'],
-    nose: ['warn', 'Para saberlo, abre los ajustes de tu radio y busca “Acerca del dispositivo”, “Sistema” o “Información”. Si ves una versión de Android y puedes abrir la Play Store, es compatible. Puedes diseñar igual, pero necesitamos que confirmes el tipo antes de pagar.'],
+    nose: ['warn', 'Para saberlo, abre los ajustes de tu radio y busca “Acerca del dispositivo”, “Sistema” o “Información”. Si ves una versión de Android y puedes abrir la Play Store, es compatible. Puedes diseñar igual, pero necesitamos que confirmes el tipo antes de hacer tu pedido.'],
   };
 
   function syncRestriction() {
@@ -296,14 +270,6 @@
     const left = f.lastOil + f.oilEvery - f.odometer;
     $('#oil-hint').textContent = left >= 0 ? `Faltan ${fmt(left)} km para el próximo cambio. Cuando falten 500 km o menos, la radio muestra un aviso grande.` : `Tu cambio de aceite está pasado por ${fmt(-left)} km.`;
     $('#fuel-hint').textContent = `Con el tanque lleno te alcanza para unos ${fmt(f.tankL * f.kmPerL)} km. Cada vez que cargues, tocas “Llené el tanque” en la radio.`;
-
-    const pn = $('#plan-note');
-    const reasons = O.planReasons(state.style);
-    if (reasons.length) {
-      pn.hidden = false;
-      pn.className = 'note warn';
-      pn.textContent = `Se necesita el plan Completo por ${reasons.join(' y ')}. Si prefieres el Esencial, vuelve al paso 3 y elige un tema básico (Ruta, Papel o Cristal) sin decoración.`;
-    } else pn.hidden = true;
   }
 
   function syncSummary() {
@@ -332,9 +298,6 @@
       ['Funciones', feats.length ? feats.join(', ') : 'Ninguna activada'],
     ];
     $('#summary').innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
-    const q = O.quote(state);
-    $('#total').textContent = q.total > 0 ? O.money(q.total) : 'Gratis';
-    $('#pay').textContent = (TB.site || {}).payment === 'transfer' ? `Pagar ${O.money(q.total)} por transferencia` : (TB.site || {}).payment === 'contact' ? `Pedir mi pantalla · ${O.money(q.total)}` : `Pagar ${O.money(q.total)}`;
   }
 
   function syncSteps() {
@@ -367,7 +330,6 @@
   const PHONE_EXAMPLE = { CL: '+56 9 1234 5678', CO: '+57 300 123 4567', EC: '+593 99 123 4567' };
   function update() {
     state.features.restrDays = state.features.country === 'CL' ? O.restrDaysFor(state.features) : [];
-    applyConstraints();
     TB.preview.render(state, ui);
     const tel = document.querySelector('input[type=tel][data-bind="contact.value"]');
     if (tel) tel.placeholder = PHONE_EXAMPLE[state.features.country] || PHONE_EXAMPLE.CL;
@@ -429,7 +391,6 @@
         if (single) {
           const path = single.dataset.choices;
           set(state, path, choice.dataset.id);
-          if (path === 'plan') flags.autoPlan = false;
           if (path === 'contact.kind') state.contact.value = '';
           if (path === 'style.theme') state.style.accent = null; // cada tema trae su acento
           if (path === 'car.type') applyVehicle();
@@ -517,11 +478,11 @@
     $('#bg-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadBg(f); e.target.value = ''; });
     $('#bg-clear').addEventListener('click', () => { if (state.style.bg) URL.revokeObjectURL(state.style.bg); state.style.bg = null; update(); });
     $('#photo-mode').addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) showPhoto(b.dataset.mode); });
-    $('#pay').addEventListener('click', pay);
-    $('#pay-done').addEventListener('click', (e) => {
+    $('#order-send').addEventListener('click', sendOrder);
+    $('#order-done').addEventListener('click', (e) => {
       const order = e.target.closest('[data-copy-order]');
       if (order) {
-        const text = $('#pay-done').dataset.order || '';
+        const text = $('#order-done').dataset.order || '';
         const ok = () => { $('#copy-note').textContent = '¡Copiado! Pégalo en el mensaje de contacto.'; };
         if (navigator.clipboard) navigator.clipboard.writeText(text).then(ok, () => { $('#copy-note').textContent = 'No pudimos copiar. Usa el botón de enviar.'; }); else ok();
         return;
@@ -793,7 +754,7 @@
     }
   }
 
-  /* ---------- pago ---------- */
+  /* ---------- pedido ---------- */
   function payload() {
     const copy = JSON.parse(JSON.stringify(state));
     delete copy.car.photo; // la foto nunca viaja en el pedido
@@ -803,7 +764,7 @@
   }
 
   function showErrors(list) {
-    const ul = $('#pay-errors');
+    const ul = $('#order-errors');
     ul.innerHTML = list.map((m) => `<li>${esc(m)}</li>`).join('');
     ul.hidden = !list.length;
     if (list.length) ul.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -839,40 +800,38 @@
     }
   }
 
-  /* ---------- pago por transferencia bancaria ---------- */
+  /* ---------- mensaje del pedido ---------- */
   const waNumber = (raw) => {
     const d = String(raw || '').replace(/\D/g, '');
     return d.length === 9 && d[0] === '9' ? '56' + d : d;
   };
 
   /** Texto del pedido para mandárselo a quien arma la pantalla: resumen legible y los datos para armarla. */
-  function orderMessage(orderId, total, photo) {
+  function orderMessage(orderId, photo) {
     const rows = $$('#summary div').map((d) => `${$('dt', d).textContent}: ${$('dd', d).textContent}`);
-    const q = O.quote(state);
     const clean = O.validateOrder(payload()).clean;
     return [
-      `Hola, soy ${state.car.name || 'cliente'}. Hice el pedido ${orderId} en Tablero y ya transferí ${O.money(total)}.`,
-      `Plan: ${q.lines.map((l) => l.name).join(' + ')}`,
+      `Hola, soy ${state.car.name || 'cliente'}. Hice el pedido ${orderId} en Tablero.`,
       ...rows,
       `Contacto: ${state.contact.kind === 'email' ? 'correo' : 'WhatsApp'} ${state.contact.value}`,
-      photo === 'ok' ? 'Mi foto ya quedó guardada con el pedido.' : state.car.photo ? 'No pude subir mi foto: te la envío por aquí.' : 'Te adjunto el comprobante y la foto de mi auto.',
+      photo === 'ok' ? 'Mi foto ya quedó guardada con el pedido.' : state.car.photo ? 'No pude subir mi foto: te la envío por aquí.' : 'Te adjunto la foto de mi auto.',
       '',
       'Datos para armarlo (no lo borres):',
       JSON.stringify(clean),
     ].join('\n');
   }
 
-  /** Pago coordinado en el contacto de Daniexpress: el cliente copia su pedido y lo pega allá. */
+  /** El cliente copia su pedido y lo pega en el contacto de Daniexpress, que le manda su código. */
   function showContactOrder(data) {
     const site = TB.site || {};
     const web = site.web || {};
-    const msg = orderMessage(data.orderId, data.total, data.photo).replace(' y ya transferí ', ' por ');
+    const msg = orderMessage(data.orderId, data.photo);
     const wa = waNumber(site.whatsapp);
     let go = '';
     if (wa) go = `<a class="btn cta" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Enviar mi pedido por WhatsApp</a>`;
     else if (site.supportEmail) go = `<a class="btn cta" href="mailto:${esc(site.supportEmail)}?subject=${encodeURIComponent('Pedido ' + data.orderId)}&body=${encodeURIComponent(msg)}">Enviar mi pedido por correo</a>`;
     else if (web.url) go = `<a class="btn cta" href="${esc(web.url)}" target="_blank" rel="noopener">Ir al contacto de ${esc(web.name || 'Daniexpress')}</a>`;
-    const done = $('#pay-done');
+    const done = $('#order-done');
     done.hidden = false;
     done.innerHTML = `<b>Pedido ${esc(data.orderId)}</b>
       <p>Tu pedido está listo. Tu pantalla es <b>gratis</b>. Envíaselo a <b>${esc(web.name || 'Daniexpress')}</b> y ellos te mandan tu código de activación.</p>
@@ -888,57 +847,25 @@
     done.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
 
-  function showTransfer(data) {
-    const site = TB.site || {};
-    const bank = site.bank || {};
-    const total = data.total;
-    const done = $('#pay-done');
-    const bankOk = ['bank', 'type', 'number', 'holder', 'rut'].every((k) => String(bank[k] || '').trim());
-    const row = (label, value) => `<div class="brow"><span>${esc(label)}</span><b>${esc(value)}</b><button type="button" class="btn ghost sm" data-copy="${esc(value)}">Copiar</button></div>`;
-    const msg = orderMessage(data.orderId, total);
-    const wa = waNumber(site.whatsapp);
-    let send = '';
-    if (wa) send = `<a class="btn cta" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Enviar mi pedido y comprobante por WhatsApp</a>`;
-    else if (site.supportEmail) send = `<a class="btn cta" href="mailto:${esc(site.supportEmail)}?subject=${encodeURIComponent('Pedido ' + data.orderId)}&body=${encodeURIComponent(msg)}">Enviar mi pedido y comprobante por correo</a>`;
-    else if (site.web && site.web.url) send = `<a class="btn cta" href="${esc(site.web.url)}" target="_blank" rel="noopener">Escríbenos en ${esc(site.web.name || 'nuestra web')} con tu pedido ${esc(data.orderId)}</a>`;
-    done.hidden = false;
-    done.innerHTML = `<b>Pedido ${esc(data.orderId)}</b>
-      <p>${bankOk ? 'Desde la app de tu banco, transfiere <b>exactamente ' + esc(O.money(total)) + '</b> a esta cuenta:' : 'Aún no están cargados los datos de la cuenta en el sitio. Escríbenos con tu número de pedido y te los enviamos.'}</p>
-      ${bankOk ? `<div class="bank">${row('Banco', bank.bank)}${row('Tipo de cuenta', bank.type)}${row('Número de cuenta', bank.number)}${row('Titular', bank.holder)}${row('RUT', bank.rut)}${row('Monto', String(Math.round(total)))}${row('Referencia', data.orderId)}</div><p class="hint">Escribe <b>${esc(data.orderId)}</b> como referencia o comentario para reconocer tu pago más rápido.</p>` : ''}
-      <p><b>Después:</b> envíanos el comprobante y la foto de tu auto. Te mandamos tu código apenas confirmamos el pago.</p>
-      <div class="codebtns">${send}</div>
-      ${!send ? '<p class="hint">Escríbenos en la sección de contacto con tu número de pedido.</p>' : '<p class="hint">Se abre un mensaje ya escrito con tu pedido: solo adjunta el comprobante y la foto de tu auto.</p>'}`;
-    done.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  }
-
-  async function pay() {
-    $('#pay-done').hidden = true;
+  async function sendOrder() {
+    $('#order-done').hidden = true;
     const local = O.validateOrder(payload());
     if (!local.ok) return showErrors(local.errors);
     showErrors([]);
 
-    const btn = $('#pay');
+    const btn = $('#order-send');
     const label = btn.textContent;
     btn.disabled = true;
     btn.textContent = 'Enviando pedido…';
     try {
-      const res = await fetch('/api/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload()) });
+      const res = await fetch('/api/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload()) });
       let data = null;
       try { data = await res.json(); } catch (_) { /* respuesta sin JSON */ }
       if (!data) { showErrors(['No pudimos conectar con el servidor. Revisa tu internet e intenta de nuevo.']); return; }
       if (!data.ok) { showErrors(data.errors || [data.error || 'No pudimos procesar tu pedido.']); return; }
-      if ((TB.site || {}).payment === 'contact') {
-        if (state.car.photo) btn.textContent = 'Guardando tu foto…';
-        data.photo = await uploadOrderPhotos(data.orderId, data.photoToken);
-        showContactOrder(data);
-        return;
-      }
-      if ((TB.site || {}).payment === 'transfer') { showTransfer(data); return; }
-      if (data.paymentUrl) { window.location.href = data.paymentUrl; return; }
-      const done = $('#pay-done');
-      done.hidden = false;
-      done.innerHTML = `<b>Pedido ${esc(data.orderId)}</b><br>${esc(data.message || 'Recibimos tu pedido. Te escribiremos con los pasos para pagar.')}`;
-      done.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      if (state.car.photo) btn.textContent = 'Guardando tu foto…';
+      data.photo = await uploadOrderPhotos(data.orderId, data.photoToken);
+      showContactOrder(data);
     } catch (_) {
       showErrors(['No pudimos conectar con el servidor. Revisa tu internet e intenta de nuevo.']);
     } finally {
@@ -971,25 +898,12 @@
     const extra = [site.supportEmail && 'por correo', site.instagram && 'por Instagram'].filter(Boolean).join(' o ');
     const how = web ? `Contáctanos en ${web.name}${extra ? ' o ' + extra : ''}` : extra ? `Escríbenos ${extra}` : '';
     if (how) $('#contact-text').textContent = `${how} y te respondemos. Te respondemos por WhatsApp.`;
-    const plans = C.plans;
-    const prices = plans ? Object.values(plans).map((p) => p.price).filter((n) => typeof n === 'number') : [];
-    if (prices.length) $('#price-from').textContent = Math.min(...prices) > 0 ? 'Desde ' + O.money(Math.min(...prices)) : 'Gratis.';
 
     load();
     build();
     TB.preview.mount($('#device'));
     wire();
     update();
-
-    // Volvió de PayPal sin pagar: su configuración sigue guardada, lo dejamos en el paso de pago.
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('pago') === 'cancelado') {
-      go(5);
-      const done = $('#pay-done');
-      done.hidden = false;
-      done.textContent = 'Cancelaste el pago en PayPal. Tu pedido sigue aquí: cuando quieras, presiona Pagar de nuevo.';
-      window.history.replaceState(null, '', window.location.pathname);
-    }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

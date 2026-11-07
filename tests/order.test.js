@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { validateOrder, quote, requiredPlan, normalizeMobile } = require('../public/shared/order.js');
+const { validateOrder, normalizeMobile } = require('../public/shared/order.js');
 const { generateCode, normalizeCode, hashDeviceId, FORMAT } = require('../lib/license.js');
 
 const base = () => ({
@@ -9,10 +9,7 @@ const base = () => ({
   car: { type: 'suv', color: '#1f5fa8', name: 'Daniel', greeting: 'Hola' },
   style: { theme: 'ruta', layout: 'tarjetas', scene: 'tema', season: 'ninguna', apps: ['maps', 'spotify'] },
   features: { oilOn: true, odometer: 60000, lastOil: 58000, oilEvery: 5000 },
-  plan: 'esencial',
-  addons: {},
   contact: { kind: 'whatsapp', value: '+56 9 1234 5678' },
-  terms: true,
 });
 
 test('un pedido correcto pasa y normaliza el celular', () => {
@@ -29,39 +26,24 @@ test('radio original no es compatible', () => {
   assert.match(r.errors.join(' '), /no son compatibles/);
 });
 
-test('un tema "plus" exige plan Completo', () => {
+test('todos los diseños y decoraciones se pueden pedir: no hay planes', () => {
   const o = base();
   o.style.theme = 'cordillera';
-  assert.equal(requiredPlan(o.style), 'completo');
-  assert.equal(validateOrder(o).ok, false);
-  o.plan = 'completo';
-  assert.equal(validateOrder(o).ok, true);
-});
-
-test('las temporadas también exigen plan Completo', () => {
-  const o = base();
   o.style.season = 'navidad';
-  assert.equal(validateOrder(o).ok, false);
-});
-
-test('el total se calcula con el catálogo, ignorando precios del cliente', () => {
-  const o = base();
-  o.plan = 'completo';
-  o.total = 1; // el navegador no manda en el precio
-  o.price = 1;
-  const q = quote(validateOrder(o).clean);
-  assert.equal(q.total, 0, 'por ahora todo es gratis (precio 0 en el catálogo)');
-});
-
-test('un servicio no disponible (addon "foto") ni se acepta ni se cobra', () => {
-  const o = base();
-  o.addons = { foto: true };
   const r = validateOrder(o);
-  assert.deepEqual(r.clean.addons, {});
-  assert.equal(quote(o).total, 0); // tampoco lo cobra quote() si le llega directo
+  assert.equal(r.ok, true, r.errors.join(' | '));
+  assert.equal(r.clean.style.theme, 'cordillera');
+  assert.equal(r.clean.style.season, 'navidad');
 });
 
-test('"No sé" debe confirmarse antes de pagar', () => {
+test('el pedido limpio no trae plan, extras, precios ni términos', () => {
+  const o = base();
+  Object.assign(o, { plan: 'completo', addons: { foto: true }, total: 1, price: 1, terms: true });
+  const { clean } = validateOrder(o);
+  ['plan', 'addons', 'total', 'price', 'terms'].forEach((k) => assert.equal(k in clean, false, k));
+});
+
+test('"No sé" debe confirmarse antes de hacer el pedido', () => {
   const o = base();
   o.radio.type = 'nose';
   const r = validateOrder(o);
@@ -82,13 +64,13 @@ test('descarta campos desconocidos, valores fuera de rango y colores inválidos'
   assert.equal('admin' in r.clean, false);
 });
 
-test('exige términos y un contacto válido', () => {
+test('exige un contacto válido', () => {
   const o = base();
-  o.terms = false;
   o.contact.value = '12345';
   const r = validateOrder(o);
   assert.equal(r.ok, false);
-  assert.equal(r.errors.length, 2);
+  assert.equal(r.errors.length, 1);
+  assert.match(r.errors[0], /celular/);
 });
 
 test('correo como contacto', () => {

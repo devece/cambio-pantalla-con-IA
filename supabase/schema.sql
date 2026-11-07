@@ -6,20 +6,23 @@
 create table if not exists public.tablero_orders (
   id             uuid primary key default gen_random_uuid(),
   public_id      text not null unique,               -- ej. TB-9F2A41C7 (lo que ve el cliente)
+  -- 'pending' = pedido hecho; 'paid' = atendido (tiene su código). Es el nombre histórico: Tablero ya no cobra.
   status         text not null default 'pending'
                  check (status in ('pending','paid','failed','refunded')),
+  -- Columnas heredadas de cuando había planes y cobros. La base las exige (not null), así que cada pedido nuevo
+  -- las trae con un valor fijo (ver lib/legacy.js). Ya no significan nada. No se borran para no tocar datos existentes.
   plan           text not null,
   addons         jsonb not null default '{}'::jsonb,
-  total          integer not null check (total >= 0), -- centavos de USD (800 = US$ 8,00)
+  total          integer not null check (total >= 0),
   currency       text not null default 'USD',
   contact_kind   text not null check (contact_kind in ('whatsapp','email')),
   contact_value  text not null,
   config         jsonb not null,                       -- radio, auto, estilo, funciones (sin foto)
-  payment_ref    text,                                 -- id del cobro en el proveedor (PayPal, si se usa)
-  charge_amount  numeric(10,2),                        -- monto exacto pedido al proveedor (en USD)
-  charge_currency text,
+  payment_ref    text,                                 -- heredado (cobros): sin uso
+  charge_amount  numeric(10,2),                        -- heredado (cobros): sin uso
+  charge_currency text,                                -- heredado (cobros): sin uso
   created_at     timestamptz not null default now(),
-  paid_at        timestamptz
+  paid_at        timestamptz                           -- cuándo se atendió el pedido (nombre histórico)
 );
 
 create table if not exists public.tablero_licenses (

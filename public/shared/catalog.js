@@ -1,53 +1,15 @@
 /*
  * Catálogo compartido entre el navegador y el servidor (api/).
- * Por ahora todo es GRATIS (precio 0). Si más adelante vuelves a cobrar, cambia los precios aquí.
- * El servidor siempre recalcula el total con este archivo; nunca confía en el precio que manda el navegador.
+ * Tablero es gratis: no hay planes, precios ni cobros. Aquí solo están las opciones que existen.
  */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.TBCatalog = factory();
 })(typeof self !== 'undefined' ? self : this, function () {
-  const plans = [
-    {
-      id: 'esencial',
-      name: 'Esencial',
-      price: 0,
-      blurb: 'Tu pantalla con diseños básicos y todas las funciones de manejo.',
-    },
-    {
-      id: 'completo',
-      name: 'Completo',
-      price: 0,
-      blurb: 'Todos los diseños visuales y las decoraciones de temporada.',
-    },
-  ];
-
-  const addons = [
-    {
-      id: 'foto',
-      name: 'Foto de tu auto con luces',
-      price: 100,
-      blurb: 'Preparamos tu foto de día y de noche, con el fondo recortado.',
-      // false = el servicio todavía no existe: ni se muestra ni se cobra. Cámbialo cuando esté listo.
-      available: false,
-    },
-  ];
-
-  // 'base' viene en Esencial; 'plus' requiere el plan Completo.
-  const themeTiers = {
-    sobrio: 'base',
-    ruta: 'base',
-    papel: 'base',
-    cristal: 'base',
-    alumbrado: 'plus',
-    cordillera: 'plus',
-    costa: 'plus',
-    atacama: 'plus',
-    patagonia: 'plus',
-  };
+  // Los diseños visuales disponibles (todos son gratis).
+  const themes = ['sobrio', 'ruta', 'papel', 'cristal', 'alumbrado', 'cordillera', 'costa', 'atacama', 'patagonia'];
 
   const seasons = ['ninguna', 'auto', 'patrias', 'halloween', 'navidad', 'anonuevo'];
-  const plusSeasons = ['auto', 'patrias', 'halloween', 'navidad', 'anonuevo'];
   const layouts = ['consola', 'estelar', 'tarjetas', 'centro', 'manejo', 'minimal', 'tablero', 'lateral', 'todoterreno'];
   const scenes = ['tema', 'cordillera', 'costa', 'desierto', 'bosque', 'ciudad', 'carretera', 'montana', 'nieve', 'rocas', 'barro', 'color'];
   const sceneTimes = ['auto', 'amanecer', 'dia', 'atardecer', 'noche'];
@@ -103,13 +65,8 @@
   };
 
   return {
-    currency: 'USD',
-    locale: 'es-CL',
-    plans,
-    addons,
-    themeTiers,
+    themes,
     seasons,
-    plusSeasons,
     layouts,
     scenes,
     sceneTimes,

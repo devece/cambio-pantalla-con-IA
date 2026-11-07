@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_nota": "Qué incluye cada edición del launcher. 'free' es la edición gratis (sin código). Por ahora NO hay versión de pago: 'free' incluye todo, igual que 'completo'. 'esencial' y 'completo' quedan definidos por si más adelante vuelve a haber planes que desbloquea un código de licencia. '*' = sin límite. El sitio y el launcher Android leen este mismo archivo.",
+  "_nota": "Qué incluye cada edición del launcher. 'free' es la edición gratis (sin código). Tablero es gratis y no hay planes: los tres niveles incluyen todo. 'esencial' y 'completo' se conservan solo porque la app los reconoce en códigos ya emitidos y en radios que ya activaron uno. '*' = sin límite. El sitio y el launcher Android leen este mismo archivo.",
   "free": {
     "themes": "*",
     "layouts": "*",
@@ -19,10 +19,10 @@
     }
   },
   "esencial": {
-    "themes": ["sobrio", "ruta", "papel", "cristal"],
+    "themes": "*",
     "layouts": "*",
     "scenes": "*",
-    "seasons": ["ninguna"],
+    "seasons": "*",
     "maxApps": 4,
     "features": {
       "oilOn": true,

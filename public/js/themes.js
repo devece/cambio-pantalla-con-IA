@@ -1,7 +1,7 @@
 /*
  * Temas visuales de Tablero.
  * Cada tema define su paleta de día y de noche (luces encendidas), su forma (radio de esquinas, vidrio, sombra)
- * y el fondo que lleva por defecto. `tier: 'plus'` requiere el plan Completo (ver shared/catalog.js).
+ * y el fondo que lleva por defecto. Todos los temas son gratis.
  */
 (function () {
   const TB = (window.TB = window.TB || {});
@@ -11,7 +11,6 @@
       id: 'sobrio',
       name: 'Sobrio',
       desc: 'Plano y limpio, de alto contraste. Oscuro de noche y claro de día.',
-      tier: 'base',
       scene: 'none',
       radius: 24,
       blur: 0,
@@ -24,7 +23,6 @@
       id: 'ruta',
       name: 'Ruta',
       desc: 'Vidrio sobre un degradado vivo. Moderno y limpio.',
-      tier: 'base',
       scene: 'aurora',
       radius: 28,
       blur: 26,
@@ -37,7 +35,6 @@
       id: 'papel',
       name: 'Papel',
       desc: 'Vidrio claro y de alto contraste. Se lee a pleno sol.',
-      tier: 'base',
       scene: 'none',
       radius: 16,
       blur: 20,
@@ -50,7 +47,6 @@
       id: 'cristal',
       name: 'Cristal',
       desc: 'Paneles de vidrio sobre el fondo que elijas.',
-      tier: 'base',
       scene: 'cordillera',
       radius: 28,
       blur: 24,
@@ -63,7 +59,6 @@
       id: 'alumbrado',
       name: 'Alumbrado',
       desc: 'Ciudad de noche con luz de sodio, cálida.',
-      tier: 'plus',
       scene: 'ciudad',
       radius: 18,
       blur: 22,
@@ -76,7 +71,6 @@
       id: 'cordillera',
       name: 'Cordillera',
       desc: 'Nieve y cielo despejado. Luminoso y sereno.',
-      tier: 'plus',
       scene: 'cordillera',
       radius: 22,
       blur: 22,
@@ -89,7 +83,6 @@
       id: 'costa',
       name: 'Costa',
       desc: 'Turquesa del Pacífico y arena. Redondeado.',
-      tier: 'plus',
       scene: 'costa',
       radius: 32,
       blur: 22,
@@ -102,7 +95,6 @@
       id: 'atacama',
       name: 'Atacama',
       desc: 'Desierto, ocre y terracota. Esquinas firmes.',
-      tier: 'plus',
       scene: 'desierto',
       radius: 16,
       blur: 22,
@@ -115,7 +107,6 @@
       id: 'patagonia',
       name: 'Patagonia',
       desc: 'Bosque húmedo y bruma. Verde profundo.',
-      tier: 'plus',
       scene: 'bosque',
       radius: 24,
       blur: 24,

@@ -33,7 +33,7 @@ import cl.tablero.core.WheelKeys
 
 /**
  * Ajustes: lo mismo que el configurador del sitio, pero dentro de la radio y sin internet.
- * Lo que el plan no incluye aparece apagado con "(requiere código)".
+ * Lo que el nivel actual no permita aparece apagado con "(no disponible)". Hoy todo está permitido.
  */
 class SettingsActivity : Activity() {
     private lateinit var settings: SettingsStore
@@ -163,7 +163,7 @@ class SettingsActivity : Activity() {
                 addView(RadioButton(this@SettingsActivity).apply {
                     id = View.generateViewId()
                     tag = mode
-                    text = label + if (allowed) "" else "  (requiere código)"
+                    text = label + if (allowed) "" else "  (no disponible)"
                     isEnabled = allowed
                     isChecked = c.speedAlert == mode
                     setTextColor(if (allowed) Ui.TEXT else Ui.SUB)
@@ -236,7 +236,7 @@ class SettingsActivity : Activity() {
         }
         val chosenApps = apps.filterValues { it.isChecked }.keys.toList()
         if (chosenApps.size > limits.maxApps) {
-            Toast.makeText(this, "Tu plan permite hasta ${limits.maxApps} apps", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Puedes elegir hasta ${limits.maxApps} apps", Toast.LENGTH_LONG).show()
             return
         }
         val mode = speedMode.findViewById<RadioButton>(speedMode.checkedRadioButtonId)?.tag as? String ?: old.speedAlert
@@ -388,7 +388,7 @@ class SettingsActivity : Activity() {
 
     private fun check(label: String, checked: Boolean, enabled: Boolean): CheckBox {
         val box = CheckBox(this).apply {
-            text = label + if (enabled) "" else "  (requiere código)"
+            text = label + if (enabled) "" else "  (no disponible)"
             isChecked = checked && enabled
             isEnabled = enabled
             setTextColor(if (enabled) Ui.TEXT else Ui.SUB)

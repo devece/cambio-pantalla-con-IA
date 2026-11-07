@@ -8,7 +8,7 @@ El proyecto está en `android/`. Arranca como pantalla de inicio de la radio y y
 - **Velocidad en vivo con el GPS** y alerta contra un límite fijo.
 - **Saludo por voz** al abrir la app.
 - **Ajustes** dentro de la radio (sin internet) y **atajos a apps**.
-- Candado de edición gratis / Esencial / Completo, y **activación de códigos** contra `/api/license`.
+- **Activación de códigos** contra `/api/license` (sirven para traer a la radio el diseño hecho en el sitio). Todo es gratis: el candado de ediciones sigue en el código pero hoy no limita nada.
 
 Para probarla en una radio: `PRUEBA_EN_RADIO.md`.
 
@@ -27,7 +27,7 @@ android/
 - `app/ActivationActivity`: pide el código, lo valida con el servidor y guarda el nivel en la radio, así sigue funcionando sin internet.
 - `app/build.gradle.kts` copia `editions.json` a los assets al compilar, para que sitio y app nunca se desincronicen.
 
-`/api/license` ahora responde también el plan: `{ ok, status: "active", plan: "esencial" | "completo" }`.
+`/api/license` responde `{ ok, status: "active", plan: "completo", design }`. El campo `plan` es heredado (la app todavía lo lee) y hoy es siempre el mismo.
 
 ## Cómo compilarlo
 

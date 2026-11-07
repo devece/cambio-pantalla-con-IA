@@ -135,8 +135,6 @@ a { color: var(--verde); }
 .tag { display: inline-block; font-size: 11.5px; font-weight: 700; background: var(--ink); color: var(--on-ink); border-radius: 6px; padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
 .themes .choice { padding-top: 10px; }
 .sw { display: block; height: 34px; border-radius: 8px; margin-bottom: 6px; border: 1px solid rgba(0, 0, 0, .12); }
-.plans .choice { grid-template-columns: 1fr auto; align-items: start; }
-.plans .price { font: 700 28px/1 var(--display); grid-row: 1 / span 2; grid-column: 2; margin-right: 26px; }
 
 .swatches { display: flex; flex-wrap: wrap; gap: 10px; }
 .swatch { appearance: none; width: 40px; height: 40px; border-radius: 50%; border: 3px solid var(--paper); box-shadow: 0 0 0 2px var(--borde); cursor: pointer; padding: 0; }
@@ -168,23 +166,19 @@ input[type='color'] { width: 56px; height: 44px; padding: 2px; border: 2px solid
 .btn.ghost { background: var(--paper2); color: var(--ink); border-color: var(--borde); }
 .btn.ghost:hover { border-color: var(--ink); }
 .btn.link { background: none; color: var(--verde); border: 0; text-decoration: underline; padding: 10px 6px; }
-.btn.pay { width: 100%; margin-top: 18px; background: var(--verde); color: #fff; border-color: var(--verde); font-size: 19px; min-height: 56px; }
-.btn.pay:hover { background: var(--verde-osc); }
+.btn.send { width: 100%; margin-top: 18px; background: var(--verde); color: #fff; border-color: var(--verde); font-size: 19px; min-height: 56px; }
+.btn.send:hover { background: var(--verde-osc); }
 .btn:disabled { opacity: .55; cursor: not-allowed; }
 .btn[hidden] { display: none; }
 .nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 28px; padding-top: 18px; border-top: 2px solid var(--page); }
 .nav .btn { flex: 0 1 auto; }
 .nav .primary { margin-left: auto; min-width: 150px; }
 
-/* Resumen y pago */
+/* Resumen y pedido */
 .summary { margin: 0; display: grid; gap: 8px; }
 .summary div { display: grid; grid-template-columns: 110px 1fr; gap: 12px; font-size: 15px; padding-bottom: 8px; border-bottom: 1px dashed var(--borde); }
 .summary dt { font-weight: 700; color: var(--ink2); }
 .summary dd { margin: 0; }
-.total { display: flex; align-items: baseline; justify-content: space-between; margin-top: 14px; }
-.total span { font: 700 22px var(--display); }
-.total b { font: 600 30px/1.1 var(--display); }
-.terms { margin-top: 20px; font-weight: 500; font-size: 15px; }
 .errors { margin: 14px 0 0; padding: 12px 14px 12px 32px; border-radius: 10px; background: var(--tint-red); border-left: 5px solid var(--rojo); font-size: 15px; }
 .error { color: var(--rojo); font-size: 14px; margin-top: 8px; }
 .done { margin-top: 16px; padding: 14px 16px; border-radius: 10px; background: var(--tint); border-left: 5px solid var(--verde); }
@@ -312,7 +306,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .helps details:last-child { border-bottom: 1px solid var(--borde); }
 .helps summary { cursor: pointer; font-weight: 500; }
 .helps p { margin-top: 8px; }
-.pay-install { margin-top: 12px; font-size: 14.5px; }
+.send-install { margin-top: 12px; font-size: 14.5px; }
 
 /* Qué recibes */
 .gets { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
@@ -335,12 +329,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .contactline { margin-top: 26px; font-size: 16px; }
 
 /* Datos para transferir */
-.bank { display: grid; gap: 6px; margin: 10px 0; }
-.brow { display: grid; grid-template-columns: 120px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--borde); border-radius: 10px; background: var(--paper2); font-size: 14.5px; }
-.brow span { color: var(--ink2); }
-.brow b { overflow-wrap: anywhere; }
 .btn.sm { min-height: 34px; padding: 6px 12px; font-size: 13px; }
-@media (max-width: 520px) { .brow { grid-template-columns: 1fr auto; } .brow span { grid-column: 1 / -1; } }
 .done p { margin: 8px 0; }
 .mini-steps { margin: 8px 0 12px; padding-left: 22px; color: var(--ink2); }
 .mini-steps li { margin: 3px 0; }

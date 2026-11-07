@@ -31,7 +31,7 @@ function setup(orderConfig, signFails = false) {
   db.rest = async (path, { method = 'GET', body } = {}) => {
     if (path.startsWith('licenses') && method === 'PATCH') { Object.assign(lic, body); return [lic]; }
     if (path.startsWith('licenses')) return [lic];
-    if (path.startsWith('orders')) return [{ plan: 'completo', config: orderConfig }];
+    if (path.startsWith('orders')) return [{ plan: 'esencial', config: orderConfig }]; // un pedido viejo, de cuando había planes
     return [];
   };
   return { lic, signed };
@@ -50,7 +50,7 @@ test('al activar, entrega el diseño del cliente con enlaces temporales a su fot
   const { signed } = setup(config);
   const r = await call({ code: 'tbl-aaaa-bbbb-cccc', deviceId: 'radio-de-prueba-001' });
   assert.equal(r.code, 200, JSON.stringify(r.body));
-  assert.equal(r.body.plan, 'completo');
+  assert.equal(r.body.plan, 'completo', 'el plan guardado en un pedido viejo se ignora: hay un solo nivel');
   const d = r.body.design;
   assert.equal(d.config.style.theme, 'cristal');
   assert.equal(d.config.car.name, 'Daniel');

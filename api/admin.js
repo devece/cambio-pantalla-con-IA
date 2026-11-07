@@ -1,11 +1,11 @@
 'use strict';
 /*
  * POST /api/admin   { action, ... }   con la cabecera  x-admin-token: <ADMIN_TOKEN>
- * Panel mínimo para quien vende (no para clientes): crear códigos, confirmar pagos y administrar licencias.
+ * Panel mínimo para quien arma las pantallas (no para clientes): entregar códigos y administrar licencias.
  *
  *   list                      pedidos y códigos recientes
- *   create  { plan, note }    crea un pedido ya pagado y su código (venta coordinada fuera del sitio)
- *   confirm { orderId }       confirma el pago de un pedido pendiente (de /api/checkout) y crea su código
+ *   create  { note }          crea un código sin pedido de un cliente (por ejemplo, para regalar o probar)
+ *   approve { orderId }       aprueba un pedido pendiente (de /api/order) y crea su código
  *   revoke  { code }          anula un código
  *   release { code }          libera el código para pasarlo a otra radio (cuenta como traspaso)
  *
@@ -15,7 +15,7 @@ const crypto = require('node:crypto');
 const { generateCode, normalizeCode } = require('../lib/license.js');
 const { allowMethod, readJson, rateLimit } = require('../lib/http.js');
 const db = require('../lib/supabase.js');
-const C = require('../public/shared/catalog.js');
+const { LEGACY_ORDER_COLUMNS } = require('../lib/legacy.js');
 
 const digest = (s) => crypto.createHash('sha256').update(String(s)).digest();
 const sameToken = (a, b) => crypto.timingSafeEqual(digest(a), digest(b));
@@ -43,9 +43,9 @@ async function ensureLicense(orderId) {
 
 const ACTIONS = {
   async list() {
-    const cols = 'public_id,status,plan,total,contact_kind,contact_value,created_at,paid_at,config';
+    const cols = 'public_id,status,contact_kind,contact_value,created_at,paid_at,config';
     const recent = (await db.rest(`orders?select=${cols}&order=created_at.desc&limit=300`)) || [];
-    // Los pendientes se piden aparte: así un pedido antiguo sin pagar nunca queda fuera de la lista.
+    // Los pendientes se piden aparte: así un pedido antiguo sin atender nunca queda fuera de la lista.
     const pend = (await db.rest(`orders?select=${cols}&status=eq.pending&order=created_at.desc&limit=200`)) || [];
     const seen = new Set(recent.map((o) => o.public_id));
     const orders = recent.concat(pend.filter((o) => !seen.has(o.public_id)));
@@ -61,7 +61,6 @@ const ACTIONS = {
         activatedAt: l.activated_at,
         transfersUsed: l.transfers_used,
         createdAt: l.created_at,
-        plan: (byOrder[l.order_public_id] || {}).plan || null,
         contact: (byOrder[l.order_public_id] || {}).contact_value || '',
         hasPhoto: !!(((byOrder[l.order_public_id] || {}).config || {}).photo || {}).day,
       })),
@@ -69,39 +68,34 @@ const ACTIONS = {
   },
 
   async create(body) {
-    const plan = C.plans.find((p) => p.id === body.plan);
-    if (!plan) return { error: 'Elige un plan válido.', status: 400 };
     const orderId = newOrderId();
     await db.rest('orders', {
       method: 'POST',
       body: {
         public_id: orderId,
-        status: 'paid',
-        plan: plan.id,
-        addons: {},
-        total: plan.price,
-        currency: 'USD',
+        status: 'paid', // «paid» es el nombre histórico del estado «atendido»: la base de datos lo exige así
+        ...LEGACY_ORDER_COLUMNS,
         contact_kind: 'whatsapp',
-        contact_value: text(body.note, 120) || 'venta manual',
+        contact_value: text(body.note, 120) || 'código manual',
         config: { manual: true },
         paid_at: new Date().toISOString(),
       },
     });
     const code = await ensureLicense(orderId);
-    return { code, orderId, plan: plan.id, total: plan.price };
+    return { code, orderId };
   },
 
-  async confirm(body) {
+  async approve(body) {
     const orderId = text(body.orderId, 20).toUpperCase();
     if (!ORDER_ID.test(orderId)) return { error: 'El número de pedido no es válido (formato TB-XXXXXXXX).', status: 400 };
-    const rows = await db.rest(`orders?public_id=eq.${orderId}&select=public_id,status,plan,total&limit=1`);
+    const rows = await db.rest(`orders?public_id=eq.${orderId}&select=public_id,status&limit=1`);
     const order = rows && rows[0];
     if (!order) return { error: 'No encontramos ese pedido. Si el cliente lo hizo en modo demostración, usa “Nuevo código”.', status: 404 };
     if (order.status !== 'paid') {
       await db.rest(`orders?public_id=eq.${orderId}`, { method: 'PATCH', body: { status: 'paid', paid_at: new Date().toISOString() } });
     }
     const code = await ensureLicense(orderId);
-    return { code, orderId, plan: order.plan, total: order.total };
+    return { code, orderId };
   },
 
   async revoke(body) {

@@ -61,37 +61,40 @@ test('sin ADMIN_TOKEN o con clave incorrecta no entra nadie', async () => {
   assert.equal((await call({ action: 'constructor' })).code, 400);
 });
 
-test('crear un código deja el pedido pagado y una licencia con formato válido', async () => {
+test('crear un código deja el pedido atendido y una licencia con formato válido', async () => {
   const d = fakeDb();
   process.env.ADMIN_TOKEN = 'clave-secreta';
-  const r = await call({ action: 'create', plan: 'completo', note: 'Juan, WhatsApp +56 9 1111 2222' });
+  const r = await call({ action: 'create', note: 'Juan, WhatsApp +56 9 1111 2222' });
   assert.equal(r.code, 200, JSON.stringify(r.body));
   assert.match(r.body.code, FORMAT);
   assert.match(r.body.orderId, /^TB-[0-9A-F]{8}$/);
-  assert.equal(d.orders[0].status, 'paid');
-  assert.equal(d.orders[0].plan, 'completo');
+  ['plan', 'total', 'currency'].forEach((k) => assert.equal(k in r.body, false, `la respuesta no debe traer ${k}`));
+  assert.equal(d.orders[0].status, 'paid'); // nombre histórico del estado «atendido»
+  assert.equal(d.orders[0].total, 0, 'columna heredada: no cobra nada');
+  assert.equal(d.orders[0].plan, 'completo', 'columna heredada, siempre igual');
   assert.equal(d.licenses.length, 1);
-  assert.equal((await call({ action: 'create', plan: 'gratis' })).code, 400);
 });
 
-test('confirmar un pedido pendiente crea su código una sola vez', async () => {
+test('aprobar un pedido pendiente crea su código una sola vez', async () => {
   const d = fakeDb();
   process.env.ADMIN_TOKEN = 'clave-secreta';
-  d.orders.push({ public_id: 'TB-0A1B2C3D', status: 'pending', plan: 'esencial', total: 300, contact_value: '+56912345678' });
-  const a = await call({ action: 'confirm', orderId: 'tb-0a1b2c3d' });
-  const b = await call({ action: 'confirm', orderId: 'TB-0A1B2C3D' });
+  d.orders.push({ public_id: 'TB-0A1B2C3D', status: 'pending', contact_value: '+56912345678' });
+  const a = await call({ action: 'approve', orderId: 'tb-0a1b2c3d' });
+  const b = await call({ action: 'approve', orderId: 'TB-0A1B2C3D' });
   assert.equal(a.code, 200);
-  assert.equal(a.body.code, b.body.code, 'confirmar dos veces no duplica el código');
+  assert.equal(a.body.code, b.body.code, 'aprobar dos veces no duplica el código');
   assert.equal(d.licenses.length, 1);
   assert.equal(d.orders[0].status, 'paid');
-  assert.equal((await call({ action: 'confirm', orderId: 'TB-FFFFFFFF' })).code, 404);
-  assert.equal((await call({ action: 'confirm', orderId: 'hola' })).code, 400);
+  assert.equal((await call({ action: 'approve', orderId: 'TB-FFFFFFFF' })).code, 404);
+  assert.equal((await call({ action: 'approve', orderId: 'hola' })).code, 400);
+  // La acción vieja «confirm» (de cuando había pagos) ya no existe.
+  assert.equal((await call({ action: 'confirm', orderId: 'TB-0A1B2C3D' })).code, 400);
 });
 
 test('revocar y liberar un código', async () => {
   const d = fakeDb();
   process.env.ADMIN_TOKEN = 'clave-secreta';
-  const { body } = await call({ action: 'create', plan: 'esencial' });
+  const { body } = await call({ action: 'create' });
   d.licenses[0].device_hash = 'abc';
   const list = await call({ action: 'list' });
   assert.equal(list.body.licenses[0].activated, true);

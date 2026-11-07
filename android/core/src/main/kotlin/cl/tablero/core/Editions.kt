@@ -32,11 +32,41 @@ data class Limits(
     val fuelOn: Boolean,
     val restrOn: Boolean,
     val voice: Boolean,
-)
+) {
+    /**
+     * Lo más amplio de los dos niveles: permite todo lo que permita cualquiera de ellos. El orden de los conjuntos es el de
+     * este nivel primero (el primer elemento es el valor de respaldo).
+     */
+    fun orMoreOf(other: Limits): Limits = Limits(
+        themes = widen(themes, other.themes),
+        layouts = widen(layouts, other.layouts),
+        scenes = widen(scenes, other.scenes),
+        seasons = widen(seasons, other.seasons),
+        maxApps = maxOf(maxApps, other.maxApps),
+        oilOn = oilOn || other.oilOn,
+        speedShow = speedShow || other.speedShow,
+        speedAlerts = widen(speedAlerts, other.speedAlerts),
+        othersMaintenance = othersMaintenance || other.othersMaintenance,
+        docsOn = docsOn || other.docsOn,
+        fuelOn = fuelOn || other.fuelOn,
+        restrOn = restrOn || other.restrOn,
+        voice = voice || other.voice,
+    )
+
+    private fun widen(a: Set<String>?, b: Set<String>?): Set<String>? =
+        if (a == null || b == null) null else LinkedHashSet(a).also { it.addAll(b) } // null = sin límite
+}
 
 /** Lee `public/shared/editions.json` (copiado a los assets de la app al compilar). */
 class Editions private constructor(private val byTier: Map<Tier, Limits>) {
     fun limits(tier: Tier): Limits = byTier.getValue(tier)
+
+    /**
+     * Lo que de verdad puede usar quien está en [tier]: lo de su plan **o** lo de la edición gratis, lo que sea más amplio.
+     * Así un código nunca da menos que no tener código (por ejemplo, si la edición gratis lo incluye todo y el plan Esencial no).
+     */
+    fun effective(tier: Tier): Limits =
+        if (tier == Tier.FREE) limits(tier) else limits(tier).orMoreOf(limits(Tier.FREE))
 
     companion object {
         fun parse(json: String): Editions {

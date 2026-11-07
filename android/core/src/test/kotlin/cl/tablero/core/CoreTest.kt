@@ -16,25 +16,55 @@ class CoreTest {
     private val esencial = editions.limits(Tier.ESENCIAL)
     private val completo = editions.limits(Tier.COMPLETO)
 
+    // Un nivel restringido, como lo era la edición gratis antes de que todo fuera gratis. Hoy ninguna edición lo usa, pero el
+    // candado (Gate) sigue siendo la lógica que hay que tener probada por si algún día vuelve a haber un plan de pago.
+    private val restringido = Limits(
+        themes = linkedSetOf("ruta", "sobrio"),
+        layouts = linkedSetOf("tarjetas", "minimal", "consola"),
+        scenes = linkedSetOf("tema", "color"),
+        seasons = linkedSetOf("ninguna"),
+        maxApps = 2,
+        oilOn = true,
+        speedShow = true,
+        speedAlerts = linkedSetOf("auto", "off"),
+        othersMaintenance = false,
+        docsOn = false,
+        fuelOn = false,
+        restrOn = false,
+        voice = false,
+    )
+
     @Test
     fun `lee los tres niveles del editions json real`() {
-        assertEquals(setOf("ruta", "sobrio"), free.themes)
-        assertEquals(2, free.maxApps)
+        // Por ahora no hay versión de pago: la edición gratis no tiene límites y es igual a Completo.
+        assertNull(free.themes, "gratis no tiene límite de temas")
+        assertNull(free.speedAlerts)
+        assertEquals(4, free.maxApps)
+        assertEquals(completo, free)
         assertEquals(setOf("sobrio", "ruta", "papel", "cristal"), esencial.themes)
         assertNull(completo.themes, "Completo no tiene límite de temas")
         assertNull(completo.seasons)
     }
 
     @Test
-    fun `gratis deja pasar lo basico sin cambios`() {
+    fun `gratis deja pasar todo sin cambios`() {
         val c = LauncherConfig()
         assertEquals(c, Gate.apply(c, free))
         assertTrue(Gate.locked(c, free).isEmpty())
+
+        val todo = LauncherConfig(
+            theme = "patagonia", layout = "manejo", scene = "costa", season = "navidad",
+            apps = listOf("maps", "waze", "spotify", "youtube"),
+            speedAlert = "manual", otherMaintenance = listOf("filtro"),
+            docsOn = true, fuelOn = true, restrOn = true, voice = true,
+        )
+        assertEquals(todo, Gate.apply(todo, free), "nada de lo que elija el usuario se bloquea")
+        assertTrue(Gate.locked(todo, free).isEmpty())
     }
 
     @Test
-    fun `gratis cambia un tema de pago por el permitido`() {
-        val r = Gate.apply(LauncherConfig(theme = "patagonia", layout = "manejo", scene = "costa", season = "navidad"), free)
+    fun `un nivel restringido cambia un tema no permitido por el permitido`() {
+        val r = Gate.apply(LauncherConfig(theme = "patagonia", layout = "manejo", scene = "costa", season = "navidad"), restringido)
         assertEquals("ruta", r.theme)
         assertEquals("tarjetas", r.layout)
         assertEquals("tema", r.scene)
@@ -42,24 +72,56 @@ class CoreTest {
     }
 
     @Test
-    fun `gratis apaga las funciones de pago y limita las apps`() {
+    fun `un nivel restringido apaga las funciones no permitidas y limita las apps`() {
         val pedido = LauncherConfig(
             apps = listOf("maps", "waze", "spotify", "youtube"),
             speedAlert = "manual",
             otherMaintenance = listOf("filtro"),
             docsOn = true, fuelOn = true, restrOn = true, voice = true,
         )
-        val r = Gate.apply(pedido, free)
+        val r = Gate.apply(pedido, restringido)
         assertEquals(listOf("maps", "waze"), r.apps)
         assertEquals("auto", r.speedAlert)
         assertTrue(r.otherMaintenance.isEmpty())
         assertFalse(r.docsOn || r.fuelOn || r.restrOn || r.voice)
-        assertEquals(listOf("docs", "fuel", "restr", "voice", "maintenance"), Gate.locked(pedido, free))
+        assertEquals(listOf("docs", "fuel", "restr", "voice", "maintenance"), Gate.locked(pedido, restringido))
+    }
+
+    @Test
+    fun `un codigo nunca da menos que la edicion gratis`() {
+        // Hoy gratis lo incluye todo; el plan Esencial por sí solo no (sin temporadas ni temas extra).
+        assertTrue(esencial.seasons != null, "Esencial tiene límites propios")
+        val efectivo = editions.effective(Tier.ESENCIAL)
+        assertNull(efectivo.themes)
+        assertNull(efectivo.seasons)
+        assertEquals(completo, efectivo)
+        // Y con una configuración que usa de todo, activar el código no le quita nada.
+        val todo = LauncherConfig(theme = "patagonia", season = "navidad", apps = listOf("maps", "waze", "spotify", "youtube"), docsOn = true, voice = true)
+        assertEquals(todo, Gate.apply(todo, efectivo))
+        assertEquals(free, editions.effective(Tier.FREE))
+    }
+
+    @Test
+    fun `orMoreOf toma lo mas amplio de cada cosa y conserva el orden`() {
+        val r = restringido.orMoreOf(esencial)
+        assertEquals(listOf("ruta", "sobrio", "papel", "cristal"), r.themes!!.toList(), "primero los de este nivel")
+        assertNull(r.layouts, "sin límite en uno de los dos = sin límite")
+        assertEquals(4, r.maxApps)
+        assertTrue(r.docsOn && r.voice, "una función permitida en cualquiera queda permitida")
+        // Un nivel restringido combinado con otro igual no cambia nada.
+        assertEquals(restringido, restringido.orMoreOf(restringido))
+        // Si los dos limitan, queda la unión.
+        val otro = restringido.copy(themes = linkedSetOf("papel"), maxApps = 3, docsOn = true)
+        val u = restringido.orMoreOf(otro)
+        assertEquals(setOf("ruta", "sobrio", "papel"), u.themes)
+        assertEquals(3, u.maxApps)
+        assertTrue(u.docsOn)
+        assertFalse(u.fuelOn)
     }
 
     @Test
     fun `el candado no repite apps`() {
-        assertEquals(listOf("maps"), Gate.apply(LauncherConfig(apps = listOf("maps", "maps")), free).apps)
+        assertEquals(listOf("maps"), Gate.apply(LauncherConfig(apps = listOf("maps", "maps")), restringido).apps)
     }
 
     @Test

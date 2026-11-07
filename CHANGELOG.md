@@ -41,6 +41,7 @@ Cómo se publica una versión: `docs/RELEASE.md`.
   reportar un problema, sin adb ni Android Studio. No lleva tu nombre ni tu ubicación.
 
 ### Cambiado
+- **Todo es gratis, sin necesidad de código.** Por ahora no hay versión de pago: la edición sin código ahora incluye todos los diseños, las decoraciones de temporada y todas las funciones (documentos, combustible, restricción vehicular, saludo por voz, otras mantenciones, hasta 4 atajos y el límite fijo de velocidad). Antes, varias de esas cosas pedían un código. El código sigue sirviendo para traer a la radio la pantalla que diseñaste en el sitio, y nunca da menos que la edición sin código.
 - **El sitio ya no promete el límite automático de velocidad.** La app todavía no lee el límite de cada calle, y en modo «Automático» no avisa nada; los textos del sitio decían lo contrario. Ahora dicen que, para recibir el aviso, hay que elegir «Manual» y poner el límite. En la radio, sin límite fijado ya no dice «Límite de la vía».
 - En el botón de música de la pantalla, si no hay música sonando ahora avisa qué hacer en vez de no hacer nada.
 

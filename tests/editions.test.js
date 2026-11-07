@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const C = require('../public/shared/catalog.js');
 const { free, esencial, completo } = require('../public/shared/editions.json');
 
-const subset = (list, all) => list.every((x) => all.includes(x));
+const subset = (list, all) => list === '*' || list.every((x) => all.includes(x));
 
 test('la edición gratis solo usa ids que existen en el catálogo', () => {
   assert.ok(subset(free.themes, Object.keys(C.themeTiers)));
@@ -14,22 +14,18 @@ test('la edición gratis solo usa ids que existen en el catálogo', () => {
   assert.ok(subset(free.features.speedAlerts, C.speedAlerts));
 });
 
-test('lo gratis nunca incluye lo que el catálogo reserva al plan de pago', () => {
-  free.themes.forEach((t) => assert.equal(C.themeTiers[t], 'base', `el tema ${t} es de pago`));
-  free.seasons.forEach((s) => assert.ok(!C.plusSeasons.includes(s), `la temporada ${s} es de pago`));
+test('por ahora no hay versión de pago: la edición gratis incluye todo', () => {
+  // Si algún día vuelve a haber planes, este es el lugar para decidirlo a propósito.
+  assert.deepEqual(free, completo, "'free' debe ser igual a 'completo' mientras no haya versión de pago");
+  ['themes', 'layouts', 'scenes', 'seasons'].forEach((k) => assert.equal(free[k], '*', k));
+  assert.equal(free.features.speedAlerts, '*');
+  assert.equal(free.maxApps, 4);
+  ['oilOn', 'speedShow', 'othersMaintenance', 'docsOn', 'fuelOn', 'restrOn', 'voice'].forEach((k) => assert.equal(free.features[k], true, k));
 });
 
-test('la edición gratis tiene al menos un tema, una distribución y una escena', () => {
-  assert.ok(free.themes.length >= 1);
-  assert.ok(free.layouts.length >= 1);
-  assert.ok(free.scenes.length >= 1);
-  assert.ok(free.maxApps >= 1 && free.maxApps <= 4);
-});
-
-test('las funciones de pago quedan bloqueadas y las gratis activas', () => {
-  const f = free.features;
-  ['othersMaintenance', 'docsOn', 'fuelOn', 'restrOn', 'voice'].forEach((k) => assert.equal(f[k], false, k));
-  ['oilOn', 'speedShow'].forEach((k) => assert.equal(f[k], true, k));
+test('la edición gratis permite el límite de velocidad manual (el único que hoy funciona)', () => {
+  assert.equal(free.features.speedAlerts, '*');
+  assert.ok(C.speedAlerts.includes('manual'));
 });
 
 test('Esencial y Completo coinciden con los planes del catálogo', () => {

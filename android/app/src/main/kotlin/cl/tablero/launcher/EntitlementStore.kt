@@ -19,7 +19,7 @@ class EntitlementStore(context: Context) {
         get() = Tier.fromId(prefs.getString("tier", null)) ?: Tier.FREE
 
     val limits: Limits
-        get() = editions.limits(tier)
+        get() = editions.effective(tier)
 
     fun activate(tier: Tier, code: String) {
         prefs.edit().putString("tier", tier.id).putString("code", code).apply()

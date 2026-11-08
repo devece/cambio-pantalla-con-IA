@@ -11,9 +11,6 @@
     #host { position: fixed; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; }
     #gear { position: fixed; right: 10px; top: 12px; z-index: 50; width: 38px; height: 38px; border-radius: 50%; border: 0; background: rgba(127,127,127,.3); color: #8a8f98; font-size: 20px; line-height: 38px; padding: 0; opacity: .7; }
     #gear:active { opacity: 1; }
-    #key { position: fixed; right: 56px; top: 12px; z-index: 50; height: 38px; border-radius: 19px; border: 0; background: rgba(255,255,255,.14); color: #fff; font-size: 14px; padding: 0 14px; opacity: .55; }
-    #key:active { opacity: 1; }
-    #key[hidden] { display: none; }
     body.free .scr .c-greet { display: none; }
     body.free .scr .c-right { padding-right: 250px; }
     #drawer { position: fixed; inset: 0; z-index: 60; background: rgba(10,11,13,.985); color: #fff; font-family: 'Rubik', 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; }
@@ -31,7 +28,6 @@
   <!-- Esta página es la que muestra la app Android de la radio (y también sirve para probarla en un navegador: ?demo=1). -->
   <div id="host"></div>
   <button id="gear" aria-label="Ajustes" data-gear>⚙</button>
-  <button id="key" aria-label="Activar código" hidden>🔑 Activar código</button>
   <script src="shared/catalog.js"></script>
   <script src="shared/daylight.js"></script>
   <script src="shared/pico.js"></script>

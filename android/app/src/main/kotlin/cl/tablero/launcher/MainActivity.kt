@@ -340,7 +340,7 @@ class MainActivity : Activity() {
         }
         bar.addView(navButton(R.drawable.ic_home, "Inicio", true) {}, lp(dp(56), dp(56), 0f, b = 10))
         bar.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
-        // Ya no se piden códigos: no hay botón «Activar código».
+        // Ya no se piden códigos: no hay botón para activarlos.
         bar.addView(
             navButton(R.drawable.ic_settings, "Ajustes", false) {
                 startActivity(Intent(this, SettingsActivity::class.java))

@@ -87,11 +87,5 @@
             android:name=".DiagnosticActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
-
-        <activity
-            android:name=".ActivationActivity"
-            android:exported="false"
-            android:screenOrientation="landscape"
-            android:windowSoftInputMode="adjustResize" />
     </application>
 </manifest>

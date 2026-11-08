@@ -19,7 +19,7 @@ object Welcome {
 
     /**
      * Lo que el usuario contó, para la pantalla de inicio cuando aún no hay un diseño del sitio (edición gratuita).
-     * Va en una clave aparte (`profile`) para no confundirse con un diseño real, que además oculta el botón "Activar código".
+     * Va en una clave aparte (`profile`) para no confundirse con un diseño real (el que se activó antes con un código).
      */
     fun profileJson(c: LauncherConfig, photoUrl: String? = null, photoCut: Boolean = false, photoNightUrl: String? = null): String {
         val profile = JSONObject()

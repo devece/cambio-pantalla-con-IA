@@ -6,9 +6,8 @@ import cl.tablero.core.Limits
 import cl.tablero.core.Tier
 
 /**
- * Guarda en la radio qué nivel quedó activado. Así, una vez activado, el launcher funciona sin internet
- * (un túnel o una zona sin señal no puede bloquear lo que el cliente ya pagó).
- * Pendiente: volver a verificar con el servidor de vez en cuando para detectar códigos revocados.
+ * Lee de la radio qué nivel quedó activado antes de que se retiraran los códigos (por defecto, el gratuito, que incluye todo).
+ * Ya no se puede activar un código nuevo: solo se conserva lo que una radio ya tenía guardado.
  */
 class EntitlementStore(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences("tablero", Context.MODE_PRIVATE)
@@ -20,8 +19,4 @@ class EntitlementStore(context: Context) {
 
     val limits: Limits
         get() = editions.effective(tier)
-
-    fun activate(tier: Tier, code: String) {
-        prefs.edit().putString("tier", tier.id).putString("code", code).apply()
-    }
 }

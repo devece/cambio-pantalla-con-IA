@@ -240,8 +240,6 @@
       TB.preview.app = app;
       TB.preview.onGo = (id) => { ui.screen = id === 'inicio' ? 'inicio' : id; render(); };
       if (!mounted) { TB.preview.mount(document.getElementById('host')); mounted = true; }
-      // Ya no se piden códigos: el botón «Activar código» no se muestra (quien activó uno antes conserva su diseño).
-      document.getElementById('key').hidden = true;
       document.body.classList.toggle('free', !(design && design.config));
       setDesign(design);
     },
@@ -302,7 +300,6 @@
     zoneNotice(text, warn) { TB.preview.showZoneNotice({ text: String(text), warn: !!warn }); },
   };
 
-  document.getElementById('key').addEventListener('click', () => bridge('open', 'activate'));
   document.querySelector('[data-gear]').addEventListener('click', () => bridge('open', 'settings'));
   setInterval(() => { if (mounted && nightForced === null && ui.night !== sunNight()) render(); }, 60000);
 

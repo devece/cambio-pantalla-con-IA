@@ -40,12 +40,6 @@ Qué implica:
 3. Menú *Build > Build Bundle(s) / APK(s) > Build APK(s)*.
 4. El archivo queda en `android/app/build/outputs/apk/debug/app-debug.apk`.
 
-Para que la activación de códigos apunte a tu sitio, compila con:
-
-```bash
-./gradlew :app:assembleDebug -PtableroApiBase=https://tu-dominio.com
-```
-
 ## 2. Instalar en la radio
 
 Elige una forma:
@@ -76,7 +70,6 @@ Marca cada punto con ✅ o ❌ y escríbeme lo que veas:
 - [ ] Al guardar, los avisos (aceite, documentos) aparecen en el inicio
 - [ ] Pide permiso de ubicación y muestra la velocidad en movimiento (haz esta prueba con otra persona manejando)
 - [ ] El saludo por voz suena (si la radio tiene voz en español instalada)
-- [ ] *Activar código* conecta con el servidor (necesita internet en la radio)
 - [ ] Cuando la apagas y prendes, sigue con tus ajustes
 
 Una foto de la pantalla de la radio con la app abierta ayuda mucho.

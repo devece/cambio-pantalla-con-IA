@@ -99,7 +99,6 @@ jobs:
           TB_KEY_PASSWORD: ${{ secrets.TB_KEY_PASSWORD }}
         run: |
           ./gradlew --no-daemon :app:assembleRelease \
-            -PtableroApiBase=https://tablero-pearl.vercel.app \
             -PtableroVersion="${{ steps.version.outputs.version }}" \
             -PtableroVersionCode="${{ steps.version.outputs.code }}"
 

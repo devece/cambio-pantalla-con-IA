@@ -78,7 +78,7 @@ jobs:
           TB_KEY_PASSWORD: ${{ secrets.TB_KEY_PASSWORD }}
         run: |
           if [ "${{ steps.sign.outputs.signed }}" = "true" ]; then TASK=:app:assembleRelease; else TASK=:app:assembleDebug; fi
-          ./gradlew --no-daemon $TASK -PtableroApiBase=https://tablero-pearl.vercel.app
+          ./gradlew --no-daemon $TASK
 
       - name: Revisar que el APK trae sus datos
         run: |

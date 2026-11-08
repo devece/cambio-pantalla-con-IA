@@ -15,9 +15,6 @@ android {
         versionCode = providers.gradleProperty("tableroVersionCode").map { it.toInt() }.getOrElse(1)
         versionName = providers.gradleProperty("tableroVersion").getOrElse("0.1.0")
 
-        // Dónde corre /api/license. Cámbialo con -PtableroApiBase=https://tu-dominio.com
-        val apiBase = providers.gradleProperty("tableroApiBase").getOrElse("https://TU-DOMINIO.vercel.app")
-        buildConfigField("String", "API_BASE_URL", "\"$apiBase\"")
     }
 
     buildFeatures {

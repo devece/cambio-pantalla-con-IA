@@ -8,7 +8,7 @@ El proyecto está en `android/`. Arranca como pantalla de inicio de la radio y y
 - **Velocidad en vivo con el GPS** y alerta contra un límite fijo.
 - **Saludo por voz** al abrir la app.
 - **Ajustes** dentro de la radio (sin internet) y **atajos a apps**.
-- **Activación de códigos** (en desuso): el servidor `/api/license` se retiró y la app ya no muestra el botón «Activar código». El código sigue en la app solo para radios que activaron uno antes (guardan su diseño y su nivel en la radio). El diseño ahora viaja dentro de la APK (ver `README.md`). Todo es gratis: el candado de ediciones sigue en el código pero hoy no limita nada.
+- **Sin códigos de activación**: el servidor `/api/license` y la pantalla de activación se retiraron. El diseño que se arma en el sitio viaja dentro de la APK (ver `README.md`). Una radio que ya había activado un código conserva su diseño y su nivel, que se guardaron en ella. Todo es gratis: el candado de ediciones sigue en el código pero hoy no limita nada.
 
 Para probarla en una radio: `PRUEBA_EN_RADIO.md`.
 
@@ -22,24 +22,19 @@ android/
 
 - `core/Editions.kt`: lee `public/shared/editions.json` (el mismo archivo que usa el sitio).
 - `core/Gate.kt`: el candado. Dada una configuración y los límites de un nivel, la recorta a lo permitido y lista lo que "requiere código".
-- `core/LicenseCode.kt`: normaliza `TBL-XXXX-XXXX-XXXX` e interpreta la respuesta de `POST /api/license`.
-- `app/MainActivity`: reloj, fecha, atajos a apps (limitados según el nivel) y botón **Activar código** en modo gratis.
-- `app/ActivationActivity`: pide el código, lo valida con el servidor y guarda el nivel en la radio, así sigue funcionando sin internet.
+- `core/ApkBlock.kt` y `core/DesignImport.kt`: leen el diseño y la foto que trae la APK descargada del sitio y los aplican.
+- `app/MainActivity`: reloj, fecha, atajos a apps y pantalla de inicio; aplica el diseño de su propia APK al abrirse.
 - `app/build.gradle.kts` copia `editions.json` a los assets al compilar, para que sitio y app nunca se desincronicen.
-
-Respuesta que esperaba la app de `/api/license` (ya retirado): `{ ok, status: "active", plan: "completo", design }`. El campo `plan` era heredado y siempre el mismo.
 
 ## Cómo compilarlo
 
 1. Abre la carpeta `android/` en **Android Studio** (instala el SDK 34 cuando lo pida).
 2. Para probar las reglas, sin Android: `./gradlew :core:test`
-3. Para generar el APK, indicando dónde corre tu sitio:
+3. Para generar el APK:
    ```bash
-   ./gradlew :app:assembleDebug -PtableroApiBase=https://tu-dominio.com
+   ./gradlew :app:assembleDebug
    ```
    El APK queda en `android/app/build/outputs/apk/debug/`.
-
-Sin `-PtableroApiBase` la app usa `https://TU-DOMINIO.vercel.app`, que es un marcador: la activación fallará hasta que lo cambies.
 
 ## Qué está verificado y qué no
 

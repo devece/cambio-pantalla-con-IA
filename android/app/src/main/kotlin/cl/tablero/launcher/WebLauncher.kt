@@ -285,7 +285,6 @@ class WebLauncher(private val activity: Activity, private val designJson: String
                 when (kind) {
                     "radio" -> openRadio()
                     "bluetooth" -> start(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
-                    "activate" -> start(Intent(activity, ActivationActivity::class.java))
                     "androidauto" -> openProjection("Android Auto", listOf("com.google.android.projection.gearhead"), listOf("android auto", "headunit", "zlink", "carlink", "autokit", "tlink", "autobox"))
                     "carplay" -> openProjection("CarPlay", emptyList(), listOf("carplay", "zlink", "carlink", "autokit", "tlink", "autobox"))
                     "camera" -> {

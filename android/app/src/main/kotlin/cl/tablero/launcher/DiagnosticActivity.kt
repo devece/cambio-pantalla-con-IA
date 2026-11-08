@@ -146,6 +146,9 @@ class DiagnosticActivity : Activity() {
     }
 
     private fun openNotificationAccess() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            Toast.makeText(this, "Si el interruptor sale gris o bloqueado: Ajustes → Apps → Tablero → menú ⋮ → «Permitir ajustes restringidos», y vuelve a intentar.", Toast.LENGTH_LONG).show()
+        }
         try {
             startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
         } catch (e: Exception) {

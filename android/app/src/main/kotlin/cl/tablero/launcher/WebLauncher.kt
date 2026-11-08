@@ -14,6 +14,7 @@ import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -291,10 +292,10 @@ class WebLauncher(private val activity: Activity, private val designJson: String
                         val pkg = Apps.findByLabel(activity.packageManager, activity.packageName, listOf("reversa", "retro", "backcar", "rear", "360", "avm", "cámara", "camara", "camera"))
                         if (pkg == null) toast("No encontramos la app de la cámara de tu radio.") else launch(pkg)
                     }
-                    "musicaccess" -> start(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
+                    "musicaccess" -> openNotificationAccess()
                     "settings" -> start(Intent(activity, SettingsActivity::class.java))
                     "webview" -> openWebviewUpdate()
-                    "music" -> toast("Agrega Spotify o YouTube Music a tu pantalla para abrir tu música desde aquí.")
+                    "music" -> openMusicApp()
                 }
             }
         }
@@ -408,14 +409,19 @@ class WebLauncher(private val activity: Activity, private val designJson: String
         json.put("access", access)
         val c = if (access) currentController() else null
         val md = c?.metadata
-        if (c != null && md != null) {
-            val title = md.getString(MediaMetadata.METADATA_KEY_TITLE) ?: md.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE) ?: ""
-            val artist = md.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: md.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
-                ?: md.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE) ?: ""
+        if (c != null) {
+            // Algunos reproductores avisan que suena algo pero no entregan los datos de la canción: en ese caso se muestra el nombre de la app.
+            val appLabel = try {
+                val pm = activity.packageManager
+                pm.getApplicationLabel(pm.getApplicationInfo(c.packageName, 0)).toString()
+            } catch (e: Exception) { "" }
+            val title = (md?.getString(MediaMetadata.METADATA_KEY_TITLE) ?: md?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE) ?: "").ifBlank { appLabel }
+            val artist = md?.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: md?.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
+                ?: md?.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE) ?: ""
             val playing = c.playbackState?.state == PlaybackState.STATE_PLAYING
             val trackSig = c.packageName + "|" + title + "|" + artist
-            val bmp = md.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) ?: md.getBitmap(MediaMetadata.METADATA_KEY_ART)
-                ?: md.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
+            val bmp = md?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) ?: md?.getBitmap(MediaMetadata.METADATA_KEY_ART)
+                ?: md?.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
             val sig = trackSig + "|" + playing + "|" + (bmp != null)
             val now = SystemClock.elapsedRealtime()
             // Se reenvía la posición cada 10 s mientras suena, para que la barra de progreso no se desfase.
@@ -427,11 +433,8 @@ class WebLauncher(private val activity: Activity, private val designJson: String
             val st = c.playbackState
             var pos = st?.position ?: 0L
             if (playing && st != null) pos += ((SystemClock.elapsedRealtime() - st.lastPositionUpdateTime) * st.playbackSpeed).toLong()
-            val dur = md.getLong(MediaMetadata.METADATA_KEY_DURATION)
-            val src = try {
-                val pm = activity.packageManager
-                pm.getApplicationLabel(pm.getApplicationInfo(c.packageName, 0)).toString()
-            } catch (e: Exception) { "" }
+            val dur = md?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
+            val src = appLabel
             json.put("active", true).put("playing", playing).put("title", title).put("artist", artist).put("art", lastArt)
                 .put("pos", maxOf(0L, pos)).put("dur", maxOf(0L, dur)).put("speed", st?.playbackSpeed ?: 1f).put("src", src)
         } else {
@@ -442,6 +445,27 @@ class WebLauncher(private val activity: Activity, private val designJson: String
             json.put("active", false)
         }
         js("TBApp.setMusic(" + JSONObject.quote(json.toString()) + ")")
+    }
+
+    /**
+     * Abre la pantalla donde se da el acceso a las notificaciones (lo que deja leer qué canción suena). En Android 13 o más nuevo,
+     * una app instalada por APK (no por Play Store) tiene ese interruptor bloqueado hasta permitir los «ajustes restringidos»: se avisa cómo.
+     */
+    private fun openNotificationAccess() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            toastLong("Si el interruptor sale gris o bloqueado: Ajustes → Apps → Tablero → menú ⋮ → «Permitir ajustes restringidos», y vuelve a intentar.")
+        }
+        start(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
+    }
+
+    /** Abre el reproductor de música del equipo (el predeterminado). Si no hay uno, se explica cómo agregar Spotify o YouTube Music. */
+    private fun openMusicApp() {
+        try {
+            val intent = Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_MUSIC).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            activity.startActivity(intent)
+        } catch (e: Exception) {
+            toastLong("No encontramos un reproductor de música en la radio. Agrega Spotify o YouTube Music a tu pantalla para abrir tu música desde aquí.")
+        }
     }
 
     private fun openRadio() {
@@ -478,6 +502,8 @@ class WebLauncher(private val activity: Activity, private val designJson: String
     }
 
     private fun toast(text: String) = Toast.makeText(activity, text, Toast.LENGTH_SHORT).show()
+
+    private fun toastLong(text: String) = Toast.makeText(activity, text, Toast.LENGTH_LONG).show()
 
     private companion object {
         // 15 x 15 cuadros por estilo (unos 15 km de lado): lo que cubre una ciudad sin pasarse con el servidor de mapas.

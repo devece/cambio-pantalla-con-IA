@@ -102,8 +102,11 @@ Marca cada punto con ✅ o ❌ y escríbeme lo que veas. Están en orden de impo
 - [ ] Pide permiso de ubicación y muestra la velocidad en movimiento (haz esta prueba con otra persona manejando)
 - [ ] El saludo por voz suena (si la radio tiene voz en español instalada)
 - [ ] Los botones del volante (*Ajustes → Botones del volante → Aprender un botón*)
+- [ ] La canción que suena aparece con título y carátula (hay que dar el acceso a las notificaciones una vez; ver abajo)
 - [ ] La pantalla de Radio FM muestra la emisora (si tu radio la informa)
 - [ ] Pasa a modo noche cuando se pone el sol
+
+> **Si la canción no aparece:** Tablero necesita el *acceso a las notificaciones* para leer qué suena (una sola vez, desde el botón «Dar el permiso» de la tarjeta de música). En **Android 13 o más nuevo**, como la app no viene de Play Store, ese interruptor puede salir **gris o bloqueado**: *Ajustes → Apps → Tablero → menú ⋮ → «Permitir ajustes restringidos»*, y luego volver a dar el permiso. Si aun así no aparece, el reproductor de la radio puede no informar la canción (Tablero entonces muestra al menos el nombre de la app que suena). *Ajustes → Ayuda → Diagnóstico de la radio* lista qué sesiones de música ve la app.
 
 **F. Scanner OBD (solo si tienes un scanner ELM327 y un auto, con el contacto puesto)**
 - [ ] Primero empareja el scanner en los ajustes de Bluetooth de Android de la radio

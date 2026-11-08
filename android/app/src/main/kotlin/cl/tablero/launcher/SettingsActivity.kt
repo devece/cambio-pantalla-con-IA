@@ -16,12 +16,16 @@ import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.RadioButton
+import android.widget.ArrayAdapter
 import android.widget.RadioGroup
+import android.widget.Spinner
+import android.view.ViewGroup
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import cl.tablero.core.LauncherConfig
 import cl.tablero.core.Limits
+import cl.tablero.core.Look
 import cl.tablero.core.Maintenance
 import cl.tablero.core.MaintenanceItem
 import cl.tablero.core.ObdCheck
@@ -47,6 +51,14 @@ class SettingsActivity : Activity() {
     private lateinit var carTypeGroup: RadioGroup
     private var selectedColor = Ui.CAR_COLORS.first()
     private val colorChips = linkedMapOf<String, View>()
+    private lateinit var lookTheme: Spinner
+    private lateinit var lookLayout: Spinner
+    private lateinit var lookScene: Spinner
+    private lateinit var lookSceneTime: Spinner
+    private lateinit var lookSeason: Spinner
+    private var lookAccent = ""
+    private val accentChips = linkedMapOf<String, View>()
+    private val lookIds = HashMap<Spinner, List<String>>()
     private lateinit var oilOn: CheckBox
     private lateinit var odometer: EditText
     private lateinit var odometerAuto: CheckBox
@@ -131,6 +143,8 @@ class SettingsActivity : Activity() {
         }
         form.addView(swatches)
         paintChips()
+
+        buildLookSection(c.look)
 
         section("Aceite")
         oilOn = check("Aviso de cambio de aceite", c.oilOn, limits.oilOn)
@@ -288,10 +302,98 @@ class SettingsActivity : Activity() {
                 restrDays = rules.daysFor(rType, rDigit),
                 voice = voice.isChecked,
                 wheelKeys = wheelKeys,
+                look = readLook(),
             ),
         )
         Toast.makeText(this, "Guardado", Toast.LENGTH_SHORT).show()
         finish()
+    }
+
+    /* ---------- apariencia ---------- */
+
+    /**
+     * Tema, distribución, fondo, hora del fondo, decoración y color de acento. La primera opción de cada lista es «Como viene»:
+     * lo que trae la pantalla por defecto. Se ve al volver al inicio.
+     */
+    private fun buildLookSection(look: Look) {
+        section("Apariencia")
+        lookTheme = lookSpinner("Tema", Look.THEMES, look.theme)
+        lookLayout = lookSpinner("Distribución", Look.LAYOUTS, look.layout)
+        lookScene = lookSpinner("Fondo", Look.SCENES, look.scene)
+        lookSceneTime = lookSpinner("Hora del fondo", Look.SCENE_TIMES, look.sceneTime)
+        lookSeason = lookSpinner("Decoración de temporada", Look.SEASONS, look.season)
+        form.addView(TextView(this).apply {
+            text = "Color de acento"
+            setTextColor(Ui.SUB)
+            setPadding(0, dp(10), 0, 0)
+        })
+        lookAccent = look.accent
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        Look.ACCENTS.forEach { hex ->
+            val chip = View(this)
+            accentChips[hex] = chip
+            chip.setOnClickListener {
+                lookAccent = if (lookAccent == hex) "" else hex
+                paintAccents()
+            }
+            row.addView(chip, LinearLayout.LayoutParams(dp(44), dp(44)).apply { setMargins(0, dp(8), dp(10), dp(4)) })
+        }
+        form.addView(row)
+        form.addView(TextView(this).apply {
+            text = "Toca el color elegido otra vez para volver al del tema."
+            setTextColor(Ui.SUB)
+            textSize = 13f
+        })
+        paintAccents()
+    }
+
+    private fun lookSpinner(label: String, options: Map<String, String>, current: String): Spinner {
+        form.addView(TextView(this).apply {
+            text = label
+            setTextColor(Ui.SUB)
+            setPadding(0, dp(10), 0, 0)
+        })
+        val ids = listOf("") + options.keys
+        val names = listOf("Como viene") + options.values
+        val spinner = Spinner(this)
+        val adapter = object : ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, names) {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View =
+                (super.getView(position, convertView, parent) as TextView).apply { setTextColor(Ui.TEXT) }
+
+            override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View =
+                (super.getDropDownView(position, convertView, parent) as TextView).apply {
+                    setTextColor(Ui.TEXT)
+                    setBackgroundColor(Color.parseColor("#0f3f2e"))
+                    setPadding(dp(16), dp(12), dp(16), dp(12))
+                }
+        }
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner.adapter = adapter
+        spinner.setSelection(ids.indexOf(current).coerceAtLeast(0))
+        lookIds[spinner] = ids
+        form.addView(spinner, LinearLayout.LayoutParams(dp(420), LinearLayout.LayoutParams.WRAP_CONTENT))
+        return spinner
+    }
+
+    private fun readLook() = Look(
+        theme = pickedId(lookTheme),
+        layout = pickedId(lookLayout),
+        scene = pickedId(lookScene),
+        sceneTime = pickedId(lookSceneTime),
+        season = pickedId(lookSeason),
+        accent = lookAccent,
+    ).cleaned()
+
+    private fun pickedId(s: Spinner): String = lookIds[s]?.getOrNull(s.selectedItemPosition) ?: ""
+
+    private fun paintAccents() {
+        accentChips.forEach { (hex, chip) ->
+            chip.background = GradientDrawable().apply {
+                setColor(Color.parseColor(hex))
+                cornerRadius = dp(10).toFloat()
+                setStroke(dp(if (hex == lookAccent) 4 else 1), if (hex == lookAccent) Ui.ACCENT else Ui.LINE)
+            }
+        }
     }
 
     /** Pinta cada muestra de color; la elegida lleva un borde amarillo. */

@@ -115,6 +115,17 @@
     if (text(p.phrase, 28)) car.phrase = text(p.phrase, 28);
     if (['auto', 'suv', 'camioneta'].includes(p.type)) car.type = p.type;
     if (typeof p.color === 'string' && /^#[0-9a-f]{6}$/i.test(p.color)) car.color = p.color;
+    // Apariencia elegida en Ajustes: solo se acepta lo que existe en el catálogo; lo demás queda como el diseño por defecto.
+    const st = p.style;
+    if (st && typeof st === 'object') {
+      const set = (key, list) => { if (typeof st[key] === 'string' && list.includes(st[key])) state.style[key] = st[key]; };
+      set('theme', C.themes);
+      set('layout', C.layouts);
+      set('scene', C.scenes);
+      set('sceneTime', C.sceneTimes);
+      set('season', C.seasons);
+      if (typeof st.accent === 'string' && /^#[0-9a-f]{6}$/i.test(st.accent)) state.style.accent = st.accent;
+    }
   }
 
   function setDesign(design) {

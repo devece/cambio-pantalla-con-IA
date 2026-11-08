@@ -40,6 +40,8 @@ data class LauncherConfig(
     val odometerAuto: Boolean = true,
     /** El adaptador OBD que el usuario eligió (por defecto ninguno). */
     val obd: ObdLinkConfig = ObdLinkConfig(),
+    /** La apariencia que el usuario eligió en Ajustes (vacío = la de siempre). */
+    val look: Look = Look(),
 )
 
 /** El "candado": ajusta una configuración a lo que permite el nivel de la radio. */

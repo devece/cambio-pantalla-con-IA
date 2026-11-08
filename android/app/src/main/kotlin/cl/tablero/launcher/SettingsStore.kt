@@ -3,6 +3,7 @@ package cl.tablero.launcher
 import android.content.Context
 import android.content.SharedPreferences
 import cl.tablero.core.LauncherConfig
+import cl.tablero.core.Look
 import cl.tablero.core.ObdLinkConfig
 import cl.tablero.core.WheelKeys
 
@@ -43,6 +44,14 @@ class SettingsStore(context: Context) {
             voice = p.getBoolean("voice", d.voice),
             wheelKeys = WheelKeys.parse(p.getString("wheelKeys", null)),
             welcomeDone = p.getBoolean("welcomeDone", d.welcomeDone),
+            look = Look(
+                theme = p.getString("lookTheme", "") ?: "",
+                layout = p.getString("lookLayout", "") ?: "",
+                scene = p.getString("lookScene", "") ?: "",
+                sceneTime = p.getString("lookSceneTime", "") ?: "",
+                season = p.getString("lookSeason", "") ?: "",
+                accent = p.getString("lookAccent", "") ?: "",
+            ).cleaned(),
             odometerAuto = p.getBoolean("odometerAuto", d.odometerAuto),
             obd = ObdLinkConfig.fromStored(
                 p.getString("obdKind", null),
@@ -85,6 +94,12 @@ class SettingsStore(context: Context) {
             .putBoolean("voice", c.voice)
             .putString("wheelKeys", WheelKeys.serialize(c.wheelKeys))
             .putBoolean("welcomeDone", c.welcomeDone)
+            .putString("lookTheme", c.look.theme)
+            .putString("lookLayout", c.look.layout)
+            .putString("lookScene", c.look.scene)
+            .putString("lookSceneTime", c.look.sceneTime)
+            .putString("lookSeason", c.look.season)
+            .putString("lookAccent", c.look.accent)
             .putBoolean("odometerAuto", c.odometerAuto)
             .putString("obdKind", c.obd.kind.id)
             .putString("obdAddress", c.obd.address)

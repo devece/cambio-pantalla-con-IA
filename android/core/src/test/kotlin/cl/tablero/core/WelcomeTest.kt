@@ -45,4 +45,27 @@ class WelcomeTest {
     fun `el perfil no es un diseño y no trae config`() {
         assertFalse(JSONObject(Welcome.profileJson(LauncherConfig())).has("config"))
     }
+
+    @Test
+    fun `sin apariencia elegida el perfil no lleva estilo`() {
+        assertFalse(JSONObject(Welcome.profileJson(LauncherConfig())).getJSONObject("profile").has("style"))
+    }
+
+    @Test
+    fun `la apariencia elegida viaja en el perfil y lo invalido se descarta`() {
+        val look = Look(theme = "costa", layout = "minimal", scene = "nieve", sceneTime = "noche", season = "navidad", accent = "#4cc9f0")
+        val style = JSONObject(Welcome.profileJson(LauncherConfig(look = look))).getJSONObject("profile").getJSONObject("style")
+        assertEquals("costa", style.getString("theme"))
+        assertEquals("minimal", style.getString("layout"))
+        assertEquals("noche", style.getString("sceneTime"))
+        assertEquals("navidad", style.getString("season"))
+        assertEquals("#4cc9f0", style.getString("accent"))
+        assertFalse(style.has("scene"), "«nieve» todavía no se ofrece en la app y se descarta")
+    }
+
+    @Test
+    fun `un color de acento que no es de la lista se descarta`() {
+        assertEquals("", Look(accent = "#123456").cleaned().accent)
+        assertEquals("#06d6a0", Look(accent = "#06d6a0").cleaned().accent)
+    }
 }

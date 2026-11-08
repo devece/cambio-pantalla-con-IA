@@ -415,3 +415,11 @@ h1 em, h2 em { font-style: normal; background: linear-gradient(90deg, #ff3a1a, #
   .sec, #disenar, .faq { padding-top: 70px; }
   .bar-cta .btn.small { padding: 9px 12px; font-size: 14px; }
 }
+
+/* Scanner OBD en la portada */
+.tag { display: inline-block; vertical-align: middle; margin-left: 6px; padding: 2px 9px; border-radius: 999px; font: 600 12px/1.5 var(--display); letter-spacing: .02em; border: 1px solid var(--borde); color: var(--ink2); }
+.tag.on { color: #3ddc84; border-color: #3ddc84; }
+.cmp-h { font: 700 22px/1.2 var(--display); margin: 40px 0 14px; text-align: center; }
+.cmp { list-style: none; padding: 0; margin: 0 auto; max-width: 70ch; display: grid; gap: 10px; }
+.cmp li { background: var(--paper); border: 1px solid var(--borde); border-radius: 14px; padding: 14px 18px; color: var(--ink2); font-size: 16px; }
+.cmp li b { color: var(--ink); }

@@ -36,6 +36,8 @@ import cl.tablero.core.Reminders
 import cl.tablero.core.RestrictionNotice
 import cl.tablero.core.RestrictionRules
 import cl.tablero.core.Speed
+import cl.tablero.core.ApkBlock
+import cl.tablero.core.DesignImport
 import cl.tablero.core.Tier
 import cl.tablero.core.Welcome
 import cl.tablero.core.WheelAction
@@ -102,11 +104,30 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         entitlement = EntitlementStore(this)
         settings = SettingsStore(this)
+        importApkDesign()
         maintenance = Maintenance.parse(assets.open("maintenance.json").bufferedReader().use { it.readText() })
         restriction = RestrictionRules.parse(assets.open("restriction.json").bufferedReader().use { it.readText() })
     }
 
-    // Al volver de Ajustes o de Activar código hay que redibujar con lo nuevo.
+    /**
+     * Si esta APK se descargó del sitio con un diseño adentro, lo aplica a la configuración (una sola vez por diseño: si el
+     * usuario después cambia algo en Ajustes, no se pisa al volver a abrir la app). Una APK normal no trae nada y no pasa nada.
+     */
+    private fun importApkDesign() {
+        try {
+            val bytes = ApkBlock.read(java.io.File(applicationInfo.sourceDir)) ?: return
+            val hash = java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+            if (hash == settings.apkDesignHash()) return
+            // Se anota primero: si algo falla a medias, no se reintenta en cada arranque.
+            settings.setApkDesignHash(hash)
+            val merged = DesignImport.apply(settings.load(), String(bytes, Charsets.UTF_8)) ?: return
+            settings.save(merged)
+        } catch (e: Exception) {
+            // Sin diseño o archivo raro: la app sigue como siempre.
+        }
+    }
+
+    // Al volver de Ajustes hay que redibujar con lo nuevo.
     override fun onResume() {
         super.onResume()
         config = Gate.apply(settings.load(), entitlement.limits)

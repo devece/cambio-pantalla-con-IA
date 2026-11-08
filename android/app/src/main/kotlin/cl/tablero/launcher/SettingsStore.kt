@@ -108,6 +108,15 @@ class SettingsStore(context: Context) {
             .apply()
     }
 
+    /* ---------- diseño que vino dentro de la APK ---------- */
+
+    /** Huella del último diseño de la APK que ya se aplicó, para no pisar lo que el usuario cambió después en Ajustes. */
+    fun apkDesignHash(): String = p.getString("apkDesignHash", "") ?: ""
+
+    fun setApkDesignHash(hash: String) {
+        p.edit().putString("apkDesignHash", hash).apply()
+    }
+
     /* ---------- kilometraje automático (lo usa OdometerService) ---------- */
 
     /** Kilometraje anotado (0 = el usuario nunca lo anotó). */

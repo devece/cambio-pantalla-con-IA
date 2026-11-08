@@ -294,6 +294,27 @@
     $('#summary').innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
   }
 
+  /**
+   * El botón «Descargar la app con mi diseño»: lleva el diseño en la dirección (sin foto, sin contacto) y el servidor lo
+   * agrega a la APK. Si algo falla, el servidor entrega la APK normal.
+   */
+  function syncDownload() {
+    const a = $('#apk-design');
+    if (!a) return;
+    const f = state.features;
+    const design = {
+      car: { type: state.car.type, color: state.car.color, name: state.car.name, greeting: state.car.greeting, phrase: state.car.phrase },
+      style: { theme: state.style.theme, layout: state.style.layout, scene: state.style.scene, sceneTime: state.style.sceneTime, season: state.style.season, accent: state.style.accent, apps: state.style.apps },
+      features: {
+        country: f.country, oilOn: f.oilOn, odometer: f.odometer, lastOil: f.lastOil, oilEvery: f.oilEvery, others: f.others, docsOn: f.docsOn, rtMonth: f.rtMonth,
+        fuelOn: f.fuelOn, tankL: f.tankL, kmPerL: f.kmPerL, speedShow: f.speedShow, speedAlert: f.speedAlert, manualLimit: f.manualLimit,
+        restrOn: f.restrOn, restrType: f.restrType, restrDigit: f.restrDigit, voice: f.voice, miles: f.miles, gallons: f.gallons,
+      },
+    };
+    const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(design)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    a.href = '/api/app?d=' + b64;
+  }
+
   function syncSteps() {
     $$('.step').forEach((s) => (s.hidden = Number(s.dataset.step) !== ui.step));
     $$('#route li').forEach((li) => {
@@ -329,6 +350,7 @@
     showHide();
     syncNotes();
     syncSummary();
+    syncDownload();
     syncSteps();
     save();
   }

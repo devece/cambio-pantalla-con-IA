@@ -2,7 +2,7 @@
 
 Un launcher para radios Android de auto, pensado para Chile (restricción vehicular por GPS, revisión técnica, permiso de circulación, SOAP, teléfono +56 9), y el sitio donde el cliente diseña su pantalla.
 
-**Tablero es gratis.** El cliente ve en el sitio cómo quedará su pantalla, descarga la app, la instala en su radio y elige ahí su apariencia, su foto y sus datos. No hay códigos, planes, precios ni cobros.
+**Tablero es gratis.** El cliente diseña su pantalla en el sitio y descarga la app **con su diseño ya puesto** (o la descarga normal y lo elige en la radio). No hay códigos, planes, precios ni cobros.
 
 > **Estado: prototipo.** El sitio y la vista previa funcionan. La app Android compila y está en pruebas en radios reales (ver `docs/PRUEBA_EN_RADIO.md`).
 
@@ -15,9 +15,9 @@ Un launcher para radios Android de auto, pensado para Chile (restricción vehicu
 
 ## Cómo se usa (sin pedidos ni códigos)
 
-1. El cliente diseña su pantalla en el sitio solo para verla; puede bajar su auto ya recortado (PNG).
-2. Descarga e instala la app (`/app`, ver `docs/PRUEBA_EN_RADIO.md` y la página `listo.html`).
-3. En la app elige su apariencia (Ajustes → Apariencia), su foto (Ajustes → Foto de tu auto) y sus datos. Se guarda en la radio.
+1. El cliente diseña su pantalla en el sitio; puede bajar su auto ya recortado (PNG).
+2. Descarga la app con su diseño: `GET /api/app?d=…` (`api/app.js`) toma la APK de `app-latest` y le agrega el diseño en el bloque de firmas, sin romper la firma (`lib/apk-inject.js`). Sin diseño, `/app` entrega la APK normal.
+3. Al abrirse por primera vez, la app lee su propio archivo (`ApkBlock.kt`) y aplica el diseño (`DesignImport.kt`). También puede elegir todo en Ajustes → Apariencia y Foto de tu auto. Se guarda en la radio.
 
 Las funciones `api/order`, `api/license` y el panel `admin` quedaron sin uso desde el sitio (solo sirven a radios que ya activaron un código) y se pueden retirar más adelante.
 

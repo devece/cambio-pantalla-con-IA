@@ -39,11 +39,6 @@
   ],
   "redirects": [
     {
-      "source": "/app",
-      "destination": "https://github.com/devece/cambio-pantalla-con-IA/releases/download/app-latest/tablero.apk",
-      "permanent": false
-    },
-    {
       "source": "/terminos",
       "destination": "/privacidad",
       "permanent": true
@@ -67,6 +62,12 @@
       "source": "/api/paypal-return",
       "destination": "/",
       "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/app",
+      "destination": "/api/app"
     }
   ]
 }

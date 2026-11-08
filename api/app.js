@@ -13,6 +13,7 @@
 const { rateLimit } = require('../lib/http.js');
 const { DESIGN_ID, PHOTO_DAY_ID, PHOTO_NIGHT_ID, injectPair } = require('../lib/apk-inject.js');
 const { validateOrder } = require('../public/shared/order.js');
+const stats = require('../lib/stats.js');
 
 const APK_URL = process.env.TABLERO_APK_URL || 'https://github.com/devece/cambio-pantalla-con-IA/releases/download/app-latest/tablero.apk';
 const MAX_PARAM = 6000;
@@ -76,7 +77,9 @@ function photoFromBody(p) {
   return { day, night, cut };
 }
 
-function fallback(res) {
+/** Redirige a la APK normal (y cuenta la descarga: el cliente la recibe igual). */
+async function fallback(req, res) {
+  if (req.method !== 'HEAD') await stats.countDownload(req);
   res.statusCode = 302;
   res.setHeader('Location', APK_URL);
   res.setHeader('Cache-Control', 'no-store');
@@ -98,7 +101,7 @@ module.exports = async function handler(req, res) {
     if (!body) return res.status(400).json({ ok: false, error: 'Pedido inválido.' });
   }
   const design = designFromParam(method === 'POST' ? body.d : req.query && req.query.d);
-  if (!design) return method === 'POST' ? res.status(400).json({ ok: false, error: 'Diseño inválido.' }) : fallback(res);
+  if (!design) return method === 'POST' ? res.status(400).json({ ok: false, error: 'Diseño inválido.' }) : fallback(req, res);
 
   let photo = null;
   if (method === 'POST') {
@@ -120,10 +123,11 @@ module.exports = async function handler(req, res) {
     res.setHeader('Content-Disposition', 'attachment; filename="tablero.apk"');
     res.setHeader('Content-Length', String(out.length));
     res.setHeader('Cache-Control', 'no-store');
+    if (method !== 'HEAD') await stats.countDownload(req);
     res.end(method === 'HEAD' ? undefined : out);
   } catch (_) {
     if (method === 'POST') return res.status(502).json({ ok: false, error: 'No pudimos armar la app.' });
-    fallback(res);
+    await fallback(req, res);
   }
 };
 

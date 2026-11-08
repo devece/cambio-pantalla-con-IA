@@ -10,7 +10,7 @@ Un launcher para radios Android de auto, pensado para Chile (restricción vehicu
 
 - **Sitio** estático (HTML/CSS/JS sin build) en `public/`: vista previa de la radio (1024×600) con 9 temas visuales (día y noche), 9 distribuciones, 5 pantallas, fondos, autos en 3D y decoración de temporada (Fiestas Patrias, Halloween, Navidad, Año Nuevo).
 - **App Android** en `android/` (el launcher de la radio): `core` (reglas en Kotlin puro, con pruebas) y `app` (pantallas, GPS, ajustes, scanner OBD opcional).
-- **Funciones de API** (Vercel) en `api/`: `app` (entrega la APK con el diseño y la foto del cliente ya adentro), `analyze-radio` (analiza la captura de la radio) y `detect-lights` (ubica los faros en la foto del auto). Las dos últimas usan IA y son opcionales. **No hay base de datos ni cuentas**: el sitio no guarda nada de quien lo usa.
+- **Funciones de API** (Vercel) en `api/`: `app` (entrega la APK con el diseño y la foto del cliente ya adentro), `analyze-radio` (analiza la captura de la radio) y `detect-lights` (ubica los faros en la foto del auto). Las dos últimas usan IA y son opcionales. **No hay cuentas ni datos de usuarios**: lo único que se guarda son dos totales, los contadores públicos de visitas y descargas (`api/stats.js`, `lib/stats.js`).
 
 ## Cómo se usa (sin pedidos ni códigos)
 
@@ -38,6 +38,7 @@ Copia `.env.example` a `.env`:
 | Variable | Para qué |
 |---|---|
 | `ANTHROPIC_API_KEY` | Analizar con IA la captura de la radio y los faros de la foto (opcional) |
+| `STATS_SUPABASE_URL`, `STATS_SUPABASE_ANON_KEY`, `STATS_HIT_KEY` | Contadores de visitas y descargas (opcionales). Viven en dos tablas de Supabase (`tablero_stats` y `tablero_stats_key`) que solo se tocan por las funciones `tablero_hit` y `tablero_totals`; sumar exige la clave `STATS_HIT_KEY` |
 | `TABLERO_APK_URL` | De dónde toma el botón «Descargar la app con mi diseño» la APK base (opcional; por defecto, la última compilación) |
 
 ## Publicar en Vercel

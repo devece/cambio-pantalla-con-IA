@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guía para probar Tablero en tu radio</title>
+  <meta name="description" content="Cómo instalar y probar Tablero en tu radio Android, qué revisar y qué contarme para ayudar a mejorarla.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#1b2f58">
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap bar">
+      <a class="brand" href="./"><svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" stroke-width="5"/></svg><span>Tablero</span></a>
+      <a href="./">Volver al inicio</a>
+    </div>
+  </header>
+  <main class="wrap legal install">
+    <h1>Ayúdame a probar Tablero</h1>
+    <p class="lead">Tablero es una versión de prueba: nadie la ha instalado todavía en muchas radios, así que lo que te pase, bueno o malo, me sirve. No necesitas compilar nada ni tener un código: la app se baja lista, es gratis y se instala en unos 5 minutos.</p>
+
+    <h2>Antes de empezar: anota los datos de tu radio</h2>
+    <p>En la radio, entra a <b>Ajustes → Acerca de</b> (o <i>Información del sistema</i>) y anota:</p>
+    <ul>
+      <li>Marca y modelo de la radio</li>
+      <li>Versión de Android</li>
+      <li>Tamaño de la pantalla o resolución (si aparece)</li>
+      <li>Si tiene Play Store, GPS propio y un explorador de archivos</li>
+    </ul>
+    <div class="note warn"><b>No toques</b> los botones <i>Configuraciones predeterminadas</i>, <i>Actualización de Android</i> ni <i>Actualización de MCU</i> de esa pantalla: borran ajustes o cambian el firmware de tu radio.</div>
+
+    <h2>1. Consigue la app</h2>
+    <p>Hay dos caminos:</p>
+    <ul>
+      <li><b>Con tu diseño y tu foto (recomendado):</b> arma tu pantalla en <a href="./#configurador">el configurador</a> y en el último paso pulsa <b>«Descargar la app con mi diseño»</b>. Viene con tu tema, tu nombre, tus avisos y tu foto. Esto es lo que más necesito probar.</li>
+      <li><b>Normal:</b> <a href="/app">descargar la app sin diseño</a>. Después eliges todo dentro de ella.</li>
+    </ul>
+
+    <h2>2. Pásala a la radio e instálala</h2>
+    <ul>
+      <li><b>Desde el navegador de la radio:</b> abre la dirección y descarga. Si la radio no tiene navegador, usa el pendrive.</li>
+      <li><b>Con pendrive:</b> baja la app en tu celular o computador, cópiala a un pendrive, conéctalo a la radio y ábrela con el explorador de archivos.</li>
+    </ul>
+    <p>Si la radio bloquea la instalación, activa <b>«Instalar apps de orígenes desconocidos»</b>. Si aparece «Aplicación bloqueada para proteger tu dispositivo», es porque la app no viene de Play Store: toca <i>Más detalles</i> y luego <i>Instalar de todos modos</i>. Más ayuda en la <a href="listo.html">guía de instalación</a>.</p>
+    <div class="note warn"><b>Si ya tenías una versión anterior</b> y la radio dice que no puede actualizar o hay un conflicto, desinstala la anterior y vuelve a instalar.</div>
+
+    <h2>3. Ábrela y déjala como pantalla de inicio</h2>
+    <ol>
+      <li>Abre <b>Tablero</b> desde la lista de apps. La primera vez te guía en tres pasos, todos opcionales.</li>
+      <li>Presiona el botón <i>Inicio</i> de la radio, elige <b>Tablero</b> y luego <b>Siempre</b>.</li>
+      <li>Para volver a la pantalla original: <i>Ajustes → Apps → Tablero → Borrar valores predeterminados</i>. Si algo sale mal, desinstala Tablero y tu radio queda como antes.</li>
+    </ol>
+
+    <h2>4. Qué revisar</h2>
+    <p>Marca lo que funciona. No se guarda en ningún lado: es solo para que lleves la cuenta, y después me cuentas.</p>
+
+    <h3>A. Instalación y arranque</h3>
+    <ul class="tests">
+      <li><label><input type="checkbox"><span>Se instala sin errores</span></label></li>
+      <li><label><input type="checkbox"><span>Abre y muestra reloj, fecha y saludo</span></label></li>
+      <li><label><input type="checkbox"><span>La pantalla se ve completa, sin cortes ni letras enormes</span></label></li>
+      <li><label><input type="checkbox"><span>El botón <i>Inicio</i> de la radio vuelve a Tablero</span></label></li>
+      <li><label><input type="checkbox"><span>Al apagar y prender la radio, sigue con tus ajustes</span></label></li>
+    </ul>
+
+    <h3>B. El diseño que venía dentro de la app <small>(solo si la bajaste con «Descargar la app con mi diseño»)</small></h3>
+    <ul class="tests">
+      <li><label><input type="checkbox"><span>Al abrirla ya trae el tema, la distribución y el fondo que elegiste</span></label></li>
+      <li><label><input type="checkbox"><span>Trae tu nombre y tu saludo</span></label></li>
+      <li><label><input type="checkbox"><span>Trae tus avisos de aceite, documentos y restricción</span></label></li>
+      <li><label><input type="checkbox"><span>Si subiste foto, aparece tu auto (y de noche, con las luces encendidas)</span></label></li>
+    </ul>
+
+    <h3>C. Ajustes → Apariencia</h3>
+    <ul class="tests">
+      <li><label><input type="checkbox"><span>Puedes elegir tema, distribución, fondo, hora del fondo, decoración y color</span></label></li>
+      <li><label><input type="checkbox"><span>Al guardar y volver al inicio, se ve lo elegido</span></label></li>
+      <li><label><input type="checkbox"><span>La opción «Como viene» deja la pantalla por defecto</span></label></li>
+      <li><label><input type="checkbox"><span>Los menús desplegables se leen bien</span></label></li>
+    </ul>
+
+    <h3>D. Ajustes → Foto de tu auto</h3>
+    <ul class="tests">
+      <li><label><input type="checkbox"><span>«Elegir foto» abre la galería o el explorador de archivos (si tu radio no tiene ninguno, debe salir un aviso y no cerrarse)</span></label></li>
+      <li><label><input type="checkbox"><span>Una foto normal se ve en la pantalla de inicio</span></label></li>
+      <li><label><input type="checkbox"><span>Un PNG ya sin fondo (lo bajas del sitio con «Descargar mi auto sin fondo») se ve recortado</span></label></li>
+      <li><label><input type="checkbox"><span>«Quitar foto» la saca</span></label></li>
+    </ul>
+
+    <h3>E. Lo básico</h3>
+    <ul class="tests">
+      <li><label><input type="checkbox"><span>Los atajos abren las apps que tienes instaladas</span></label></li>
+      <li><label><input type="checkbox"><span>En Ajustes se pueden escribir números (sale el teclado)</span></label></li>
+      <li><label><input type="checkbox"><span>Pide permiso de ubicación y muestra la velocidad en movimiento (pruébalo con otra persona manejando)</span></label></li>
+      <li><label><input type="checkbox"><span>El saludo por voz suena (si la radio tiene voz en español)</span></label></li>
+      <li><label><input type="checkbox"><span>Los botones del volante se pueden configurar (Ajustes → Botones del volante)</span></label></li>
+      <li><label><input type="checkbox"><span>La pantalla de Radio FM muestra la emisora (si tu radio la informa)</span></label></li>
+      <li><label><input type="checkbox"><span>Pasa a modo noche cuando se pone el sol</span></label></li>
+    </ul>
+
+    <h3>F. Scanner OBD <small>(solo si tienes un scanner ELM327 y un auto, con el contacto puesto)</small></h3>
+    <ul class="tests">
+      <li><label><input type="checkbox"><span>Emparejaste el scanner en los ajustes de Bluetooth de Android de la radio</span></label></li>
+      <li><label><input type="checkbox"><span>En Ajustes → Scanner OBD lo eliges y «Probar conexión» muestra el voltaje y si el auto responde</span></label></li>
+      <li><label><input type="checkbox"><span>Aparece la pantalla <b>Auto</b> con revoluciones, temperatura y voltaje en vivo</span></label></li>
+      <li><label><input type="checkbox"><span>Si hay una falla guardada, se explica en palabras simples (Tablero solo lee, no borra códigos)</span></label></li>
+    </ul>
+    <p class="hint">El scanner es lo más nuevo y todavía no lo he probado con un auto real. Varios clones baratos entregan solo parte de los datos.</p>
+
+    <h3>G. Kilometraje por GPS</h3>
+    <ul class="tests">
+      <li><label><input type="checkbox"><span>Si anotaste el kilometraje, sube solo mientras se maneja (muestra un aviso fijo en las notificaciones)</span></label></li>
+    </ul>
+
+    <h2>5. Qué contarme</h2>
+    <ul>
+      <li>Marca de la radio, versión de Android y resolución.</li>
+      <li>Qué camino usaste (con diseño o normal).</li>
+      <li>El resultado de cada punto y, para lo que falle, <b>una foto de la pantalla</b> o del mensaje de error.</li>
+      <li>Si algo no funciona, entra a <i>Ajustes → Ayuda → Diagnóstico de la radio</i> y mándame una foto: muestra qué ve tu radio (por ejemplo, si tiene navegador o galería).</li>
+    </ul>
+    <p><a class="btn cta" href="./#contacto">Escríbeme</a></p>
+
+    <h2>Lo que todavía falta</h2>
+    <ul>
+      <li>El diseño <b>Todoterreno</b> y los fondos de nieve, rocas y barro, que esperan al tipo de auto «camioneta 4x4».</li>
+      <li>Quitar el fondo de una foto <b>dentro de la app</b>: se hace en el sitio, y en la app solo se puede poner una foto ya recortada.</li>
+      <li>El límite automático de velocidad por calle: hoy solo funciona el límite fijo que tú pones.</li>
+      <li>Alertas con el motor caliente y registro de viajes.</li>
+      <li>El clima y los mapas nuevos necesitan internet (los mapas ya guardados se ven sin conexión).</li>
+    </ul>
+
+    <p class="hint">Tablero es gratis. Si te sirvió y quieres apoyar, <a href="https://ko-fi.com/daniexpress" target="_blank" rel="noopener">invítame un café ☕</a> (opcional). No manipules la radio mientras manejas.</p>
+  </main>
+  <footer class="foot">
+    <div class="wrap">
+      <span>© <span id="year"></span> Tablero</span>
+      <a href="listo.html">Cómo instalar la app</a>
+      <a href="privacidad.html">Privacidad</a>
+      <a href="https://ko-fi.com/daniexpress" target="_blank" rel="noopener">Invítame un café ☕</a>
+    </div>
+  </footer>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

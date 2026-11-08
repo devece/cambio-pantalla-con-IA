@@ -429,3 +429,9 @@ h1 em, h2 em { font-style: normal; background: linear-gradient(90deg, #ff3a1a, #
 .support .hero-cta { justify-content: center; margin-top: 22px; }
 
 .stats-line { color: var(--ink2); font-size: 14px; }
+
+.legal h3 { font: 600 18px/1.2 var(--display); margin: 20px 0 6px; color: var(--ink); }
+.legal h3 small { font-weight: 400; color: var(--ink2); font-size: 14px; }
+.tests { list-style: none; padding-left: 0; }
+.tests label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-weight: 400; color: var(--ink2); }
+.tests input { width: 20px; height: 20px; margin-top: 3px; accent-color: var(--verde); flex: none; }

@@ -1,6 +1,8 @@
 # Primera prueba en una radio real
 
-Objetivo: comprobar que la app **se instala, arranca como pantalla de inicio y se ve bien** en tu radio. Todavía no es una versión final.
+Objetivo: comprobar que la app **se instala, arranca como pantalla de inicio, aplica el diseño que traía y se ve bien** en una radio real. Es una versión de prueba: nadie la ha instalado todavía en un aparato, así que cualquier cosa que pase es información valiosa.
+
+No necesitas compilar nada ni tener un código: la app se baja lista desde el sitio.
 
 ## Antes de empezar: anota los datos de tu radio
 
@@ -33,24 +35,30 @@ Qué implica:
 - **CAN bus desconectado:** hoy la radio no recibe datos del auto (kilometraje, combustible, luces). Por eso la app se apoya en el GPS para la velocidad y en Ajustes para el kilometraje. Leer el CAN bus sería una mejora futura y depende del fabricante de la radio.
 - **No toques** los botones *Configuraciones predeterminadas*, *Actualización de Android* ni *Actualización de MCU* de esa pantalla: borran ajustes o cambian el firmware.
 
-## 1. Compilar el APK (en tu computador personal)
+## 1. Conseguir la APK
 
-1. Instala **Android Studio** y abre la carpeta `android/` de este repositorio. Acepta instalar el SDK 34.
-2. Espera a que termine la sincronización de Gradle. **Si aparecen errores rojos, cópialos tal cual**: el módulo `app` nunca se ha compilado y es probable que haya que corregir detalles.
-3. Menú *Build > Build Bundle(s) / APK(s) > Build APK(s)*.
-4. El archivo queda en `android/app/build/outputs/apk/debug/app-debug.apk`.
+Hay dos caminos. Elige uno:
 
-## 2. Instalar en la radio
+- **Con tu diseño y tu foto (recomendado):** entra a https://tablero-pearl.vercel.app/, arma tu pantalla y en el último paso pulsa **«Descargar la app con mi diseño»**. La APK ya trae tu tema, tu nombre, tus avisos y, si la subiste, tu foto. Esto es lo que más falta probar.
+- **Normal:** https://tablero-pearl.vercel.app/app. Trae la app sin diseño, y lo eliges todo dentro de ella.
+
+Siempre es la última compilación (`app-latest` en GitHub). No hace falta Android Studio.
+
+## 2. Pasarla a la radio e instalarla
 
 Elige una forma:
 
-- **Pendrive:** copia `app-debug.apk` a un pendrive, conéctalo a la radio, ábrelo con el explorador de archivos y presiona instalar. Si la radio lo bloquea, activa *Instalar apps de orígenes desconocidos* en sus ajustes.
-- **Descarga directa:** si la radio tiene navegador, sube el APK a un enlace y descárgalo desde ahí.
-- **Cable (adb):** `adb install app-debug.apk`, si la radio permite depuración USB.
+- **Desde el navegador de la radio:** abre la dirección de arriba y descarga. Si la radio no tiene navegador, usa el pendrive.
+- **Pendrive:** baja la APK en tu celular o computador, cópiala a un pendrive, conéctalo a la radio, ábrela con el explorador de archivos y presiona instalar.
+- **Cable (adb):** `adb install tablero.apk`, si la radio permite depuración USB.
+
+Si la radio bloquea la instalación, activa *Instalar apps de orígenes desconocidos* (o te lleva ahí cuando pulses instalar). Si aparece «Aplicación bloqueada para proteger tu dispositivo» (Google Play Protect), es porque la app no viene de Play Store: toca *Más detalles* y luego *Instalar de todos modos*. La guía con pasos está en https://tablero-pearl.vercel.app/listo.
+
+> **Si ya tenías una versión anterior** y la radio dice que no puede actualizar o hay un conflicto, desinstala la anterior y vuelve a instalar. No está confirmado que todas las compilaciones se firmen con la misma clave.
 
 ## 3. Abrirla y dejarla como inicio
 
-1. Abre **Tablero** desde la lista de apps.
+1. Abre **Tablero** desde la lista de apps. La primera vez te guía en tres pasos, todos opcionales (tu auto, tu aceite y dejarla como inicio).
 2. Presiona el botón *Inicio* de la radio. Android preguntará qué pantalla de inicio usar: elige **Tablero** y **Siempre**.
 3. Para volver a la original: *Ajustes > Apps > Tablero > Borrar valores predeterminados*.
 
@@ -58,26 +66,66 @@ Elige una forma:
 
 ## 4. Qué probar (y qué contarme)
 
-Marca cada punto con ✅ o ❌ y escríbeme lo que veas:
+Marca cada punto con ✅ o ❌ y escríbeme lo que veas. Están en orden de importancia.
 
+**A. Instalación y arranque**
 - [ ] Se instala sin errores
 - [ ] Abre y muestra reloj, fecha y saludo
-- [ ] La pantalla se ve completa (no cortada ni con letras enormes)
-- [ ] Gira sola o queda en horizontal como debe
+- [ ] La pantalla se ve completa (no cortada ni con letras enormes), en 1280 × 720 o el tamaño de tu radio
+- [ ] Queda en horizontal como debe
 - [ ] El botón *Inicio* de la radio vuelve a Tablero
+- [ ] Cuando la apagas y prendes, sigue con tus ajustes
+
+**B. El diseño que venía dentro de la APK** (solo si la bajaste con «Descargar la app con mi diseño»)
+- [ ] Al abrirla por primera vez ya trae el tema, la distribución y el fondo que elegiste en el sitio
+- [ ] Trae tu nombre y tu saludo
+- [ ] Trae tus avisos (aceite, documentos, restricción) tal como los dejaste
+- [ ] Si subiste foto, aparece tu auto (y de noche, con las luces, si tenías la versión de noche)
+- [ ] Si la bajaste con un diseño distinto sobre una versión ya instalada, se aplica el nuevo
+
+**C. Ajustes → Apariencia**
+- [ ] Se pueden elegir tema, distribución, fondo, hora del fondo, decoración y color de acento
+- [ ] Al *Guardar* y volver al inicio, se ve lo elegido
+- [ ] La opción «Como viene» deja la pantalla por defecto
+- [ ] Los menús desplegables se leen bien (este es un punto que no pude ver)
+
+**D. Ajustes → Foto de tu auto**
+- [ ] *Elegir foto* abre la galería o el explorador de archivos (muchas radios no traen ninguno: debe salir un aviso, no cerrarse)
+- [ ] Una foto normal se ve en la pantalla de inicio
+- [ ] Un PNG ya sin fondo (lo bajas del sitio con «Descargar mi auto sin fondo») se ve recortado
+- [ ] *Quitar foto* la saca
+
+**E. Lo básico**
 - [ ] Los atajos abren las apps que tienes instaladas
 - [ ] *Ajustes* abre y se pueden escribir números (¿sale el teclado?)
 - [ ] Al guardar, los avisos (aceite, documentos) aparecen en el inicio
 - [ ] Pide permiso de ubicación y muestra la velocidad en movimiento (haz esta prueba con otra persona manejando)
 - [ ] El saludo por voz suena (si la radio tiene voz en español instalada)
-- [ ] Cuando la apagas y prendes, sigue con tus ajustes
+- [ ] Los botones del volante (*Ajustes → Botones del volante → Aprender un botón*)
+- [ ] La pantalla de Radio FM muestra la emisora (si tu radio la informa)
+- [ ] Pasa a modo noche cuando se pone el sol
 
-Una foto de la pantalla de la radio con la app abierta ayuda mucho.
+**F. Scanner OBD (solo si tienes un scanner ELM327 y un auto, con el contacto puesto)**
+- [ ] Primero empareja el scanner en los ajustes de Bluetooth de Android de la radio
+- [ ] *Ajustes → Scanner OBD*: elígelo y pulsa *Probar conexión* (te dice el voltaje, si el auto responde y la luz del motor)
+- [ ] Aparece la pantalla **Auto** en la barra de abajo, con revoluciones, temperatura y voltaje en vivo
+- [ ] Si hay una falla guardada, se explica en palabras simples (Tablero solo lee: no borra códigos)
+
+**G. Kilometraje por GPS**
+- [ ] Si anotaste el kilometraje, sube solo mientras se maneja (muestra un aviso fijo en la barra de notificaciones)
+
+## 5. Qué enviarme
+
+- Marca de la radio, versión de Android y resolución (arriba, «Antes de empezar»).
+- Qué camino usaste (con diseño o normal).
+- El resultado de cada punto, y para lo que falle, **una foto de la pantalla** o del mensaje de error.
+- Si algo no funciona, entra a *Ajustes → Ayuda → Diagnóstico de la radio* y mándame una foto: muestra qué ve la radio (por ejemplo, si tiene navegador o galería).
 
 ## Lo que ya sabemos que falta
 
-- Los temas visuales, distribuciones y fondos de la vista previa (hoy hay un único diseño oscuro).
-- Clima, música y radio FM de la vista previa: son datos de ejemplo en el sitio y requieren integración propia con cada radio.
-- El límite automático de velocidad por calle (OpenStreetMap): hoy solo funciona el límite fijo.
-- Modo noche automático al prender las luces.
-- La foto de tu auto y las imágenes de los autos.
+- El diseño **Todoterreno** y los fondos de nieve, rocas y barro: esperan al tipo de auto «camioneta 4x4», que la app todavía no tiene.
+- Quitar el fondo de una foto **dentro de la app**: se hace en el sitio. En la app solo se puede poner una foto ya recortada.
+- El límite automático de velocidad por calle: hoy solo funciona el límite fijo que tú pones.
+- Alertas con el motor caliente y registro de viajes (fase 4 del scanner).
+- Leer el CAN bus de la radio: depende del fabricante.
+- El clima y los mapas nuevos necesitan internet (los mapas ya guardados se ven sin conexión).

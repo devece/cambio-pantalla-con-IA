@@ -26,6 +26,7 @@
     play: '<path d="M8 5.500v13l11-6.500z"/>',
     giro: '<path d="M8 20v-8a3 3 0 0 1 3-3h8M15 5l4 4-4 4"/>',
     check: '<path d="M5 12.500l4.500 4.500L19 7.500"/>',
+    motor: '<path d="M5 9.500h3V6.500h7v3h2.500l2 2v6H7.500l-2.500-2.500z"/><path d="M2.500 11.500v4M10 12.500h6"/>',
   };
 
   /* ---------- Ilustraciones del paso "¿Cómo es tu radio?" ---------- */

@@ -260,6 +260,54 @@
     if (current) render(current.state, current.ui);
   }
 
+  /* ---------- scanner OBD: pantalla «Auto» ---------- */
+  /** Datos de ejemplo para el sitio: así se ve con un scanner conectado. */
+  const DEMO_OBD = {
+    state: 'connected',
+    detail: 'Conectado (ejemplo)',
+    values: { rpm: 1850, coolant: 90, voltage: 13.9 },
+    health: { milOn: true, count: 1, codes: [{ code: 'P0171', system: 'Combustible y aire', text: 'La mezcla de aire y combustible tiene demasiado aire (muy pobre). Revisa mangueras de aire y el filtro, o consulta a un mecánico.', known: true }] },
+  };
+  /** El scanner según la radio, o de ejemplo en el sitio. Null si no hay scanner elegido (entonces no se ofrece la pantalla). */
+  const obdView = () => (appMode() ? TB.preview.app.obd || null : DEMO_OBD);
+  const OBD_GAUGES = [
+    ['rpm', 'Revoluciones', 'rpm', (v) => String(Math.round(v))],
+    ['coolant', 'Temperatura del motor', '°C', (v) => String(Math.round(v))],
+    ['voltage', 'Voltaje', 'V', (v) => v.toFixed(1)],
+  ];
+  const obdNum = (o, key, fmtFn) => (o && o.values && typeof o.values[key] === 'number' ? fmtFn(o.values[key]) : '—');
+  function obdHealthHtml(o) {
+    const h = o.health;
+    if (o.state !== 'connected') return `<section class="card oh"><b>Luz del motor</b><span>Se mostrará cuando el scanner esté conectado.</span></section>`;
+    if (!h) return `<section class="card oh"><b>Luz del motor</b><span>Leyendo… Si tu auto no entrega este dato, no aparecerá.</span></section>`;
+    if (!h.milOn && !h.count) return `<section class="card oh ok"><b>Luz del motor apagada</b><span>Sin fallas guardadas.</span></section>`;
+    const list = (h.codes || []).map((c) => `<li><b>${esc(c.code)}</b>${c.system ? `<small>${esc(c.system)}</small>` : ''}<p>${esc(c.text || 'Código sin explicación en esta app.')}</p></li>`).join('');
+    const head = h.milOn ? 'Luz del motor encendida' : 'Hay códigos guardados';
+    const none = !(h.codes || []).length ? `<span>Tu auto dice que tiene ${h.count} código${h.count === 1 ? '' : 's'}, pero no los entregó.</span>` : '';
+    return `<section class="card oh warn"><b>${head}</b>${none}<ul class="codes">${list}</ul><small class="oh-note">Es una ayuda: no reemplaza a un mecánico. Tablero solo lee los códigos, no los borra.</small></section>`;
+  }
+  function obdScreen() {
+    const o = obdView();
+    if (!o) return `<div class="pane obd-pane"><section class="card empty"><b>Sin scanner</b><span>Elige tu scanner OBD en Ajustes → Scanner OBD.</span></section></div>`;
+    const gauges = OBD_GAUGES.map(([key, label, unit, f]) => `<div class="card og"><small>${label}</small><b><span data-obd="${key}">${obdNum(o, key, f)}</span><i>${unit}</i></b></div>`).join('');
+    const status = o.state === 'connected' ? '' : `<section class="card oh"><b>${o.state === 'waiting_for_car' ? 'Enciende el auto' : o.state === 'connecting' ? 'Conectando…' : 'Sin conexión'}</b><span>${esc(o.detail || '')}</span></section>`;
+    return `<div class="pane obd-pane"><div class="og-row">${gauges}</div>${status}${obdHealthHtml(o)}</div>`;
+  }
+  /** Lo que se vio la última vez: si cambia la estructura (estado, luz, códigos) se redibuja; si solo cambian los números, se actualizan en su sitio. */
+  let obdSig = '';
+  const obdSignature = () => {
+    const o = appMode() ? TB.preview.app.obd : null;
+    return o ? [o.state, o.health ? [o.health.milOn, o.health.count, (o.health.codes || []).map((c) => c.code).join(',')].join('|') : '-'].join('/') : 'none';
+  };
+  function updateObd() {
+    if (!current || !appMode()) return;
+    const sig = obdSignature();
+    if (sig !== obdSig) { obdSig = sig; render(current.state, current.ui); return; }
+    const o = obdView();
+    if (!o || !scr) return;
+    OBD_GAUGES.forEach(([key, , , f]) => scr.querySelectorAll(`[data-obd="${key}"]`).forEach((el) => { el.textContent = obdNum(o, key, f); }));
+  }
+
   /* ---------- piezas de la pantalla de inicio ---------- */
   function pieces(state, ui) {
     const f = state.features;
@@ -386,6 +434,7 @@
         <div class="chips"><span class="chip on">Plano</span><span class="chip">Graves</span><span class="chip">Voces</span><span class="chip">Rock</span></div>
       </div>`;
     },
+    auto: () => obdScreen(),
     mantenimiento: (state) => {
       const items = maintItems(state);
       if (!items.length) return `<div class="pane"><section class="card empty"><b>Sin avisos activados</b><span>Activa aceite, documentos o combustible en el paso 4.</span></section></div>`;
@@ -408,6 +457,7 @@
       if (a) items.push({ app: id, ic: id, t: id === 'telefono' ? 'Teléfono' : a.name });
     });
     items.push({ go: 'mantenimiento', ic: 'check', t: 'Mantención' });
+    if (obdView()) items.push({ go: 'auto', ic: 'motor', t: 'Auto' });
     if (consola) items.push({ open: 'drawer', ic: 'todas', t: 'Apps' });
     return `<nav class="dock">${items
       .map((i) => `<button class="dk${i.go && i.go === ui.screen ? ' on' : ''}" ${i.open && appMode() ? `data-open="${i.open}"` : i.go ? `data-go="${i.go}"` : ''} ${i.app ? `data-app="${i.app}"` : ''}><span class="ic">${icon(i.ic, 30)}</span><small>${esc(i.t)}</small></button>`)
@@ -593,5 +643,5 @@
     if (za) { za.hidden = false; za.className = 'zone-alert' + (n.warn ? ' warn' : ''); za.firstElementChild.textContent = n.text; }
   }
 
-  TB.preview = { mount, render, onGo: null, maintItems, doneButton, showZoneNotice, updateMusic, updateRadio, updateMap, app: null };
+  TB.preview = { mount, render, onGo: null, maintItems, doneButton, showZoneNotice, updateMusic, updateRadio, updateObd, updateMap, app: null };
 })();

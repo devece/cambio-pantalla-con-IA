@@ -29,6 +29,7 @@ import cl.tablero.core.Gate
 import cl.tablero.core.LauncherConfig
 import cl.tablero.core.Maintenance
 import cl.tablero.core.MaintenanceItem
+import cl.tablero.core.ObdCodes
 import cl.tablero.core.ObdState
 import cl.tablero.core.Reminder
 import cl.tablero.core.Reminders
@@ -65,6 +66,14 @@ class MainActivity : Activity() {
     private var web: WebLauncher? = null
     private var odometerListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
     private var obdClient: ObdClient? = null
+    /** Explicaciones de los códigos de falla; null si el catálogo no se pudo leer (se muestran sin explicación). */
+    private val obdCodes: ObdCodes? by lazy {
+        try {
+            ObdCodes.parse(assets.open("obd-codes.json").bufferedReader().use { it.readText() })
+        } catch (e: Exception) {
+            null
+        }
+    }
     private var obdState = ObdState.IDLE
     private var obdDetail = ""
     private var insideZone = false
@@ -136,9 +145,13 @@ class MainActivity : Activity() {
             onState = { state, detail ->
                 obdState = state
                 obdDetail = detail
-                web?.setObd(ObdClient.toJson(state, detail, null))
+                web?.setObd(ObdClient.toJson(state, detail, null, obdCodes))
             },
-            onSnapshot = { snapshot -> web?.setObd(ObdClient.toJson(obdState, obdDetail, snapshot)) },
+            onSnapshot = { snapshot ->
+                web?.setObd(ObdClient.toJson(obdState, obdDetail, snapshot, obdCodes))
+                // Si el auto informa su kilometraje real, manda sobre el que suma el GPS (y los avisos de mantención lo siguen).
+                if (config.odometerAuto) snapshot.values["odometer"]?.let { km -> settings.setOdometerFromCar(Math.round(km).toInt()) }
+            },
         ).also { it.start(config.obd) }
         greetOnce()
     }
@@ -634,8 +647,8 @@ class MainActivity : Activity() {
     private fun dp(v: Int) = Ui.dp(this, v)
 
     companion object {
-        /** Se enciende junto con la pantalla del Taller (fase 3 del plan OBD), que es la que mostrará los datos del scanner. */
-        private const val OBD_LIVE_DATA = false
+        /** La lectura en vivo del scanner: ya hay una pantalla («Auto») que muestra sus datos. */
+        private const val OBD_LIVE_DATA = true
 
         private const val REQ_LOCATION = 1
         private const val MATCH = LinearLayout.LayoutParams.MATCH_PARENT

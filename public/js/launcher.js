@@ -75,7 +75,7 @@
     music: { access: null, active: false },
     // La radio FM de fábrica, según lo que publica su app: { access, found, playing, freq, name } (ver WebLauncher.pushRadio).
     radio: { access: null, found: false },
-    // El scanner OBD, si hay uno elegido: { state, detail, values: { rpm, speed, coolant, ... } } (ver ObdClient). Todavía no se dibuja.
+    // El scanner OBD, si hay uno elegido: { state, detail, values: { rpm, speed, coolant, ... }, health } (ver ObdClient). Lo dibuja la pantalla «Auto».
     obd: null,
     loc: null,
     media(cmd) { bridge('media', cmd); },
@@ -276,9 +276,10 @@
       try { app.radio = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }
       if (TB.preview.updateRadio) TB.preview.updateRadio();
     },
-    /** Lo que llega del scanner OBD: estado de la conexión y últimos valores. Por ahora solo se guarda (la pantalla del Taller lo usará). */
+    /** Lo que llega del scanner OBD: estado de la conexión, últimos valores y luz del motor. La pantalla «Auto» lo dibuja. */
     setObd(json) {
-      try { app.obd = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { /* un aviso mal formado se ignora */ }
+      try { app.obd = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; /* un aviso mal formado se ignora */ }
+      if (TB.preview.updateObd) TB.preview.updateObd();
     },
     /** Avance del guardado del mapa que hace la app: cuadros listos, total, los que no se pudieron bajar, y si terminó. */
     mapProgress(done, total, failed, fin) {

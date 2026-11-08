@@ -399,3 +399,23 @@
 @media (prefers-reduced-motion: reduce) { .scr .c-car { animation: none; } }
 
 .scr .map-save { position: absolute; right: 12px; top: 28px; z-index: 2; padding: 7px 14px; border-radius: 99px; background: var(--card); font-size: 15px; font-weight: 500; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+
+/* Pantalla «Auto»: datos del scanner OBD */
+.scr .obd-pane { display: grid; gap: 12px; align-content: start; }
+.scr .og-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.scr .og { display: grid; gap: 4px; padding: 14px 18px; }
+.scr .og small { color: var(--ink2); font-size: 16px; }
+.scr .og b { font-size: 46px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.scr .og b i { font-style: normal; font-size: 20px; font-weight: 500; color: var(--ink2); margin-left: 6px; }
+.scr .oh { display: grid; gap: 6px; padding: 14px 18px; }
+.scr .oh > b { font-size: 24px; }
+.scr .oh > span { color: var(--ink2); font-size: 18px; }
+.scr .oh.ok > b::before { content: '✓ '; color: #3ddc84; }
+.scr .oh.warn { border-color: var(--accent); }
+.scr .oh.warn > b::before { content: '● '; color: #ffb020; }
+.scr .codes { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; max-height: 190px; overflow: hidden; }
+.scr .codes li { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: baseline; }
+.scr .codes li b { font-size: 22px; font-variant-numeric: tabular-nums; }
+.scr .codes li small { color: var(--ink2); font-size: 15px; }
+.scr .codes li p { grid-column: 1 / -1; margin: 2px 0 0; color: var(--ink2); font-size: 17px; line-height: 1.3; }
+.scr .oh-note { color: var(--ink2); font-size: 14px; }

@@ -31,6 +31,10 @@ class ObdPollerTest {
             "010D" to "410D3C",
             "0105" to "41057B",
             "ATRV" to "12.6V\r",
+            // Luz del motor encendida con dos códigos guardados (P0133 y P0171).
+            "0101" to "410182076500",
+            "ATDPN" to "A6\r\r",
+            "03" to "43 02 01 33 01 71 \r\r",
         ),
     )
 
@@ -60,6 +64,58 @@ class ObdPollerTest {
         assertEquals(83.0, s.values.getValue("coolant"), 0.001)
         assertEquals(setOf(0x05, 0x0C, 0x0D), s.supported)
         assertEquals(ObdPoller.FAST_MS, wait)
+        p.close()
+    }
+
+    @Test
+    fun `entrega la luz del motor y los codigos de falla`() {
+        val rec = Recorder()
+        val p = ObdPoller(connector(car()).connector, rec)
+        repeat(3) { p.step() }
+        val h = assertNotNull(rec.snapshots.last().health)
+        assertTrue(h.milOn)
+        assertEquals(2, h.dtcCount)
+        assertEquals(listOf("P0133", "P0171"), h.codes)
+        p.close()
+    }
+
+    @Test
+    fun `la salud se vuelve a leer solo cada tanto y los datos en vivo no se frenan`() {
+        var now = 1_000_000L
+        val elm = car()
+        val p = ObdPoller(connector(elm).connector, Recorder(), clock = { now })
+        repeat(4) { p.step() }
+        assertEquals(1, elm.sent.count { it == "0101" })
+        now += ObdPoller.HEALTH_EVERY_MS - 1
+        repeat(3) { p.step() }
+        assertEquals(1, elm.sent.count { it == "0101" }, "todavía no toca")
+        now += 2
+        p.step()
+        assertEquals(2, elm.sent.count { it == "0101" })
+        p.close()
+    }
+
+    @Test
+    fun `si el auto no entrega la salud los datos en vivo siguen`() {
+        val elm = car().apply { reply("0101", "NO DATA\r") }
+        val rec = Recorder()
+        val p = ObdPoller(connector(elm).connector, rec)
+        repeat(3) { p.step() }
+        assertNull(rec.snapshots.last().health)
+        assertEquals(1726.0, rec.snapshots.last().values.getValue("rpm"), 0.001)
+        p.close()
+    }
+
+    @Test
+    fun `sin codigos guardados no pide la lista`() {
+        val elm = car().apply { reply("0101", "410100076500") } // luz apagada, 0 códigos
+        val rec = Recorder()
+        val p = ObdPoller(connector(elm).connector, rec)
+        repeat(3) { p.step() }
+        val h = assertNotNull(rec.snapshots.last().health)
+        assertFalse(h.milOn)
+        assertEquals(emptyList(), h.codes)
+        assertFalse("03" in elm.sent)
         p.close()
     }
 

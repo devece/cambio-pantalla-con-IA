@@ -3,12 +3,14 @@ package cl.tablero.launcher
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import cl.tablero.core.ObdCodes
 import cl.tablero.core.ObdLinkConfig
 import cl.tablero.core.ObdListener
 import cl.tablero.core.ObdMessages
 import cl.tablero.core.ObdPoller
 import cl.tablero.core.ObdSnapshot
 import cl.tablero.core.ObdState
+import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -99,14 +101,29 @@ class ObdClient(
         private const val RETRY_AFTER_UNEXPECTED_MS = 5_000L
 
         /** Lo que se le manda a la pantalla web (`TBApp.setObd`): el estado y los últimos valores, por clave (`rpm`, `speed`, `coolant`...). */
-        fun toJson(state: ObdState, detail: String, snapshot: ObdSnapshot?): String {
+        fun toJson(state: ObdState, detail: String, snapshot: ObdSnapshot?, codes: ObdCodes? = null): String {
             val values = JSONObject()
             snapshot?.values?.forEach { (key, value) -> values.put(key, value) }
-            return JSONObject()
+            val json = JSONObject()
                 .put("state", state.name.lowercase())
                 .put("detail", detail)
                 .put("values", values)
-                .toString()
+            // La luz del motor y los códigos de falla, ya explicados en palabras simples (solo se leen, nunca se borran).
+            snapshot?.health?.let { h ->
+                val list = JSONArray()
+                h.codes.forEach { code ->
+                    val info = codes?.describe(code)
+                    list.put(
+                        JSONObject()
+                            .put("code", code)
+                            .put("system", info?.system ?: "")
+                            .put("text", info?.text ?: "")
+                            .put("known", info?.known ?: false),
+                    )
+                }
+                json.put("health", JSONObject().put("milOn", h.milOn).put("count", h.dtcCount).put("codes", list))
+            }
+            return json.toString()
         }
     }
 }

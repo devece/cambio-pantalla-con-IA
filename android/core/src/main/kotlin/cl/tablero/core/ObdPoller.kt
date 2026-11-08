@@ -27,6 +27,17 @@ data class ObdSnapshot(
     val supported: Set<Int>,
     val adapter: String?,
     val atMs: Long,
+    /** Luz del motor y códigos de falla; null mientras no se hayan podido leer (o si el auto no los entrega). */
+    val health: ObdHealth? = null,
+)
+
+/** El estado de salud del auto: si la luz del motor está encendida y qué códigos de falla guardó. Solo se lee, nunca se borra. */
+data class ObdHealth(
+    val milOn: Boolean,
+    /** Cuántos códigos dice el auto que tiene guardados. */
+    val dtcCount: Int,
+    /** Los códigos leídos (por ejemplo `P0133`); puede venir vacío aunque [dtcCount] sea mayor si el auto no los entregó. */
+    val codes: List<String>,
 )
 
 /** Recibe lo que pasa con la conexión. Se llama desde el hilo que corre el sondeo: la app debe pasarlo al hilo principal. */
@@ -65,6 +76,8 @@ class ObdPoller(
     private var useAdapterVoltage = false
     private var voltageTick = 0
     private val latest = LinkedHashMap<String, Double>()
+    private var health: ObdHealth? = null
+    private var nextHealthAt = 0L
     private var state = ObdState.IDLE
     private var reconnectDelay = RECONNECT_MIN_MS
     private var carSilence = 0
@@ -180,8 +193,26 @@ class ObdPoller(
         badReplies = 0
         dropsInRow = 0 // leyendo bien: la conexión es estable
         if (state != ObdState.CONNECTED) publish(ObdState.CONNECTED, "Conectado")
-        listener.onSnapshot(ObdSnapshot(LinkedHashMap(latest), supported ?: emptySet(), s.adapter, clock()))
+        if (clock() >= nextHealthAt) {
+            health = readHealth(s) ?: health
+            nextHealthAt = clock() + HEALTH_EVERY_MS
+        }
+        listener.onSnapshot(ObdSnapshot(LinkedHashMap(latest), supported ?: emptySet(), s.adapter, clock(), health))
         return if (latest["rpm"] == 0.0) ENGINE_OFF_MS else FAST_MS
+    }
+
+    /**
+     * Luz del motor y códigos guardados. Si el auto no los entrega o contesta algo raro, se sigue sin ellos:
+     * un fallo aquí no debe tumbar la lectura de los datos en vivo.
+     */
+    private fun readHealth(s: ObdSession): ObdHealth? {
+        return try {
+            val status = s.monitorStatus() ?: return null
+            val codes = if (status.dtcCount > 0) s.readDtcs(DtcKind.STORED) else emptyList()
+            ObdHealth(status.milOn, status.dtcCount, codes)
+        } catch (e: ObdException) {
+            null
+        }
     }
 
     private fun waitForCar(): Long {
@@ -234,6 +265,8 @@ class ObdPoller(
         const val RECONNECT_MAX_MS = 30_000L
         const val CAR_RETRY_MS = 5_000L
         const val ENGINE_OFF_MS = 3_000L
+        /** Cada cuánto se vuelve a mirar la luz del motor y los códigos: cambian poco y responden lento. */
+        const val HEALTH_EVERY_MS = 60_000L
         const val FAST_MS = 100L
         const val STOPPED_MS = 1_000L
         private const val CAR_SILENCE_LIMIT = 3

@@ -110,6 +110,7 @@
     { id: 'bluetooth', name: 'Bluetooth' },
     { id: 'ecualizador', name: 'Ecualizador' },
     { id: 'mantenimiento', name: 'Mantención' },
+    { id: 'auto', name: 'Scanner OBD' },
   ];
 
   /* ---------- construcción de la interfaz ---------- */

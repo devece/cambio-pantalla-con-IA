@@ -83,7 +83,7 @@ jobs:
       - name: Revisar que el APK trae sus datos
         run: |
           unzip -l "${{ steps.sign.outputs.apk }}" > contenido.txt
-          for f in editions maintenance restriction; do
+          for f in editions maintenance restriction obd-codes; do
             grep -q "assets/$f.json" contenido.txt || { echo "::error::Falta assets/$f.json dentro del APK"; exit 1; }
           done
           for f in launcher.html css/preview.css js/preview.js js/launcher.js js/art.js js/themes.js js/fx.js shared/catalog.js shared/daylight.js shared/pico.js img/auto.png img/suv.png; do

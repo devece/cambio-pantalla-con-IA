@@ -8,11 +8,15 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 ## [Sin publicar]
 
 ### Agregado
+- **Pantalla «Auto» con los datos del scanner.** Con un scanner OBD elegido, aparece «Auto» en la barra de abajo: revoluciones, temperatura
+  del motor y voltaje en vivo, la luz del motor y los códigos de falla explicados en palabras simples (solo se leen, no se borran).
+  Si el auto informa su kilometraje real, los avisos de mantención lo usan en vez del que suma el GPS. En el sitio se ve con datos de
+  ejemplo en la pestaña «Scanner OBD». Sin probar todavía en un auto real: hay scanners clon que no entregan todos los datos.
 - **Conectar un scanner OBD (primera parte).** En Ajustes, en **Scanner OBD**, puedes elegir cómo se conecta tu scanner
   (**Bluetooth**, el más común, como el «Scanner Automotriz OBD2 ELM327 Bluetooth V2.1», o **Wi-Fi**), elegirlo entre los
   ya emparejados con la radio y pulsar **Probar conexión**: te muestra el voltaje, si el auto responde y unos datos
-  (revoluciones, velocidad, temperatura del motor) y si la luz del motor está encendida. Es opcional. Por ahora los datos
-  no aparecen en la pantalla de inicio: eso llega en una próxima versión. Android pide el permiso de Bluetooth solo al
+  (revoluciones, velocidad, temperatura del motor) y si la luz del motor está encendida. Es opcional. Los datos
+  se ven en la pantalla **Auto** (ver abajo). Android pide el permiso de Bluetooth solo al
   elegir un scanner Bluetooth.
 - **Kilometraje automático.** Si ya anotaste el kilometraje de tu auto, la app le suma sola los km que recorres (con el GPS),
   así los avisos de aceite y mantención bajan sin que tengas que actualizar el número. Sigue contando aunque uses Waze o Maps,
@@ -41,7 +45,7 @@ Cómo se publica una versión: `docs/RELEASE.md`.
   reportar un problema, sin adb ni Android Studio. No lleva tu nombre ni tu ubicación.
 
 ### Cambiado
-- **Portada: sección del scanner OBD.** Explica qué funciona hoy (Bluetooth o Wi-Fi, prueba de conexión), qué llega después (datos en vivo, luz del motor explicada, kilometraje real) y en qué se diferencia de otras apps de OBD; más tres preguntas frecuentes.
+- **Portada: sección del scanner OBD.** Explica qué funciona hoy (Bluetooth o Wi-Fi, prueba de conexión), qué llega después (datos en vivo, luz del motor explicada, kilometraje real) y en qué se diferencia de otras apps de OBD; más tres preguntas frecuentes (se actualiza con la pantalla «Auto»).
 - **Se quitó todo lo de pagos y planes.** Tablero es gratis, así que desaparecieron los planes Esencial y Completo, los precios y el total, el cobro con PayPal, los datos de transferencia bancaria, las etiquetas «Completo» en los diseños y la casilla de aceptar términos. El último paso del sitio ahora se llama **Pedir mi pantalla**. Se eliminaron las páginas de **Términos** y **Cambios y ayuda**; la política de **Privacidad** se mantiene porque explica qué hace la app con tus datos.
 - **Todo es gratis, sin necesidad de código.** Por ahora no hay versión de pago: la edición sin código ahora incluye todos los diseños, las decoraciones de temporada y todas las funciones (documentos, combustible, restricción vehicular, saludo por voz, otras mantenciones, hasta 4 atajos y el límite fijo de velocidad). Antes, varias de esas cosas pedían un código. El código sigue sirviendo para traer a la radio la pantalla que diseñaste en el sitio, y nunca da menos que la edición sin código.
 - **El sitio ya no promete el límite automático de velocidad.** La app todavía no lee el límite de cada calle, y en modo «Automático» no avisa nada; los textos del sitio decían lo contrario. Ahora dicen que, para recibir el aviso, hay que elegir «Manual» y poner el límite. En la radio, sin límite fijado ya no dice «Límite de la vía».

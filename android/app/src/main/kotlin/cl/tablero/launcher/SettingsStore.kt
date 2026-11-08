@@ -115,6 +115,17 @@ class SettingsStore(context: Context) {
         return next
     }
 
+    /**
+     * Pone el kilometraje que informa el propio auto (scanner OBD), que es más exacto que el del GPS. Solo si el usuario ya
+     * anotó uno (sin punto de partida el kilometraje está "sin usar") y la diferencia es de al menos 1 km, para no escribir
+     * a cada lectura. Descarta los metros sueltos que el GPS había juntado. Devuelve el valor si lo cambió, o null.
+     */
+    fun setOdometerFromCar(km: Int): Int? {
+        if (odometer() <= 0 || km !in 1..MAX_KM || km == odometer()) return null
+        p.edit().putInt("odometer", km).putInt(CARRY_KEY, 0).apply()
+        return km
+    }
+
     /** Avisa cuando cambia el kilometraje (a mano o por el GPS). Hay que guardar una referencia: Android no la retiene. */
     fun onOdometerChange(callback: (Int) -> Unit): SharedPreferences.OnSharedPreferenceChangeListener {
         val l = SharedPreferences.OnSharedPreferenceChangeListener { _, key -> if (key == "odometer") callback(odometer()) }

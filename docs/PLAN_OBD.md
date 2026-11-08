@@ -110,7 +110,8 @@ como el «Scanner Automotriz OBD2 ELM327 Bluetooth V2.1» (Bluetooth clásico).
   6. Qué pasa con un clon "v2.1" que responde distinto (anotar la respuesta exacta para ajustar el lector).
 - **Límites conocidos:** un solo programa a la vez puede hablar con un scanner Bluetooth (si el teléfono está conectado, la radio no podrá); no se lee el VIN todavía.
 
-### Fase 3 — Pantalla "Taller" (web)
+### Fase 3 — Pantalla "Taller" (web) — **hecha en lo esencial, falta probar con un adaptador real**
+Se llama «Auto» en la app: `preview.js` (`obdScreen`, `updateObd`) y `launcher.js` (`setObd`); `ObdPoller` lee la luz del motor y los códigos cada 60 s (`ObdHealth`). **Quedó fuera a propósito:** borrar códigos desde la pantalla (reinicia los chequeos del auto; se decide aparte) y el velocímetro por OBD (sigue el GPS). Lo de abajo es el plan original.
 Cambios en `public/js/launcher.js` y `preview.js` (la vista previa del sitio muestra datos de ejemplo, como ya hace con el resto).
 - Tarjeta de **salud del auto**: luz del motor, cantidad de códigos, voltaje.
 - **Velocímetro y revoluciones** por OBD (con GPS de respaldo).
@@ -118,7 +119,7 @@ Cambios en `public/js/launcher.js` y `preview.js` (la vista previa del sitio mue
 - **Listo cuando:** se ve bien en 1024×600 y 1280×720, con y sin adaptador conectado.
 
 ### Fase 4 — Automatizaciones
-- **Km real** del OBD (si el auto lo da) manda sobre el GPS; si no, se sigue con el GPS.
+- *(Hecho: el km real se toma del PID `A6` si el auto lo informa; `SettingsStore.setOdometerFromCar`. Sin probar en un auto real.)* **Km real** del OBD (si el auto lo da) manda sobre el GPS; si no, se sigue con el GPS.
 - **Alertas:** motor caliente y batería. Los umbrales (por ejemplo, > 105 °C, < 13,2 V en marcha) son un punto de partida y hay que **calibrarlos con tu auto**.
 - **Cronómetro 0 a 100** y **registro de viajes** (guardado solo en la radio).
 

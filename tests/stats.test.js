@@ -71,7 +71,7 @@ test('los totales se leen de la base', async () => {
   withEnv();
   global.fetch = async () => json([{ kind: 'visits', total: 120 }, { kind: 'downloads', total: '7' }]);
   try {
-    assert.deepEqual(await require('../lib/stats.js').totals(), { visits: 120, downloads: 7 });
+    assert.deepEqual(await require('../lib/stats.js').totals(), { visits: 120, downloads: 7, downloadsDesign: 0, downloadsPlain: 0 });
   } finally { restore(); }
 });
 
@@ -90,7 +90,7 @@ test('GET /api/stats entrega los totales y se guarda un minuto en la red', async
   try {
     const r = await call(require('../api/stats.js'), { method: 'GET' });
     assert.equal(r.status, 200);
-    assert.deepEqual(r.body, { ok: true, visits: 5, downloads: 2 });
+    assert.deepEqual(r.body, { ok: true, visits: 5, downloads: 2, downloadsDesign: 0, downloadsPlain: 0 });
     assert.match(r.headers['Cache-Control'], /s-maxage=60/);
     global.fetch = async () => { throw new Error('caída'); };
     assert.equal((await call(require('../api/stats.js'), { method: 'GET' })).status, 503);
@@ -129,10 +129,10 @@ test('cada descarga de la APK suma una, sin importar si lleva diseño', async ()
     const r = await call(app, { method: 'GET', query: { d } });
     assert.equal(r.status, 200);
     assert.ok(readPair(r.body, DESIGN_ID));
-    assert.deepEqual(tipos, ['downloads']);
+    assert.deepEqual(tipos, ['downloads_design'], 'con diseño adentro');
     const normal = await call(app, { method: 'GET', query: {} });
     assert.equal(normal.status, 302, 'la descarga normal (/app) también pasa por aquí');
-    assert.deepEqual(tipos, ['downloads', 'downloads']);
+    assert.deepEqual(tipos, ['downloads_design', 'downloads_plain'], 'la normal cuenta aparte');
     await call(app, { method: 'HEAD', query: { d } });
     assert.equal(tipos.length, 2, 'un HEAD no es una descarga');
     await call(app, { method: 'GET', query: { d }, headers: { 'user-agent': 'facebookexternalhit/1.1', 'x-forwarded-for': 'fb' } });
@@ -156,5 +156,35 @@ test('si el contador falla, la descarga sale igual', async () => {
   try {
     assert.equal((await call(app, { method: 'GET', query: { d } })).status, 200);
     assert.equal((await call(app, { method: 'GET', query: {} })).status, 302);
+  } finally { restore(); }
+});
+
+test('los totales separan descargas con diseño y normales, y el total las suma', async () => {
+  withEnv();
+  global.fetch = async () => json([
+    { kind: 'visits', total: 90 }, { kind: 'downloads', total: 40 }, { kind: 'downloads_design', total: 6 }, { kind: 'downloads_plain', total: 2 },
+  ]);
+  try {
+    assert.deepEqual(await require('../lib/stats.js').totals(), { visits: 90, downloads: 40, downloadsDesign: 6, downloadsPlain: 2 });
+    const r = await call(require('../api/stats.js'), { method: 'GET' });
+    assert.equal(r.body.downloadsDesign, 6);
+    assert.equal(r.body.downloadsPlain, 2);
+  } finally { restore(); }
+});
+
+test('un fallo al armar el diseño entrega la APK normal y cuenta como normal', async () => {
+  withEnv();
+  const tipos = [];
+  global.fetch = async (url, opts) => {
+    if (String(url).includes('/rpc/')) { tipos.push(JSON.parse(opts.body).p_kind); return okEmpty; }
+    throw new Error('GitHub caído');
+  };
+  const app = require('../api/app.js');
+  app._resetCache();
+  const d = Buffer.from(JSON.stringify({ car: { name: 'Dani' } })).toString('base64url');
+  try {
+    const r = await call(app, { method: 'GET', query: { d } });
+    assert.equal(r.status, 302);
+    assert.deepEqual(tipos, ['downloads_plain'], 'recibió la APK sin diseño');
   } finally { restore(); }
 });

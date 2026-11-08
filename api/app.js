@@ -77,9 +77,9 @@ function photoFromBody(p) {
   return { day, night, cut };
 }
 
-/** Redirige a la APK normal (y cuenta la descarga: el cliente la recibe igual). */
+/** Redirige a la APK normal (y cuenta la descarga como «normal»: el cliente la recibe igual, sin diseño). */
 async function fallback(req, res) {
-  if (req.method !== 'HEAD') await stats.countDownload(req);
+  if (req.method !== 'HEAD') await stats.countDownload(req, false);
   res.statusCode = 302;
   res.setHeader('Location', APK_URL);
   res.setHeader('Cache-Control', 'no-store');
@@ -123,7 +123,7 @@ module.exports = async function handler(req, res) {
     res.setHeader('Content-Disposition', 'attachment; filename="tablero.apk"');
     res.setHeader('Content-Length', String(out.length));
     res.setHeader('Cache-Control', 'no-store');
-    if (method !== 'HEAD') await stats.countDownload(req);
+    if (method !== 'HEAD') await stats.countDownload(req, true);
     res.end(method === 'HEAD' ? undefined : out);
   } catch (_) {
     if (method === 'POST') return res.status(502).json({ ok: false, error: 'No pudimos armar la app.' });

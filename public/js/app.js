@@ -670,6 +670,13 @@
   }
 
   const photoUrls = { cut: null, orig: null };
+  // El botón para bajar el auto ya recortado (PNG) y llevarlo a la app: solo aparece si se logró quitar el fondo.
+  function updateDownload() {
+    const box = $('#photo-download-box');
+    if (!box) return;
+    box.hidden = !photoUrls.cut;
+    if (photoUrls.cut) $('#photo-download').href = photoUrls.cut;
+  }
   function showPhoto(mode) {
     const url = mode === 'cut' && photoUrls.cut ? photoUrls.cut : photoUrls.orig;
     state.car.photo = url || null;
@@ -684,6 +691,7 @@
     $('#photo-mode').hidden = true;
     $('#photo-status').hidden = true;
     setCut(null);
+    updateDownload();
     update();
   }
   async function loadPhoto(file) {
@@ -707,6 +715,7 @@
     const toUrl = (cv, type, q) => new Promise((r) => cv.toBlob((b) => r(URL.createObjectURL(b)), type, q));
     Object.keys(photoUrls).forEach((k) => { if (photoUrls[k]) URL.revokeObjectURL(photoUrls[k]); photoUrls[k] = null; });
     photoUrls.orig = await toUrl(c, 'image/jpeg', 0.85);
+    updateDownload();
     showPhoto('orig');
     status.textContent = 'Quitando el fondo de tu foto… la primera vez puede tardar unos segundos.';
     status.hidden = false;
@@ -716,6 +725,7 @@
     try { res = TB.cutout ? await TB.cutout(c) : null; } catch (_) { res = null; }
     if (res) {
       photoUrls.cut = await toUrl(res.canvas, 'image/png');
+      updateDownload();
       showPhoto('cut');
       setCut(res.canvas);
       status.textContent = res.method === 'ia'

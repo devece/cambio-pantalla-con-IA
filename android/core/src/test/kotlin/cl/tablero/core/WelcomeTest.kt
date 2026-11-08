@@ -77,4 +77,12 @@ class WelcomeTest {
         assertFalse(JSONObject(Welcome.profileJson(LauncherConfig())).has("photo"))
         assertFalse(JSONObject(Welcome.profileJson(LauncherConfig(), "")).has("photo"), "una dirección vacía no cuenta")
     }
+
+    @Test
+    fun `la version de noche solo viaja si la foto esta recortada`() {
+        val con = JSONObject(Welcome.profileJson(LauncherConfig(), "file:///x/car.png", true, "file:///x/night.png")).getJSONObject("photo")
+        assertEquals("file:///x/night.png", con.getString("night"))
+        val sin = JSONObject(Welcome.profileJson(LauncherConfig(), "file:///x/car.jpg", false, "file:///x/night.png")).getJSONObject("photo")
+        assertFalse(sin.has("night"))
+    }
 }

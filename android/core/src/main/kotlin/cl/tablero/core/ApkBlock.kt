@@ -15,8 +15,10 @@ import java.nio.ByteOrder
  * Cada par:            [largo u64 = 4 + valor] [id u32] [valor]
  */
 object ApkBlock {
-    /** Identificador del diseño de Tablero («TBL1»); el mismo de `lib/apk-inject.js`. */
+    /** Identificadores de Tablero («TBL1» diseño, «TBL2» foto de día, «TBL3» foto de noche); los mismos de `lib/apk-inject.js`. */
     const val DESIGN_ID = 0x54424C31
+    const val PHOTO_DAY_ID = 0x54424C32
+    const val PHOTO_NIGHT_ID = 0x54424C33
 
     private const val MAX_BLOCK = 16L * 1024 * 1024
     private const val EOCD_SIGNATURE = 0x06054B50L

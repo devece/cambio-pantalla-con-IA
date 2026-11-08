@@ -24,8 +24,33 @@ class PhotoStore(context: Context) {
     /** ¿La foto ya viene sin fondo? */
     fun isCut(): Boolean = file()?.name == "car.png"
 
+    /** Dirección file:// de la versión de noche (con las luces encendidas), o null si no hay. */
+    fun nightUrl(): String? = File(dir, "night.png").takeIf { it.exists() }?.let { "file://" + it.absolutePath }
+
     fun clear() {
         dir.deleteRecursively()
+    }
+
+    /**
+     * Guarda una foto que ya viene lista (la que trae la APK descargada del sitio): `cut` = PNG sin fondo, si no JPEG;
+     * `night` = la versión con las luces encendidas. Devuelve false si los bytes no son una imagen.
+     */
+    fun saveBytes(day: ByteArray, cut: Boolean, night: ByteArray?): Boolean {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(day, 0, day.size, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return false
+        return try {
+            clear()
+            dir.mkdirs()
+            File(dir, if (cut) "car.png" else "car.jpg").writeBytes(day)
+            if (cut && night != null) {
+                BitmapFactory.decodeByteArray(night, 0, night.size, bounds)
+                if (bounds.outWidth > 0 && bounds.outHeight > 0) File(dir, "night.png").writeBytes(night)
+            }
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
     /** Lee, achica y guarda la foto. Bloquea el hilo: usar fuera del hilo principal. Devuelve null si salió bien, o el motivo. */

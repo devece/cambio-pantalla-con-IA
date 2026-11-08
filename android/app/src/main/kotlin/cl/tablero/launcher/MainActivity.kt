@@ -115,13 +115,24 @@ class MainActivity : Activity() {
      */
     private fun importApkDesign() {
         try {
-            val bytes = ApkBlock.read(java.io.File(applicationInfo.sourceDir)) ?: return
-            val hash = java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+            val apk = java.io.File(applicationInfo.sourceDir)
+            val bytes = ApkBlock.read(apk) ?: return
+            val json = String(bytes, Charsets.UTF_8)
+            val photo = DesignImport.photoInfo(json)
+            val day = if (photo != null) ApkBlock.read(apk, ApkBlock.PHOTO_DAY_ID) else null
+            val night = if (photo != null && photo.second) ApkBlock.read(apk, ApkBlock.PHOTO_NIGHT_ID) else null
+            val digest = java.security.MessageDigest.getInstance("SHA-256")
+            digest.update(bytes)
+            day?.let { digest.update(it) }
+            night?.let { digest.update(it) }
+            val hash = digest.digest().joinToString("") { "%02x".format(it) }
             if (hash == settings.apkDesignHash()) return
             // Se anota primero: si algo falla a medias, no se reintenta en cada arranque.
             settings.setApkDesignHash(hash)
-            val merged = DesignImport.apply(settings.load(), String(bytes, Charsets.UTF_8)) ?: return
+            val merged = DesignImport.apply(settings.load(), json) ?: return
             settings.save(merged)
+            // La foto que vino en la APK (si vino): reemplaza a la que hubiera.
+            if (photo != null && day != null) PhotoStore(this).saveBytes(day, photo.first, night)
         } catch (e: Exception) {
             // Sin diseño o archivo raro: la app sigue como siempre.
         }
@@ -143,7 +154,7 @@ class MainActivity : Activity() {
         }
         // Con o sin código se dibuja con el motor del sitio; sin código, con el diseño base de la edición gratuita
         // y lo que el usuario contó (nombre, auto y color).
-        val launcher = WebLauncher(this, saved ?: PhotoStore(this).let { Welcome.profileJson(config, it.url(), it.isCut()) })
+        val launcher = WebLauncher(this, saved ?: PhotoStore(this).let { Welcome.profileJson(config, it.url(), it.isCut(), it.nightUrl()) })
         web = launcher
         setContentView(launcher.view)
         startSpeed()

@@ -2,12 +2,12 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { fakeApk } = require('./fake-apk.js');
-const { readPair, DESIGN_ID } = require('../lib/apk-inject.js');
+const { readPair, DESIGN_ID, PHOTO_DAY_ID, PHOTO_NIGHT_ID } = require('../lib/apk-inject.js');
 
 const handler = require('../api/app.js');
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 
-function call(query, method = 'GET') {
+function call(query, method = 'GET', body) {
   return new Promise((resolve) => {
     const res = {
       statusCode: 0, headers: {},
@@ -16,7 +16,7 @@ function call(query, method = 'GET') {
       json(b) { resolve({ status: this.statusCode, headers: this.headers, body: b }); },
       end(b) { resolve({ status: this.statusCode, headers: this.headers, body: b }); },
     };
-    handler({ method, query, headers: { 'x-forwarded-for': 'test-' + Math.random() } }, res);
+    handler({ method, query, body, headers: { 'x-forwarded-for': 'test-' + Math.random() } }, res);
   });
 }
 
@@ -90,7 +90,50 @@ test('sin diseño válido redirige a la APK normal', async () => {
   assert.match(r.headers.Location, /tablero\.apk$/);
 });
 
-test('solo acepta GET', async () => {
-  const r = await call({}, 'POST');
+test('solo acepta GET, HEAD y POST', async () => {
+  const r = await call({}, 'PUT');
   assert.equal(r.status, 405);
 });
+
+const png = (n = 300) => 'data:image/png;base64,' + Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47]), Buffer.alloc(n, 1)]).toString('base64');
+const jpg = (n = 300) => 'data:image/jpeg;base64,' + Buffer.concat([Buffer.from([0xff, 0xd8, 0xff]), Buffer.alloc(n, 2)]).toString('base64');
+
+async function withApk(fn) {
+  const { apk } = fakeApk();
+  const realFetch = global.fetch;
+  handler._resetCache();
+  global.fetch = async () => ({ ok: true, status: 200, arrayBuffer: async () => apk.buffer.slice(apk.byteOffset, apk.byteOffset + apk.length) });
+  try { return await fn(apk); } finally { global.fetch = realFetch; }
+}
+
+test('POST: la foto recortada de día y de noche viaja dentro de la APK', () => withApk(async (apk) => {
+  const r = await call({}, 'POST', { d: b64(design), photo: { day: png(500), night: png(700), cut: true } });
+  assert.equal(r.status, 200);
+  const saved = JSON.parse(readPair(r.body, DESIGN_ID).toString('utf8'));
+  assert.deepEqual(saved.photo, { cut: true, night: true });
+  assert.equal(readPair(r.body, PHOTO_DAY_ID).length, 504);
+  assert.equal(readPair(r.body, PHOTO_NIGHT_ID).length, 704);
+  assert.equal(readPair(apk, PHOTO_DAY_ID), null, 'la APK original no se toca');
+}));
+
+test('POST: una foto normal (JPEG) viaja sin versión de noche', () => withApk(async () => {
+  const r = await call({}, 'POST', { d: b64(design), photo: { day: jpg(400), night: jpg(400), cut: false } });
+  assert.equal(r.status, 200);
+  assert.deepEqual(JSON.parse(readPair(r.body, DESIGN_ID).toString('utf8')).photo, { cut: false, night: false });
+  assert.equal(readPair(r.body, PHOTO_NIGHT_ID), null);
+}));
+
+test('POST sin foto entrega la APK con el diseño y sin clave de foto', () => withApk(async () => {
+  const r = await call({}, 'POST', { d: b64(design) });
+  assert.equal(r.status, 200);
+  assert.equal(JSON.parse(readPair(r.body, DESIGN_ID).toString('utf8')).photo, undefined);
+}));
+
+test('POST: una foto que no coincide con lo que dice ser, o muy grande, se rechaza', () => withApk(async () => {
+  assert.equal((await call({}, 'POST', { d: b64(design), photo: { day: jpg(), cut: true } })).status, 422, 'dice recortada pero es JPEG');
+  assert.equal((await call({}, 'POST', { d: b64(design), photo: { day: 'data:text/html;base64,PGI+', cut: false } })).status, 422);
+  assert.equal((await call({}, 'POST', { d: b64(design), photo: { day: png(1_900_000), cut: true } })).status, 413);
+  assert.equal((await call({}, 'POST', { d: b64(design), photo: { day: png(1_500_000), night: png(1_000_000), cut: true } })).status, 413, 'entre las dos pasan el tope');
+  assert.equal((await call({}, 'POST', { d: 'basura', photo: { day: png(), cut: true } })).status, 400);
+  assert.equal((await call({}, 'POST', undefined)).status, 400);
+}));

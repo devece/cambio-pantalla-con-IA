@@ -21,7 +21,7 @@ object Welcome {
      * Lo que el usuario contó, para la pantalla de inicio cuando aún no hay un diseño del sitio (edición gratuita).
      * Va en una clave aparte (`profile`) para no confundirse con un diseño real, que además oculta el botón "Activar código".
      */
-    fun profileJson(c: LauncherConfig, photoUrl: String? = null, photoCut: Boolean = false): String {
+    fun profileJson(c: LauncherConfig, photoUrl: String? = null, photoCut: Boolean = false, photoNightUrl: String? = null): String {
         val profile = JSONObject()
             .put("name", c.name)
             .put("greeting", c.greeting)
@@ -40,7 +40,11 @@ object Welcome {
         if (style.length() > 0) profile.put("style", style)
         val out = JSONObject().put("profile", profile)
         // La foto del auto que eligió en Ajustes (la pantalla de inicio la muestra igual que la de un diseño del sitio).
-        if (!photoUrl.isNullOrEmpty()) out.put("photo", JSONObject().put("day", photoUrl).put("cut", photoCut))
+        if (!photoUrl.isNullOrEmpty()) {
+            val photo = JSONObject().put("day", photoUrl).put("cut", photoCut)
+            if (photoCut && !photoNightUrl.isNullOrEmpty()) photo.put("night", photoNightUrl)
+            out.put("photo", photo)
+        }
         return out.toString()
     }
 }

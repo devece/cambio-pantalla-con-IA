@@ -65,4 +65,12 @@ class DesignImportTest {
         assertEquals(base, DesignImport.apply(base, """{"v":1}"""))
         assertTrue(DesignImport.apply(base, """{"v":1}""") == base)
     }
+
+    @Test
+    fun `dice si el diseno trae foto y si viene recortada o con version de noche`() {
+        assertEquals(Pair(true, true), DesignImport.photoInfo("""{"v":1,"photo":{"cut":true,"night":true}}"""))
+        assertEquals(Pair(false, false), DesignImport.photoInfo("""{"v":1,"photo":{"cut":false,"night":false}}"""))
+        assertNull(DesignImport.photoInfo("""{"v":1}"""))
+        assertNull(DesignImport.photoInfo("no es json"))
+    }
 }

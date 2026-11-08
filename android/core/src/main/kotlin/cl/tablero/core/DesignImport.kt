@@ -75,6 +75,16 @@ object DesignImport {
         return c
     }
 
+    /** Lo que el diseño dice de su foto: (¿viene recortada?, ¿trae versión de noche?), o null si no trae foto. */
+    fun photoInfo(json: String): Pair<Boolean, Boolean>? {
+        val photo = try {
+            JSONObject(json).optJSONObject("photo")
+        } catch (e: Exception) {
+            null
+        } ?: return null
+        return Pair(photo.optBoolean("cut", false), photo.optBoolean("night", false))
+    }
+
     private val HEX = Regex("^#[0-9a-fA-F]{6}$")
     private val SPEED_ALERTS = setOf("auto", "manual", "off")
     private val RESTR_TYPES = setOf("sello", "sin", "nuevo")

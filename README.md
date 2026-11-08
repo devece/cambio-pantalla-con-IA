@@ -16,7 +16,7 @@ Un launcher para radios Android de auto, pensado para Chile (restricción vehicu
 ## Cómo se usa (sin pedidos ni códigos)
 
 1. El cliente diseña su pantalla en el sitio; puede bajar su auto ya recortado (PNG).
-2. Descarga la app con su diseño: `GET /api/app?d=…` (`api/app.js`) toma la APK de `app-latest` y le agrega el diseño en el bloque de firmas, sin romper la firma (`lib/apk-inject.js`). Sin diseño, `/app` entrega la APK normal.
+2. Descarga la app con su diseño: `GET /api/app?d=…` (o `POST /api/app` con la foto, que no cabe en una dirección; `api/app.js`) toma la APK de `app-latest` y le agrega el diseño y la foto en el bloque de firmas, sin romper la firma (`lib/apk-inject.js`). La foto no se guarda y tiene un tope de tamaño (la respuesta de una función de Vercel no puede pasar de 4,5 MB). Sin diseño, `/app` entrega la APK normal.
 3. Al abrirse por primera vez, la app lee su propio archivo (`ApkBlock.kt`) y aplica el diseño (`DesignImport.kt`). También puede elegir todo en Ajustes → Apariencia y Foto de tu auto. Se guarda en la radio.
 
 Las funciones `api/order`, `api/license` y el panel `admin` quedaron sin uso desde el sitio (solo sirven a radios que ya activaron un código) y se pueden retirar más adelante.

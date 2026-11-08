@@ -298,6 +298,7 @@
    * El botón «Descargar la app con mi diseño»: lleva el diseño en la dirección (sin foto, sin contacto) y el servidor lo
    * agrega a la APK. Si algo falla, el servidor entrega la APK normal.
    */
+  let designParam = '';
   function syncDownload() {
     const a = $('#apk-design');
     if (!a) return;
@@ -312,7 +313,52 @@
       },
     };
     const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(design)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    designParam = b64;
     a.href = '/api/app?d=' + b64;
+  }
+
+  /**
+   * Con foto, la descarga va por POST (la foto no cabe en una dirección): se manda una sola vez y el servidor la pone dentro de
+   * la APK sin guardarla. Sin foto, o si algo falla, sigue el enlace normal (APK con el diseño, sin foto).
+   */
+  async function downloadWithPhoto(e) {
+    if (!state.car.photo || !designParam) return; // sin foto: que el enlace funcione solo
+    const a = $('#apk-design');
+    if (a.getAttribute('aria-disabled') === 'true') { e.preventDefault(); return; }
+    e.preventDefault();
+    const status = $('#apk-status');
+    const say = (t) => { status.textContent = t; status.hidden = !t; };
+    a.setAttribute('aria-disabled', 'true');
+    say('Armando tu app con tu foto… puede tardar unos segundos.');
+    const toData = (url) => fetch(url).then((r) => r.blob()).then((b) => new Promise((ok, fail) => {
+      const f = new FileReader();
+      f.onload = () => ok(f.result);
+      f.onerror = fail;
+      f.readAsDataURL(b);
+    }));
+    try {
+      const photo = { day: await toData(state.car.photo), cut: state.car.photoCut === true };
+      if (photo.cut && state.car.photoNight) {
+        const night = await toData(state.car.photoNight);
+        if (photo.day.length + night.length < 2_600_000) photo.night = night; // el servidor tiene un tope: sin la de noche si no cabe
+      }
+      const r = await fetch('/api/app', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ d: designParam, photo }) });
+      if (!r.ok || !/android\.package-archive/.test(r.headers.get('content-type') || '')) throw new Error('rechazada');
+      const url = URL.createObjectURL(await r.blob());
+      const tmp = document.createElement('a');
+      tmp.href = url;
+      tmp.download = 'tablero.apk';
+      document.body.appendChild(tmp);
+      tmp.click();
+      tmp.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 120000);
+      say('Listo: tu app se está descargando, con tu diseño y tu foto.');
+    } catch (_) {
+      say('No pudimos incluir tu foto; te bajamos la app con tu diseño. La foto la eliges en la app, en Ajustes → Foto de tu auto.');
+      window.location.href = a.href;
+    } finally {
+      a.removeAttribute('aria-disabled');
+    }
   }
 
   function syncSteps() {
@@ -474,6 +520,7 @@
 
     $('#photo').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadPhoto(f); e.target.value = ''; });
     $('#photo-clear').addEventListener('click', clearPhoto);
+    $('#apk-design').addEventListener('click', downloadWithPhoto);
     $('#lights-stage').addEventListener('click', (e) => {
       if (!cutCanvas || lightPts.length >= MAX_LIGHTS) return;
       const r = $('#lights-cv').getBoundingClientRect();

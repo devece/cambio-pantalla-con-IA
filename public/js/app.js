@@ -21,7 +21,7 @@
       oilOn: true, odometer: 45000, lastOil: 42000, oilEvery: 5000,
       others: ['neumaticos'], docsOn: true, rtMonth: 6,
       fuelOn: false, tankL: 45, kmPerL: 12,
-      speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: true, miles: false, gallons: false,
+      speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: true, miles: false, gallons: false, clock12: false,
     },
   });
   const ui = { step: 1, screen: 'inicio', night: false };
@@ -309,7 +309,7 @@
       features: {
         country: f.country, oilOn: f.oilOn, odometer: f.odometer, lastOil: f.lastOil, oilEvery: f.oilEvery, others: f.others, docsOn: f.docsOn, rtMonth: f.rtMonth,
         fuelOn: f.fuelOn, tankL: f.tankL, kmPerL: f.kmPerL, speedShow: f.speedShow, speedAlert: f.speedAlert, manualLimit: f.manualLimit,
-        restrOn: f.restrOn, restrType: f.restrType, restrDigit: f.restrDigit, voice: f.voice, miles: f.miles, gallons: f.gallons,
+        restrOn: f.restrOn, restrType: f.restrType, restrDigit: f.restrDigit, voice: f.voice, miles: f.miles, gallons: f.gallons, clock12: f.clock12,
       },
     };
     const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(design)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');

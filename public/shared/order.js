@@ -157,6 +157,7 @@
         voice: f.voice !== false,
         miles: !!f.miles,
         gallons: !!f.gallons,
+        clock12: !!f.clock12,
       },
       contact: { kind: contact.kind === 'email' ? 'email' : 'whatsapp', value: '' },
     };

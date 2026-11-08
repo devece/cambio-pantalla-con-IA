@@ -32,6 +32,15 @@
   let scr = null;
   let host = null;
   let current = null;
+
+  /** La hora lista para dibujar: «21:05» o, con la opción de 12 horas, «9:05» con un «PM» chico al lado (para que no se parta en dos líneas). */
+  function clockText(d, state) {
+    if (state && state.features && state.features.clock12) {
+      const h = d.getHours();
+      return (h % 12 || 12) + ':' + String(d.getMinutes()).padStart(2, '0') + '<small class="ap">' + (h < 12 ? 'AM' : 'PM') + '</small>';
+    }
+    return d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
   let uid = 0;
 
   /* ---------- modo app ----------
@@ -316,7 +325,7 @@
     const h = new Date().getHours();
     const tod = h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
     const now = new Date();
-    const time = now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const time = clockText(now, state);
     const rawDate = now.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
     const date = rawDate.charAt(0).toUpperCase() + rawDate.slice(1);
     const rawShort = now.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '');
@@ -458,7 +467,9 @@
     });
     items.push({ go: 'mantenimiento', ic: 'check', t: 'Mantención' });
     if (obdView()) items.push({ go: 'auto', ic: 'motor', t: 'Auto' });
-    if (consola) items.push({ open: 'drawer', ic: 'todas', t: 'Apps' });
+    // «Apps» (todas las apps instaladas) y «Ajustes» están en todas las distribuciones, no solo en Consola.
+    items.push({ open: 'drawer', ic: 'todas', t: 'Apps' });
+    items.push({ open: 'settings', ic: 'ajustes', t: 'Ajustes' });
     return `<nav class="dock">${items
       .map((i) => `<button class="dk${i.go && i.go === ui.screen ? ' on' : ''}" ${i.open && appMode() ? `data-open="${i.open}"` : i.go ? `data-go="${i.go}"` : ''} ${i.app ? `data-app="${i.app}"` : ''}><span class="ic">${icon(i.ic, 30)}</span><small>${esc(i.t)}</small></button>`)
       .join('')}</nav>`;
@@ -492,6 +503,7 @@
     scr.dataset.theme = th.id;
     scr.dataset.night = ui.night ? '1' : '0';
     scr.dataset.screen = ui.screen;
+    scr.dataset.clock12 = state.features.clock12 ? '1' : '0';
 
     let body;
     if (ui.screen === 'inicio') {
@@ -510,7 +522,7 @@
     scr.innerHTML =
       `<svg class="scene" viewBox="0 0 1024 600" preserveAspectRatio="none" aria-hidden="true">${customBg}</svg>` +
       `<div class="tint tint-${sceneTime(state)}"></div>` +
-      `<header class="status">${bg && mode === 'badge' ? `<img class="badge-logo" src="${bg}" alt="">` : '<span></span>'}<b data-clock>${new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false })}</b></header>` +
+      `<header class="status">${bg && mode === 'badge' ? `<img class="badge-logo" src="${bg}" alt="">` : '<span></span>'}<b data-clock>${clockText(new Date(), state)}</b></header>` +
       body +
       `<svg class="decor" viewBox="0 0 1024 600" aria-hidden="true">${TB.decor(season, ui.night)}</svg>` +
       `<canvas class="fx" width="1024" height="600" aria-hidden="true"></canvas>` +
@@ -551,8 +563,8 @@
       scr.querySelectorAll('[data-mtime]').forEach((el) => { el.textContent = fmtT(pos) + ' / ' + fmtT(mm.dur); });
     }
     scr.querySelectorAll('[data-limit]').forEach((el) => (el.textContent = limit == null ? '—' : dist(limit, state)));
-    const time = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
-    scr.querySelectorAll('[data-clock]').forEach((el) => (el.textContent = time));
+    const time = clockText(new Date(), state);
+    scr.querySelectorAll('[data-clock]').forEach((el) => { if (el.innerHTML !== time) el.innerHTML = time; });
 
     const za = scr.querySelector('.zone-alert');
     if (za && live.zoneMsg && Date.now() >= live.zoneUntil) { za.hidden = true; live.zoneMsg = null; }

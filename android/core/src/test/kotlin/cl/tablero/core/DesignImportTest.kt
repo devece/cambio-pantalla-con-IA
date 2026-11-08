@@ -73,4 +73,11 @@ class DesignImportTest {
         assertNull(DesignImport.photoInfo("""{"v":1}"""))
         assertNull(DesignImport.photoInfo("no es json"))
     }
+
+    @Test
+    fun `la hora de 12 horas del diseno se aplica y si no viene queda como estaba`() {
+        assertEquals(true, assertNotNull(DesignImport.apply(LauncherConfig(), """{"v":1,"features":{"clock12":true}}""")).clock12)
+        assertEquals(false, assertNotNull(DesignImport.apply(LauncherConfig(), """{"v":1,"features":{"clock12":false}}""")).clock12)
+        assertEquals(true, assertNotNull(DesignImport.apply(LauncherConfig(clock12 = true), """{"v":1,"features":{"oilOn":true}}""")).clock12, "sin el dato, no se pisa")
+    }
 }

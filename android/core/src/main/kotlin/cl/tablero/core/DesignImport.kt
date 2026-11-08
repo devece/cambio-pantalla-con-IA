@@ -70,6 +70,7 @@ object DesignImport {
                 restrDigit = f.text("restrDigit").take(1).filter { it.isDigit() },
                 restrDays = strings(f.optJSONArray("restrDays")).filter { it in WEEKDAYS },
                 voice = f.optBoolean("voice", c.voice),
+                clock12 = f.optBoolean("clock12", c.clock12),
             )
         }
         return c

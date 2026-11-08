@@ -32,6 +32,8 @@ data class LauncherConfig(
     val restrDigit: String = "",
     val restrDays: List<String> = emptyList(),
     val voice: Boolean = false,
+    /** Mostrar la hora en formato de 12 horas (9:05 PM) en vez de 24 horas (21:05). */
+    val clock12: Boolean = false,
     /** Botones del volante que el usuario asignó (código de tecla -> acción). */
     val wheelKeys: Map<Int, WheelAction> = emptyMap(),
     /** El primer arranque guiado ya se terminó o se omitió. */

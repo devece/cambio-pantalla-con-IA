@@ -13,7 +13,7 @@
     style: { theme: 'cristal', layout: 'estelar', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
       oilOn: true, odometer: 0, lastOil: 0, oilEvery: 5000, others: [], maintDone: {}, docsOn: false, rtMonth: 1, fuelOn: false, tankL: 45, kmPerL: 12,
-      speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: false, miles: false, gallons: false,
+      speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: false, miles: false, gallons: false, clock12: false,
     },
   });
   function merge(base, saved) {
@@ -115,6 +115,7 @@
     if (text(p.phrase, 28)) car.phrase = text(p.phrase, 28);
     if (['auto', 'suv', 'camioneta'].includes(p.type)) car.type = p.type;
     if (typeof p.color === 'string' && /^#[0-9a-f]{6}$/i.test(p.color)) car.color = p.color;
+    if (p.clock12 === true) state.features.clock12 = true;
     // Apariencia elegida en Ajustes: solo se acepta lo que existe en el catálogo; lo demás queda como el diseño por defecto.
     const st = p.style;
     if (st && typeof st === 'object') {

@@ -52,6 +52,7 @@ class SettingsActivity : Activity() {
     private var selectedColor = Ui.CAR_COLORS.first()
     private val colorChips = linkedMapOf<String, View>()
     private lateinit var photoStatus: TextView
+    private lateinit var clock12: CheckBox
     private lateinit var lookTheme: Spinner
     private lateinit var lookLayout: Spinner
     private lateinit var lookScene: Spinner
@@ -146,7 +147,7 @@ class SettingsActivity : Activity() {
         paintChips()
 
         buildPhotoSection()
-        buildLookSection(c.look)
+        buildLookSection(c.look, c.clock12)
 
         section("Aceite")
         oilOn = check("Aviso de cambio de aceite", c.oilOn, limits.oilOn)
@@ -305,6 +306,7 @@ class SettingsActivity : Activity() {
                 voice = voice.isChecked,
                 wheelKeys = wheelKeys,
                 look = readLook(),
+                clock12 = clock12.isChecked,
             ),
         )
         Toast.makeText(this, "Guardado", Toast.LENGTH_SHORT).show()
@@ -379,7 +381,7 @@ class SettingsActivity : Activity() {
      * Tema, distribución, fondo, hora del fondo, decoración y color de acento. La primera opción de cada lista es «Como viene»:
      * lo que trae la pantalla por defecto. Se ve al volver al inicio.
      */
-    private fun buildLookSection(look: Look) {
+    private fun buildLookSection(look: Look, clockOn: Boolean) {
         section("Apariencia")
         // Quien activó un código antes conserva el diseño del sitio, que manda sobre lo de abajo: se puede soltar para elegir aquí.
         if (DesignStore(this).has()) {
@@ -425,6 +427,7 @@ class SettingsActivity : Activity() {
             textSize = 13f
         })
         paintAccents()
+        clock12 = check("Hora en formato de 12 horas (9:05 PM, en vez de 21:05)", clockOn, true)
     }
 
     private fun lookSpinner(label: String, options: Map<String, String>, current: String): Spinner {

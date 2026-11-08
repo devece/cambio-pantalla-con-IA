@@ -178,3 +178,10 @@ test('el saludo y la frase se recortan y el saludo vacío vuelve a "Hola"', () =
   o.car.greeting = '   ';
   assert.equal(validateOrder(o).clean.car.greeting, 'Hola');
 });
+
+test('la hora de 12 horas se conserva como sí/no y lo demás se descarta', () => {
+  const base = { radio: { type: 'android' }, features: {} };
+  assert.equal(validateOrder({ ...base, features: { clock12: true } }).clean.features.clock12, true);
+  assert.equal(validateOrder({ ...base, features: { clock12: 'sí' } }).clean.features.clock12, true, 'cualquier valor verdadero cuenta como sí');
+  assert.equal(validateOrder({ ...base, features: {} }).clean.features.clock12, false, 'por defecto, 24 horas');
+});

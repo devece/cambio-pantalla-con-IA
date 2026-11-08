@@ -42,6 +42,7 @@ class SettingsStore(context: Context) {
             restrDigit = p.getString("restrDigit", d.restrDigit) ?: d.restrDigit,
             restrDays = list("restrDays", d.restrDays),
             voice = p.getBoolean("voice", d.voice),
+            clock12 = p.getBoolean("clock12", d.clock12),
             wheelKeys = WheelKeys.parse(p.getString("wheelKeys", null)),
             welcomeDone = p.getBoolean("welcomeDone", d.welcomeDone),
             look = Look(
@@ -92,6 +93,7 @@ class SettingsStore(context: Context) {
             .putString("restrDigit", c.restrDigit)
             .putString("restrDays", c.restrDays.joinToString(","))
             .putBoolean("voice", c.voice)
+            .putBoolean("clock12", c.clock12)
             .putString("wheelKeys", WheelKeys.serialize(c.wheelKeys))
             .putBoolean("welcomeDone", c.welcomeDone)
             .putString("lookTheme", c.look.theme)

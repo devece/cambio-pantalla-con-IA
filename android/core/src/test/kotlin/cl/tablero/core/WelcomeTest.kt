@@ -85,4 +85,10 @@ class WelcomeTest {
         val sin = JSONObject(Welcome.profileJson(LauncherConfig(), "file:///x/car.jpg", false, "file:///x/night.png")).getJSONObject("photo")
         assertFalse(sin.has("night"))
     }
+
+    @Test
+    fun `la hora de 12 horas viaja en el perfil solo si se eligio`() {
+        assertFalse(JSONObject(Welcome.profileJson(LauncherConfig())).getJSONObject("profile").has("clock12"))
+        assertTrue(JSONObject(Welcome.profileJson(LauncherConfig(clock12 = true))).getJSONObject("profile").getBoolean("clock12"))
+    }
 }

@@ -28,6 +28,7 @@ object Welcome {
             .put("phrase", c.phrase)
             .put("type", c.carType)
             .put("color", c.carColor)
+        if (c.clock12) profile.put("clock12", true)
         // La apariencia elegida en Ajustes: solo lo que el usuario escogió, para que lo demás quede como siempre.
         val look = c.look.cleaned()
         val style = JSONObject()

@@ -2,18 +2,18 @@
    Dirección visual: señalética vial chilena. Verde de letrero de ruta, línea amarilla de calzada, rojo de límite de velocidad. */
 :root {
   color-scheme: dark;
-  --page: #0d0e11;
-  --paper: #1a1c21;
-  --paper2: #22252b;
+  --page: #1b2f58;
+  --paper: #20386a;
+  --paper2: #294780;
   --ink: #f5f6f8;
-  --ink2: #9aa1ab;
-  --on-ink: #0d0e11;
+  --ink2: #b9c4d8;
+  --on-ink: #0d1a38;
   --verde: #ff3a1a;
   --verde-osc: #e02a0c;
   --amarillo: #ffb347;
   --amarillo-osc: #e0a030;
   --rojo: #ff5a4a;
-  --borde: rgba(255, 255, 255, .11);
+  --borde: rgba(255, 255, 255, .16);
   --azul-foco: #7cc4ff;
   --tint: rgba(255, 58, 26, .14);
   --tint-line: rgba(255, 58, 26, .38);
@@ -26,7 +26,7 @@
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: var(--page); color: var(--ink); font: 400 17px/1.5 var(--font); }
+body { margin: 0; min-height: 100vh; background: var(--page) linear-gradient(180deg, #2f5090 0%, #1f3866 45%, #16264d 100%) fixed; background-color: var(--page); color: var(--ink); font: 400 17px/1.5 var(--font); }
 h1, h2, h3 { margin: 0; }
 p { margin: 0; }
 a { color: var(--verde); }
@@ -39,7 +39,6 @@ a { color: var(--verde); }
 /* Cinta de prototipo */
 
 /* Cabecera */
-.topbar { background: var(--page); }
 .bar { display: flex; align-items: center; justify-content: space-between; height: 64px; }
 .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font: 600 22px/1 var(--display); }
 .brand svg { color: var(--verde); }
@@ -335,10 +334,10 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .mini-steps li { margin: 3px 0; }
 
 /* ===== Portada: menú, héroe y secciones ===== */
-.topbar { position: sticky; top: 0; z-index: 50; background: rgba(13, 14, 17, .86); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: 1px solid var(--borde); }
+.topbar { position: sticky; top: 0; z-index: 50; background: rgba(27, 47, 88, .82); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: 1px solid var(--borde); }
 .bar { height: 68px; gap: 18px; }
 .menu { display: flex; gap: 4px; margin-left: auto; }
-.menu a { color: var(--ink2); text-decoration: none; font-weight: 500; font-size: 16px; padding: 8px 12px; border-radius: 8px; }
+.menu a { white-space: nowrap; color: var(--ink2); text-decoration: none; font-weight: 500; font-size: 16px; padding: 8px 12px; border-radius: 8px; }
 .menu a:hover, .menu a[aria-current='true'] { color: var(--ink); background: rgba(255, 255, 255, .07); }
 .bar-cta { display: flex; gap: 10px; }
 .btn.small { min-height: 42px; padding: 9px 16px; font-size: 15px; }
@@ -347,7 +346,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .menu-btn { display: none; place-items: center; width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--borde); background: var(--paper); color: var(--ink); cursor: pointer; }
 
 .hero2 { position: relative; text-align: center; padding: 64px 0 28px; }
-.hero2::before { content: ''; position: absolute; inset: -90px 0 auto; height: 460px; background: radial-gradient(ellipse at 50% 0, rgba(255, 58, 26, .24), transparent 66%); pointer-events: none; z-index: -1; }
+.hero2::before { content: ''; position: absolute; inset: -90px 0 auto; height: 460px; background: radial-gradient(ellipse at 50% 0, rgba(124, 196, 255, .22), transparent 66%); pointer-events: none; z-index: -1; }
 .pill { display: inline-flex; align-items: center; gap: 9px; padding: 7px 15px; border-radius: 99px; border: 1px solid var(--tint-line); background: var(--tint); color: #ffc9be; font-size: 14px; }
 .pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--verde); }
 .hero2 h1 { font: 800 clamp(38px, 7vw, 78px)/1.04 var(--display); letter-spacing: -.02em; margin: 24px auto 0; max-width: 17ch; text-wrap: balance; }

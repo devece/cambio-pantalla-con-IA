@@ -215,6 +215,12 @@ class SettingsActivity : Activity() {
 
         buildObdSection(c)
 
+        section("Apoyar")
+        form.addView(Button(this).apply {
+            text = "Invítame un café ☕"
+            setOnClickListener { openCoffee() }
+        })
+
         section("Ayuda")
         form.addView(Button(this).apply {
             text = "Diagnóstico de la radio"
@@ -227,6 +233,15 @@ class SettingsActivity : Activity() {
         }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(24) })
 
         setContentView(scroll)
+    }
+
+    /** Abre el enlace de propina en el navegador. Muchas radios no traen uno: ahí se avisa en vez de no hacer nada. */
+    private fun openCoffee() {
+        try {
+            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(COFFEE_URL)))
+        } catch (e: android.content.ActivityNotFoundException) {
+            Toast.makeText(this, "Esta radio no tiene navegador. Puedes abrir ko-fi.com/daniexpress desde tu celular.", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun save(old: LauncherConfig) {
@@ -595,6 +610,7 @@ class SettingsActivity : Activity() {
 
     private companion object {
         const val REQ_BLUETOOTH = 71
+        const val COFFEE_URL = "https://ko-fi.com/daniexpress"
     }
 
     private fun field(hint: String, value: String): EditText {

@@ -8,6 +8,7 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 ## [Sin publicar]
 
 ### Agregado
+- **Radios con pantalla vertical (por ejemplo 768 × 1024, de 9,7").** La app ya no se fuerza a horizontal: usa la orientación de fábrica de la pantalla de la radio, así que las horizontales quedan igual y las verticales dejan de verse de lado. En vertical, la pantalla de inicio se muestra reducida al ancho (con franjas arriba y abajo) y Ajustes, bienvenida y diagnóstico se ven normales. Los diseños pensados para vertical quedan para después.
 - **Aviso de actualización dentro de la app.** Al abrir Tablero (con internet) revisa si hay una versión nueva y ofrece «Actualizar ahora» o «Después»; descarga el instalador y Android pide confirmar. Los ajustes y la foto se conservan. En Ajustes → Actualizaciones hay un botón «Buscar actualización». Cada compilación de `main` lleva un número que sube sola (`versionCode`) y publica un `version.json` junto al APK. Requiere que la versión instalada ya esté firmada con la clave fija.
 
 ### Cambiado

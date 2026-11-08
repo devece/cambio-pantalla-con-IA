@@ -51,6 +51,7 @@ class SettingsActivity : Activity() {
     private lateinit var carTypeGroup: RadioGroup
     private var selectedColor = Ui.CAR_COLORS.first()
     private val colorChips = linkedMapOf<String, View>()
+    private lateinit var photoStatus: TextView
     private lateinit var lookTheme: Spinner
     private lateinit var lookLayout: Spinner
     private lateinit var lookScene: Spinner
@@ -144,6 +145,7 @@ class SettingsActivity : Activity() {
         form.addView(swatches)
         paintChips()
 
+        buildPhotoSection()
         buildLookSection(c.look)
 
         section("Aceite")
@@ -307,6 +309,68 @@ class SettingsActivity : Activity() {
         )
         Toast.makeText(this, "Guardado", Toast.LENGTH_SHORT).show()
         finish()
+    }
+
+    /* ---------- foto del auto ---------- */
+
+    private fun buildPhotoSection() {
+        section("Foto de tu auto")
+        photoStatus = TextView(this).apply {
+            setTextColor(Ui.SUB)
+            textSize = 14f
+        }
+        form.addView(photoStatus)
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        row.addView(Button(this).apply {
+            text = "Elegir foto"
+            setOnClickListener { pickPhoto() }
+        })
+        row.addView(Button(this).apply {
+            text = "Quitar foto"
+            setOnClickListener {
+                PhotoStore(this@SettingsActivity).clear()
+                refreshPhotoStatus()
+            }
+        })
+        form.addView(row)
+        refreshPhotoStatus()
+    }
+
+    private fun refreshPhotoStatus() {
+        val photos = PhotoStore(this)
+        photoStatus.text = when {
+            !photos.has() -> "Sin foto: se muestra un auto de ejemplo con el color que elegiste. Mejor una foto del auto completo, de lado y de día."
+            photos.isCut() -> "Foto elegida (ya sin fondo). Se ve al volver al inicio."
+            else -> "Foto elegida. Se ve al volver al inicio."
+        }
+    }
+
+    /** Abre la galería o el explorador de archivos de la radio. Muchas radios no traen uno: ahí se avisa en vez de no hacer nada. */
+    private fun pickPhoto() {
+        val intent = android.content.Intent(android.content.Intent.ACTION_GET_CONTENT).apply {
+            type = "image/*"
+            addCategory(android.content.Intent.CATEGORY_OPENABLE)
+        }
+        try {
+            startActivityForResult(intent, REQ_PHOTO)
+        } catch (e: android.content.ActivityNotFoundException) {
+            Toast.makeText(this, "Esta radio no tiene galería ni explorador de archivos para elegir la foto.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    @Deprecated("Se usa la API clásica de Activity para funcionar en radios con Android antiguo")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != REQ_PHOTO || resultCode != RESULT_OK) return
+        val uri = data?.data ?: return
+        photoStatus.text = "Guardando la foto…"
+        Thread {
+            val problem = PhotoStore(this).save(uri)
+            runOnUiThread {
+                refreshPhotoStatus()
+                if (problem != null) Toast.makeText(this, problem, Toast.LENGTH_LONG).show()
+            }
+        }.start()
     }
 
     /* ---------- apariencia ---------- */
@@ -713,6 +777,7 @@ class SettingsActivity : Activity() {
     private companion object {
         const val REQ_BLUETOOTH = 71
         const val COFFEE_URL = "https://ko-fi.com/daniexpress"
+        const val REQ_PHOTO = 41
     }
 
     private fun field(hint: String, value: String): EditText {

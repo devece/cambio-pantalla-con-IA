@@ -68,4 +68,13 @@ class WelcomeTest {
         assertEquals("", Look(accent = "#123456").cleaned().accent)
         assertEquals("#06d6a0", Look(accent = "#06d6a0").cleaned().accent)
     }
+
+    @Test
+    fun `la foto elegida viaja aparte del perfil y sin foto no hay clave`() {
+        val con = JSONObject(Welcome.profileJson(LauncherConfig(), "file:///x/car.png", true)).getJSONObject("photo")
+        assertEquals("file:///x/car.png", con.getString("day"))
+        assertTrue(con.getBoolean("cut"))
+        assertFalse(JSONObject(Welcome.profileJson(LauncherConfig())).has("photo"))
+        assertFalse(JSONObject(Welcome.profileJson(LauncherConfig(), "")).has("photo"), "una dirección vacía no cuenta")
+    }
 }

@@ -2,9 +2,9 @@
 
 Un launcher para radios Android de auto, pensado para Chile (restricción vehicular por GPS, revisión técnica, permiso de circulación, SOAP, teléfono +56 9), y el sitio donde el cliente diseña su pantalla.
 
-**Tablero es gratis.** El cliente elige radio, auto, diseño y funciones, ve su pantalla funcionando en vivo, hace su pedido y recibe un código para activar su diseño en la radio. No hay planes, precios ni cobros.
+**Tablero es gratis.** El cliente ve en el sitio cómo quedará su pantalla, descarga la app, la instala en su radio y elige ahí su apariencia, su foto y sus datos. No hay códigos, planes, precios ni cobros.
 
-> **Estado: prototipo.** El sitio, la vista previa y el pedido funcionan. La app Android compila y está en pruebas en radios reales (ver `docs/PRUEBA_EN_RADIO.md`).
+> **Estado: prototipo.** El sitio y la vista previa funcionan. La app Android compila y está en pruebas en radios reales (ver `docs/PRUEBA_EN_RADIO.md`).
 
 ## Qué incluye
 
@@ -13,12 +13,13 @@ Un launcher para radios Android de auto, pensado para Chile (restricción vehicu
 - **Funciones de API** (Vercel) en `api/`: `order` (valida y guarda el pedido), `license` (activa un código vinculado a una sola radio), `admin` (panel para entregar códigos), más el análisis opcional de la captura de la radio y de la foto del auto.
 - **Base de datos** Supabase en `supabase/schema.sql` (RLS activado, sin políticas públicas).
 
-## Cómo funciona un pedido
+## Cómo se usa (sin pedidos ni códigos)
 
-1. El cliente diseña su pantalla en el sitio y pulsa **Pedir mi pantalla**: `api/order.js` valida y guarda el pedido (y su foto).
-2. Le mostramos su pedido listo para enviarlo por el contacto del sitio.
-3. Quien arma las pantallas lo **aprueba** en `/admin.html` y le entrega su código (`TBL-XXXX-XXXX-XXXX`).
-4. El cliente escribe el código en la app, en su radio: queda ligado a esa radio.
+1. El cliente diseña su pantalla en el sitio solo para verla; puede bajar su auto ya recortado (PNG).
+2. Descarga e instala la app (`/app`, ver `docs/PRUEBA_EN_RADIO.md` y la página `listo.html`).
+3. En la app elige su apariencia (Ajustes → Apariencia), su foto (Ajustes → Foto de tu auto) y sus datos. Se guarda en la radio.
+
+Las funciones `api/order`, `api/license` y el panel `admin` quedaron sin uso desde el sitio (solo sirven a radios que ya activaron un código) y se pueden retirar más adelante.
 
 ## Cómo correrlo
 

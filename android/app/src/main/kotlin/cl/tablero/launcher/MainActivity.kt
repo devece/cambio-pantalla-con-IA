@@ -298,7 +298,7 @@ class MainActivity : Activity() {
         return frame
     }
 
-    /** Barra lateral: Inicio, Ajustes y (en la edición gratuita) Activar código. */
+    /** Barra lateral: Inicio y Ajustes. */
     private fun sidebar(tier: Tier): View {
         val bar = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -308,14 +308,7 @@ class MainActivity : Activity() {
         }
         bar.addView(navButton(R.drawable.ic_home, "Inicio", true) {}, lp(dp(56), dp(56), 0f, b = 10))
         bar.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
-        if (tier == Tier.FREE) {
-            bar.addView(
-                navButton(R.drawable.ic_key, "Activar código", false) {
-                    startActivity(Intent(this, ActivationActivity::class.java))
-                },
-                lp(dp(56), dp(56), 0f, b = 10),
-            )
-        }
+        // Ya no se piden códigos: no hay botón «Activar código».
         bar.addView(
             navButton(R.drawable.ic_settings, "Ajustes", false) {
                 startActivity(Intent(this, SettingsActivity::class.java))

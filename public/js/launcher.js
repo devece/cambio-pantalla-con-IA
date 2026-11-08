@@ -240,7 +240,8 @@
       TB.preview.app = app;
       TB.preview.onGo = (id) => { ui.screen = id === 'inicio' ? 'inicio' : id; render(); };
       if (!mounted) { TB.preview.mount(document.getElementById('host')); mounted = true; }
-      document.getElementById('key').hidden = !!(design && design.config);
+      // Ya no se piden códigos: el botón «Activar código» no se muestra (quien activó uno antes conserva su diseño).
+      document.getElementById('key').hidden = true;
       document.body.classList.toggle('free', !(design && design.config));
       setDesign(design);
     },

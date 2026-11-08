@@ -23,7 +23,6 @@
       fuelOn: false, tankL: 45, kmPerL: 12,
       speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: true, miles: false, gallons: false,
     },
-    contact: { kind: 'whatsapp', value: '' },
   });
   const ui = { step: 1, screen: 'inicio', night: false };
   let state = defaults();
@@ -56,7 +55,6 @@
       copy.car.photo = null; // la foto no se guarda
       copy.car.photoNight = null;
       copy.style.bg = null;
-      delete copy.contact; // no guardamos datos de contacto en el navegador
       localStorage.setItem(STORE, JSON.stringify(copy));
     } catch (_) { /* ignorar */ }
   }
@@ -94,16 +92,12 @@
     ],
     'features.restrType': () => C.restriction.types,
     'features.country': () => TB_PICO.countries.map((c) => ({ id: c.id, name: c.name })),
-    'contact.kind': () => [
-      { id: 'whatsapp', name: 'WhatsApp' },
-      { id: 'email', name: 'Correo' },
-    ],
   };
   const MULTI = {
     'style.apps': () => TB.apps,
     'features.others': () => C.maintenance.map((m) => ({ id: m.id, name: m.name, desc: 'cada ' + fmt(m.every) + ' km' })),
   };
-  const STEPS = ['Radio', 'Auto', 'Diseño', 'Funciones', 'Pedido'];
+  const STEPS = ['Radio', 'Auto', 'Diseño', 'Funciones', 'Descarga'];
   const SCREENS = [
     { id: 'inicio', name: 'Inicio' },
     { id: 'radio', name: 'Radio' },
@@ -123,7 +117,6 @@
   }
 
   function build() {
-    $('#contact-kind').dataset.choices = 'contact.kind';
     $$('[data-choices]').forEach((el) => {
       el.innerHTML = CHOICES[el.dataset.choices]().map((it) => choiceHtml(it, 'radio')).join('');
     });
@@ -328,12 +321,9 @@
     $('#bg-mode').hidden = !state.style.bg;
   }
 
-  const PHONE_EXAMPLE = { CL: '+56 9 1234 5678', CO: '+57 300 123 4567', EC: '+593 99 123 4567' };
   function update() {
     state.features.restrDays = state.features.country === 'CL' ? O.restrDaysFor(state.features) : [];
     TB.preview.render(state, ui);
-    const tel = document.querySelector('input[type=tel][data-bind="contact.value"]');
-    if (tel) tel.placeholder = PHONE_EXAMPLE[state.features.country] || PHONE_EXAMPLE.CL;
     syncChoices();
     syncBindings();
     showHide();
@@ -392,7 +382,6 @@
         if (single) {
           const path = single.dataset.choices;
           set(state, path, choice.dataset.id);
-          if (path === 'contact.kind') state.contact.value = '';
           if (path === 'style.theme') state.style.accent = null; // cada tema trae su acento
           if (path === 'car.type') applyVehicle();
         } else if (multi) {
@@ -479,20 +468,6 @@
     $('#bg-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadBg(f); e.target.value = ''; });
     $('#bg-clear').addEventListener('click', () => { if (state.style.bg) URL.revokeObjectURL(state.style.bg); state.style.bg = null; update(); });
     $('#photo-mode').addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) showPhoto(b.dataset.mode); });
-    $('#order-send').addEventListener('click', sendOrder);
-    $('#order-done').addEventListener('click', (e) => {
-      const order = e.target.closest('[data-copy-order]');
-      if (order) {
-        const text = $('#order-done').dataset.order || '';
-        const ok = () => { $('#copy-note').textContent = '¡Copiado! Pégalo en el mensaje de contacto.'; };
-        if (navigator.clipboard) navigator.clipboard.writeText(text).then(ok, () => { $('#copy-note').textContent = 'No pudimos copiar. Usa el botón de enviar.'; }); else ok();
-        return;
-      }
-      const b = e.target.closest('[data-copy]');
-      if (!b) return;
-      const done = () => { const t = b.textContent; b.textContent = '¡Copiado!'; setTimeout(() => { b.textContent = t; }, 1500); };
-      if (navigator.clipboard) navigator.clipboard.writeText(b.dataset.copy).then(done, () => {}); else done();
-    });
     $('#nose-test').addEventListener('click', (e) => { const b = e.target.closest('[data-test]'); if (!b) return; state.radio.type = b.dataset.test; update(); });
     $('#shot-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadShot(f); e.target.value = ''; });
     $('#shot-clear').addEventListener('click', () => { state.radio.screen = null; state.radio.analysis = null; $('#shot-error').hidden = true; renderShot(); update(); });
@@ -762,126 +737,6 @@
       update();
     } catch (_) {
       fail('No pudimos leer esa imagen. Prueba con otra.');
-    }
-  }
-
-  /* ---------- pedido ---------- */
-  function payload() {
-    const copy = JSON.parse(JSON.stringify(state));
-    delete copy.car.photo; // la foto nunca viaja en el pedido
-    delete copy.car.photoNight;
-    delete copy.style.bg;
-    return copy;
-  }
-
-  function showErrors(list) {
-    const ul = $('#order-errors');
-    ul.innerHTML = list.map((m) => `<li>${esc(m)}</li>`).join('');
-    ul.hidden = !list.length;
-    if (list.length) ul.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  }
-
-  /* ---------- foto del pedido (se envía solo al hacer el pedido) ---------- */
-  const blobToDataUrl = (url) => fetch(url).then((r) => r.blob()).then((b) => new Promise((ok, fail) => {
-    const f = new FileReader();
-    f.onload = () => ok(f.result);
-    f.onerror = fail;
-    f.readAsDataURL(b);
-  }));
-
-  /** Sube la foto del auto (y su versión de noche) junto al pedido. Devuelve 'ok', 'none' (no hay foto) o 'fail'. */
-  async function uploadOrderPhotos(orderId, token) {
-    if (!state.car.photo) return 'none';
-    const send = async (kind, url) => {
-      const image = await blobToDataUrl(url);
-      const r = await fetch('/api/order-photo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, token, kind, image, cut: state.car.photoCut === true, lights: lightPts }),
-      });
-      const d = await r.json().catch(() => ({}));
-      return r.ok && d.ok;
-    };
-    try {
-      if (!(await send('day', state.car.photo))) return 'fail';
-      if (state.car.photoCut && nightUrl) await send('night', nightUrl); // la de noche es un extra: si falla, igual queda la de día
-      return 'ok';
-    } catch (_) {
-      return 'fail';
-    }
-  }
-
-  /* ---------- mensaje del pedido ---------- */
-  const waNumber = (raw) => {
-    const d = String(raw || '').replace(/\D/g, '');
-    return d.length === 9 && d[0] === '9' ? '56' + d : d;
-  };
-
-  /** Texto del pedido para mandárselo a quien arma la pantalla: resumen legible y los datos para armarla. */
-  function orderMessage(orderId, photo) {
-    const rows = $$('#summary div').map((d) => `${$('dt', d).textContent}: ${$('dd', d).textContent}`);
-    const clean = O.validateOrder(payload()).clean;
-    return [
-      `Hola, soy ${state.car.name || 'cliente'}. Hice el pedido ${orderId} en Tablero.`,
-      ...rows,
-      `Contacto: ${state.contact.kind === 'email' ? 'correo' : 'WhatsApp'} ${state.contact.value}`,
-      photo === 'ok' ? 'Mi foto ya quedó guardada con el pedido.' : state.car.photo ? 'No pude subir mi foto: te la envío por aquí.' : 'Te adjunto la foto de mi auto.',
-      '',
-      'Datos para armarlo (no lo borres):',
-      JSON.stringify(clean),
-    ].join('\n');
-  }
-
-  /** El cliente copia su pedido y lo pega en el contacto de Daniexpress, que le manda su código. */
-  function showContactOrder(data) {
-    const site = TB.site || {};
-    const web = site.web || {};
-    const msg = orderMessage(data.orderId, data.photo);
-    const wa = waNumber(site.whatsapp);
-    let go = '';
-    if (wa) go = `<a class="btn cta" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Enviar mi pedido por WhatsApp</a>`;
-    else if (site.supportEmail) go = `<a class="btn cta" href="mailto:${esc(site.supportEmail)}?subject=${encodeURIComponent('Pedido ' + data.orderId)}&body=${encodeURIComponent(msg)}">Enviar mi pedido por correo</a>`;
-    else if (web.url) go = `<a class="btn cta" href="${esc(web.url)}" target="_blank" rel="noopener">Ir al contacto de ${esc(web.name || 'Daniexpress')}</a>`;
-    const done = $('#order-done');
-    done.hidden = false;
-    done.innerHTML = `<b>Pedido ${esc(data.orderId)}</b>
-      <p>Tu pedido está listo. Tu pantalla es <b>gratis</b>. Envíaselo a <b>${esc(web.name || 'Daniexpress')}</b> y ellos te mandan tu código de activación.</p>
-      <ol class="mini-steps">
-        <li>Copia tu pedido (botón de abajo).</li>
-        <li>Ábrelo en ${esc(web.name || 'Daniexpress')} y pégalo en el mensaje de contacto.</li>
-        ${data.photo === 'ok' ? '<li>Tu foto ya quedó guardada con tu pedido: no tienes que enviarla.</li>' : '<li>Envía también la foto de tu auto.</li>'}
-      </ol>
-      <div class="codebtns"><button type="button" class="btn primary" data-copy-order>Copiar mi pedido</button>${go}</div>
-      <p class="hint" id="copy-note">Tu pedido incluye todo lo que elegiste, así que no tienes que explicar nada.</p>
-      ${data.photo === 'fail' ? '<p class="error">No pudimos guardar tu foto. Envíasela a Daniexpress junto con tu pedido.</p>' : ''}`;
-    done.dataset.order = msg;
-    done.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  }
-
-  async function sendOrder() {
-    $('#order-done').hidden = true;
-    const local = O.validateOrder(payload());
-    if (!local.ok) return showErrors(local.errors);
-    showErrors([]);
-
-    const btn = $('#order-send');
-    const label = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = 'Enviando pedido…';
-    try {
-      const res = await fetch('/api/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload()) });
-      let data = null;
-      try { data = await res.json(); } catch (_) { /* respuesta sin JSON */ }
-      if (!data) { showErrors(['No pudimos conectar con el servidor. Revisa tu internet e intenta de nuevo.']); return; }
-      if (!data.ok) { showErrors(data.errors || [data.error || 'No pudimos procesar tu pedido.']); return; }
-      if (state.car.photo) btn.textContent = 'Guardando tu foto…';
-      data.photo = await uploadOrderPhotos(data.orderId, data.photoToken);
-      showContactOrder(data);
-    } catch (_) {
-      showErrors(['No pudimos conectar con el servidor. Revisa tu internet e intenta de nuevo.']);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = label;
     }
   }
 

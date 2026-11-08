@@ -2,7 +2,7 @@
 
 **Por ahora no hay versión de pago: la edición gratuita incluye todo.** El usuario descarga el launcher, lo instala en su radio y puede usar todos los diseños, decoraciones y funciones **sin código**.
 
-El código de licencia (`TBL-XXXX-XXXX-XXXX`) sigue existiendo: sirve para traer a la radio la pantalla que se diseñó en el sitio (incluida la foto del auto). No hay planes ni precios.
+**Ya no se piden códigos.** El sitio no emite ni recibe pedidos: el configurador es una vista previa y la apariencia se elige dentro de la app (Ajustes → Apariencia y Foto de tu auto). La activación de códigos (`TBL-XXXX-XXXX-XXXX`) sigue en el código solo para radios que ya activaron uno; el servidor (`/api/order`, `/api/license`, panel de administración) quedó sin uso desde el sitio y se puede retirar más adelante. No hay planes ni precios.
 
 La fuente de verdad de qué incluye cada nivel es `public/shared/editions.json`. `npm test` comprueba que sea coherente con `catalog.js`.
 
@@ -34,7 +34,7 @@ La fuente de verdad de qué incluye cada nivel es `public/shared/editions.json`.
 1. Se publica un **APK ya compilado** en las *Releases* de GitHub. Pedirle a un usuario común que compile Android desde el código no es realista.
 2. El usuario copia el APK a la radio (pendrive o descarga) y lo instala permitiendo "orígenes desconocidos".
 3. Define el launcher como inicio de la radio.
-4. Para desbloquear: ingresa su código en la pantalla de activación (`POST /api/license`).
+4. Elige su apariencia y su foto en Ajustes. No hay código que activar.
 
 ## Decisiones pendientes
 

@@ -48,7 +48,7 @@
     <section class="hero2 wrap">
       <p class="pill"><i></i> Gratis · Sin anuncios · Hecho en Chile</p>
       <h1>Tu auto, <em>en la pantalla de tu radio.</em></h1>
-      <p class="sub">Diseña desde el celular cómo se verá: tu foto sin fondo, tu mapa, tu música y tus avisos de mantención. Después activas tu código en la radio. Gratis.</p>
+      <p class="sub">Diseña desde el celular cómo se verá: tu foto sin fondo, tu mapa, tu música y tus avisos de mantención. Después instalas la app y eliges lo mismo en Ajustes. Gratis.</p>
       <div class="hero-cta">
         <a class="btn cta big" href="#configurador">Diseñar mi pantalla</a>
         <a class="btn ghost big" href="/app">Descargar la app</a>
@@ -62,7 +62,7 @@
     </section>
 
     <section class="stats wrap" aria-label="Datos clave">
-      <div><b>Gratis</b><span>Tu pantalla y tu código, sin costo</span></div>
+      <div><b>Gratis</b><span>Sin costo, sin registro y sin código</span></div>
       <div><b>3 países</b><span>Chile, Colombia y Ecuador</span></div>
       <div><b>9 + 9</b><span>Temas y distribuciones para elegir</span></div>
       <div><b>Android 5+</b><span>Radios de pantalla grande</span></div>
@@ -221,7 +221,7 @@
               <button type="button" class="btn link" id="photo-clear" hidden>Quitar foto</button>
             </div>
             <div class="shot-tips" id="photo-tips"><span>El auto completo</span><span>De lado o en diagonal</span><span>De día</span><span>Sin gente delante</span></div>
-            <p class="hint">No importa el fondo: la calle, tu garaje o el estacionamiento sirven. El fondo se quita aquí mismo, en tu celular. Tu foto solo se envía cuando haces tu pedido, para armar tu pantalla.</p>
+            <p class="hint">No importa el fondo: la calle, tu garaje o el estacionamiento sirven. El fondo se quita aquí mismo, en tu celular. Tu foto se queda en tu celular (solo se envía si pides «Detectar los faros con IA»).</p>
             <p class="hint" id="photo-status" role="status" aria-live="polite" hidden></p>
             <div class="seg2" id="photo-mode" role="radiogroup" aria-label="Cómo mostrar tu foto" hidden>
               <button type="button" class="choice compact" role="radio" aria-checked="true" data-mode="cut"><b>Sin fondo</b></button>
@@ -292,7 +292,7 @@
           </div>
           <div class="group">
             <h3>O usa tu propia imagen</h3>
-            <p class="hint">Una carretera, tu ciudad o tu familia, o el logo de tu negocio. Se queda en tu celular y no se envía con el pedido.</p>
+            <p class="hint">Una carretera, tu ciudad o tu familia, o el logo de tu negocio. Se queda en tu celular.</p>
             <div class="photo-row">
               <label class="btn ghost" for="bg-file">Subir foto o logo</label>
               <input type="file" id="bg-file" accept="image/*" hidden>
@@ -396,35 +396,25 @@
 
         <!-- Paso 5 -->
         <section class="step" data-step="5" aria-labelledby="h5" hidden>
-          <h2 id="h5">Resumen y pedido</h2>
-          <p class="lead">Tu pantalla es <b>gratis</b>. Al terminar recibes un código para activar la app Tablero en tu radio.</p>
+          <h2 id="h5">Tu diseño y la descarga</h2>
+          <p class="lead">Tablero es <b>gratis</b> y no necesita código. Descarga la app, instálala en tu radio y elige en Ajustes lo mismo que armaste aquí.</p>
           <div class="group">
-            <h3>Qué recibes</h3>
-            <ul class="gets">
-              <li><b>Tu auto en la pantalla</b><span>Con tu foto sin fondo o el vehículo que elegiste, y tu diseño, color y fondo.</span></li>
-              <li><b>Todo lo que elegiste</b><span>Aviso de aceite, documentos, velocidad, restricción y saludo por voz.</span></li>
-              <li><b>Nada se pierde</b><span>Android Auto, CarPlay y las apps de tu radio siguen igual.</span></li>
-              <li><b>Gratis</b><span>Sin costo. Si cambias de radio, te pasamos tu código a la nueva.</span></li>
-              <li><b>Ayuda por WhatsApp</b><span>Si te trabas instalando, te guiamos paso a paso.</span></li>
-            </ul>
-          </div>
-          <div class="group">
-            <h3>Tu pedido</h3>
+            <h3>Lo que elegiste</h3>
             <dl class="summary" id="summary"></dl>
           </div>
           <div class="group">
-            <h3>¿Dónde te mandamos el código?</h3>
-            <p class="hint">Es tu código de activación (<code>TBL-XXXX-XXXX-XXXX</code>). Lo escribirás en la app, en tu radio.</p>
-            <div class="choices cols-2 compact" id="contact-kind" role="radiogroup" aria-label="Medio de contacto"></div>
-            <label class="field" data-show="contact.kind=whatsapp"><span>WhatsApp</span><input type="tel" inputmode="tel" autocomplete="tel" data-bind="contact.value" placeholder="+56 9 1234 5678"></label>
-            <label class="field" data-show="contact.kind=email"><span>Correo</span><input type="email" inputmode="email" autocomplete="email" data-bind="contact.value" placeholder="tu@correo.cl"></label>
+            <h3>Cómo llevarlo a tu radio</h3>
+            <ol class="gets">
+              <li><b>Descarga e instala la app</b><span>Es un archivo APK. La guía paso a paso está en <a href="listo.html">Instalar en tu radio</a>.</span></li>
+              <li><b>Elige tu apariencia</b><span>En la app, Ajustes → <b>Apariencia</b>: tema, distribución, fondo, decoración y color, como los viste aquí.</span></li>
+              <li><b>Pon la foto de tu auto</b><span>Ajustes → <b>Foto de tu auto</b>. Si la subiste aquí, baja «Descargar mi auto sin fondo» (paso 2) y elígela en la app.</span></li>
+              <li><b>Anota tus datos</b><span>Tu nombre, kilometraje y avisos de mantención, documentos y restricción, también en Ajustes.</span></li>
+            </ol>
           </div>
-          <ul class="errors" id="order-errors" role="alert" hidden></ul>
-          <div class="done" id="order-done" role="status" hidden></div>
+          <div class="done" role="note">Este sitio sirve para ver cómo quedará tu pantalla. La app no recibe tu diseño desde aquí: lo eliges dentro de ella, sin código ni registro.</div>
           <p class="hint">¿Te gusta Tablero? <a href="https://ko-fi.com/daniexpress" target="_blank" rel="noopener">Invítame un café ☕</a> (opcional).</p>
-          <p class="hint send-install">¿Ya tienes tu código? <a href="listo.html">Mira cómo instalarlo en tu radio</a>.</p>
-          <button type="button" class="btn send" id="order-send">Pedir mi pantalla</button>
-          <p class="hint send-hint">Al presionar el botón guardamos tu pedido y tu foto (ya sin fondo) y te mostramos tu pedido listo para enviarlo por WhatsApp a Daniexpress. Ahí te mandan tu código de activación.</p>
+          <a class="btn cta big" href="/app">Descargar la app</a>
+          <p class="hint"><a href="listo.html">Ver la guía para instalarla en la radio</a>.</p>
         </section>
 
         <div class="nav" id="nav">
@@ -455,10 +445,10 @@
         <h2>Así llega a <em>tu radio.</em></h2>
       </div>
       <ol class="steps">
-        <li><b>Diseña tu pantalla</b><span>Elige tu país, sube la foto de tu auto y arma el diseño aquí mismo. Mira cómo queda antes de pedirla.</span></li>
-        <li><b>Pide tu código</b><span>Presionas «Pedir mi pantalla» y envías tu pedido por WhatsApp a Daniexpress. Ellos te mandan tu código de activación.</span></li>
-        <li><b>Instala la app</b><span>Descarga el APK, pásalo a tu radio y permite instalar apps de orígenes desconocidos. Si Google Play Protect lo bloquea, toca «Más detalles» y luego «Instalar de todos modos».</span></li>
-        <li><b>Actívala</b><span>Presiona Inicio, elige Tablero → Siempre, toca «Activar código» y escríbelo. Tu diseño y tu foto se descargan solos (necesita internet).</span></li>
+        <li><b>Diseña tu pantalla</b><span>Elige tu país, sube la foto de tu auto y arma el diseño aquí mismo. Mira cómo queda antes de instalar.</span></li>
+        <li><b>Descarga la app</b><span>Es un APK: pásalo a tu radio y permite instalar apps de orígenes desconocidos. Si Google Play Protect lo bloquea, toca «Más detalles» y luego «Instalar de todos modos».</span></li>
+        <li><b>Déjala como inicio</b><span>Presiona Inicio, elige Tablero → Siempre. Al abrirla por primera vez te guía en tres pasos, todos opcionales.</span></li>
+        <li><b>Elige cómo se ve</b><span>En Ajustes → Apariencia y Foto de tu auto dejas todo a tu gusto. Se guarda en tu radio, sin código ni internet.</span></li>
       </ol>
       <p class="after"><a class="btn ghost" href="/app">Descargar la app</a> <a class="btn link" href="listo.html">Ver la guía con fotos</a></p>
     </section>
@@ -472,7 +462,7 @@
       <div class="grid3">
         <article class="feat"><h3>Android 5.0 o superior</h3><p>Es lo que pide la app. Si tu radio abre la Play Store o instala apps como YouTube o Waze, es Android.</p></article>
         <article class="feat"><h3>Sin root ni flashear</h3><p>Se instala como cualquier app y solo reemplaza la pantalla de inicio. Si la desinstalas, tu radio queda como antes.</p></article>
-        <article class="feat"><h3>Internet para algunas cosas</h3><p>Para activar el código, el clima y bajar mapas nuevos. Los mapas ya guardados se ven sin conexión. Los datos del celular sirven.</p></article>
+        <article class="feat"><h3>Internet para algunas cosas</h3><p>Para el clima y para bajar mapas nuevos. Los mapas ya guardados se ven sin conexión. Los datos del celular sirven.</p></article>
       </div>
       <p class="after"><a class="btn cta" href="#configurador">Revisar mi radio</a></p>
     </section>
@@ -484,14 +474,12 @@
       <details><summary>¿Qué scanner OBD me sirve?</summary><p>Los OBD2 con chip ELM327 por Bluetooth o por Wi-Fi, que se enchufan al puerto bajo el volante. Con Bluetooth, primero empareja el scanner en los ajustes de Android de tu radio y luego lo eliges en Tablero → Ajustes → Scanner OBD. Los scanners solo Bluetooth LE todavía no están soportados.</p></details>
       <details><summary>¿Qué puedo ver hoy con el scanner?</summary><p>En Ajustes puedes probar la conexión. Y en la pantalla «Auto» ves en vivo las revoluciones, la temperatura del motor y el voltaje, la luz del motor y los códigos de falla explicados en palabras simples. Es una función nueva: no todos los autos ni todos los scanners entregan todos los datos.</p></details>
       <details><summary>¿Qué pasa con mis apps y con Android Auto o CarPlay?</summary><p>Nada: siguen funcionando igual. La app solo cambia la pantalla de inicio y abre las apps que ya tienes.</p></details>
-      <details><summary>¿Cuánto cuesta?</summary><p>Nada: tu pantalla es gratis. Recibes un código de activación para instalarla en una radio.</p></details>
-      <details><summary>¿Qué es el código que recibo?</summary><p>Es una clave con el formato <code>TBL-XXXX-XXXX-XXXX</code>. Se escribe una vez en la app, en la opción <i>Activar código</i>, y queda ligada a esa radio. Si cambias de radio, la pasas a la nueva una vez, gratis.</p></details>
-      <details><summary>¿Qué foto de mi auto debo enviar?</summary><p>Una sola, como la tengas: con el auto completo, de lado o en diagonal, de día y sin gente delante. No importa el fondo: se lo quitamos aquí mismo, en tu celular. Tu foto se envía sola cuando haces tu pedido, y antes de eso se queda en tu teléfono.</p></details>
-      <details><summary>¿Cómo se instala?</summary><p>Instalas la app en la radio, la abres, presionas <i>Activar código</i> y escribes tu código. Tienes la guía paso a paso en <a href="listo.html">esta página</a>.</p></details>
-      <details><summary>¿Necesito internet?</summary><p>Sí, al activar el código (puedes usar los datos de tu celular). Después, el clima y los mapas nuevos usan internet. Los mapas de donde ya pasaste, o que guardaste con el botón «Guardar mapa», se ven sin conexión, y el resto de la pantalla también.</p></details>
+      <details><summary>¿Cuánto cuesta?</summary><p>Nada: Tablero es gratis, sin anuncios, sin cuenta y sin código.</p></details>
+      <details><summary>¿Qué foto de mi auto debo usar?</summary><p>Una sola, como la tengas: con el auto completo, de lado o en diagonal, de día y sin gente delante. En este sitio le quitamos el fondo en tu celular y puedes bajar el auto recortado para elegirlo en la app, en Ajustes → Foto de tu auto.</p></details>
+      <details><summary>¿Cómo se instala?</summary><p>Descargas el APK, lo instalas en la radio, presionas Inicio y eliges Tablero → Siempre. Después eliges tu apariencia en Ajustes. Tienes la guía paso a paso en <a href="listo.html">esta página</a>.</p></details>
+      <details><summary>¿Necesito internet?</summary><p>Para instalar y usar la app no. El clima y los mapas nuevos sí usan internet (sirven los datos de tu celular). Los mapas de donde ya pasaste, o que guardaste con el botón «Guardar mapa», se ven sin conexión, y el resto de la pantalla también.</p></details>
       <details><summary>¿La restricción vehicular sirve en mi ciudad?</summary><p>La restricción vehicular permanente para autos particulares solo existe en Santiago (Provincia de Santiago, San Bernardo y Puente Alto). La radio usa el GPS y te avisa al entrar a esa zona, solo cuando ese día te toca. En el resto del país no te molesta.</p></details>
-      <details><summary>¿Cómo recibo mi código?</summary><p>Cuando terminas tu diseño, presionas “Pedir mi pantalla”, te mostramos tu pedido listo para copiar y lo envías por WhatsApp a Daniexpress. Ellos te mandan tu código.</p></details>
-      <details><summary>¿Y si no funciona en mi radio?</summary><p>Escríbenos con una foto o video del problema y lo revisamos. Si no se puede resolver, anulamos tu código y desinstalas la app como cualquier otra: tu radio queda como antes.</p></details>
+      <details><summary>¿Y si no funciona en mi radio?</summary><p>Escríbenos con una foto o video del problema y lo revisamos. Si no se puede resolver, desinstalas la app como cualquier otra: tu radio queda como antes.</p></details>
     </section>
 
     <section class="contact wrap" id="contacto">
@@ -520,7 +508,7 @@
   <footer class="foot">
     <div class="wrap">
       <span>© <span id="year"></span> <span id="foot-name">Tablero</span></span>
-      <a id="download-link" href="listo.html">Ya tengo mi código: descargar</a>
+      <a id="download-link" href="listo.html">Cómo instalar la app</a>
       <a href="privacidad.html">Privacidad</a>
       <a href="https://ko-fi.com/daniexpress" target="_blank" rel="noopener">Invítame un café ☕</a>
       <span id="foot-contact"></span>

@@ -381,6 +381,22 @@ class SettingsActivity : Activity() {
      */
     private fun buildLookSection(look: Look) {
         section("Apariencia")
+        // Quien activó un código antes conserva el diseño del sitio, que manda sobre lo de abajo: se puede soltar para elegir aquí.
+        if (DesignStore(this).has()) {
+            form.addView(TextView(this).apply {
+                text = "Esta radio usa un diseño que se activó con un código, y ese diseño manda sobre lo que elijas aquí."
+                setTextColor(Ui.SUB)
+                textSize = 14f
+            })
+            form.addView(Button(this).apply {
+                text = "Dejar de usar ese diseño"
+                setOnClickListener {
+                    DesignStore(this@SettingsActivity).clear()
+                    visibility = View.GONE
+                    Toast.makeText(this@SettingsActivity, "Listo: ahora manda lo que elijas aquí.", Toast.LENGTH_LONG).show()
+                }
+            })
+        }
         lookTheme = lookSpinner("Tema", Look.THEMES, look.theme)
         lookLayout = lookSpinner("Distribución", Look.LAYOUTS, look.layout)
         lookScene = lookSpinner("Fondo", Look.SCENES, look.scene)

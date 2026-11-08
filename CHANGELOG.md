@@ -8,6 +8,7 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 ## [Sin publicar]
 
 ### Cambiado
+- **Ya no hay códigos de activación.** El sitio dejó de pedir contacto y de enviar pedidos: el último paso del configurador es «Tu diseño y la descarga», con un resumen y el botón para bajar la app. La guía «Instalar en tu radio» ya no habla de códigos, y la portada, las preguntas y la privacidad se reescribieron. En la app no aparece el botón «Activar código». El diseño del sitio ahora se ve solo como vista previa: lo eliges dentro de la app (Ajustes → Apariencia y Foto de tu auto). Quien ya había activado un código conserva su diseño y puede soltarlo desde Ajustes → Apariencia.
 - **Fondo del sitio en azul suave con degradado**, en vez de negro. Las tarjetas, la barra superior y los textos secundarios se ajustaron al nuevo fondo. La vista previa de la radio sigue oscura, como la pantalla real.
 
 ### Agregado

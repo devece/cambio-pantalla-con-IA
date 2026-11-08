@@ -20,24 +20,21 @@
     </div>
   </header>
   <main class="wrap legal install">
-    <h1>Listo, ahora en tu radio</h1>
-    <p class="lead" id="lead">Este es tu código. Mándatelo por WhatsApp: te llega junto con los pasos, para tenerlos a mano en el auto.</p>
-    <p class="draft" role="note" id="demo-note" hidden>Estás viendo un ejemplo: este código es de muestra. El real te llega cuando Daniexpress confirma tu pedido.</p>
+    <h1>Instala Tablero en tu radio</h1>
+    <p class="lead">Tablero es gratis y no necesita código ni registro. Son unos 5 minutos, con el auto encendido y tu celular a la mano.</p>
 
-    <div class="code" id="code" role="img" aria-label="Tu código"></div>
     <div class="codebtns">
-      <a class="btn cta" id="wa" href="#" target="_blank" rel="noopener">Enviármelo por WhatsApp</a>
-      <button type="button" class="btn ghost" id="copy">Copiar código</button>
+      <a class="btn cta" href="/app">Descargar la app</a>
     </div>
 
-    <div class="note"><b>Estos pasos se hacen en la pantalla de la radio.</b> No importa si compraste en el celular o en el computador: no tienes que enviar nada al auto. Toma unos 5 minutos, con el auto encendido y tu celular a la mano.</div>
+    <div class="note"><b>Estos pasos se hacen en la pantalla de la radio.</b> Si no puedes descargar desde la radio, baja el archivo en tu celular o computador, pásalo a un pendrive y ábrelo desde la app de archivos de la radio.</div>
 
     <ol class="radio-steps">
-      <li><b>Dale internet a tu radio</b><span>En tu celular activa <strong>Compartir internet</strong> (también se llama Zona Wi-Fi o Hotspot). En la radio entra a <strong>Ajustes → Wi-Fi</strong> y toca el nombre de tu celular.</span></li>
+      <li><b>Dale internet a tu radio</b><span>En tu celular activa <strong>Compartir internet</strong> (también se llama Zona Wi-Fi o Hotspot). En la radio entra a <strong>Ajustes → Wi-Fi</strong> y toca el nombre de tu celular. Solo hace falta para descargar.</span></li>
       <li><b>Descarga la app</b><span>En la radio abre el <strong>navegador</strong> (el globo o Chrome), toca la barra de arriba y escribe la dirección <span class="url" id="url"></span>. Toca <strong>Descargar</strong>.</span></li>
       <li><b>Ábrela e instálala</b><span>Cuando termine, toca <strong>Abrir</strong>. Si dice que no está permitido, toca <strong>Ajustes</strong>, prende el interruptor y vuelve atrás. Luego toca <strong>Instalar</strong>.</span></li>
-      <li><b>Escribe tu código</b><span>El que te mandaste por WhatsApp. Toca <strong>Activar</strong> y tu auto y tu diseño se cargan solos.</span></li>
       <li><b>Déjala como pantalla principal</b><span>Toca el botón de inicio de la radio (la casita o el círculo), elige <strong>Tablero</strong> y luego <strong>Siempre</strong>. Desde ahora la radio arranca con tu pantalla.</span></li>
+      <li><b>Hazla tuya</b><span>Al abrirla por primera vez te guía en tres pasos, todos opcionales. Después, en <strong>Ajustes</strong> eliges la <strong>Apariencia</strong> (tema, distribución, fondo, decoración y color), la <strong>foto de tu auto</strong>, tus avisos de mantención y los botones del volante. Todo se guarda en tu radio, sin internet.</span></li>
     </ol>
 
     <div class="note"><b>¿Ya quedó andando?</b> Si Tablero te gustó, <a href="https://ko-fi.com/daniexpress" target="_blank" rel="noopener">invítame un café ☕</a>. Es opcional y ayuda a seguir mejorándolo.</div>
@@ -45,7 +42,7 @@
     <h2>¿Algo no salió igual?</h2>
     <div class="helps">
       <details><summary>Aparece «Aplicación bloqueada para proteger tu dispositivo»</summary><p>Es un aviso de Google porque la app no viene de Play Store. Toca Entendido. En Play Store entra a tu perfil → Play Protect → engranaje y apaga «Analizar apps con Play Protect». Vuelve a descargar e instalar; después puedes volver a prenderlo. Si tu radio no tiene Play Store, no verás este aviso.</p></details>
-      <details><summary>Mi radio no se conecta a internet</summary><p>La activación necesita internet una sola vez. Revisa la fecha y la hora de la radio y prueba con el internet compartido de tu celular.</p></details>
+      <details><summary>Mi radio no se conecta a internet</summary><p>Solo se necesita internet para descargar la app. Revisa la fecha y la hora de la radio y prueba con el internet compartido de tu celular.</p></details>
       <details><summary>No encuentro el navegador</summary><p>Busca en la lista de apps uno que diga Navegador, Browser o Internet. Si no hay ninguno, descarga el archivo en un pendrive desde el computador, conéctalo a la radio y ábrelo con la app de archivos.</p></details>
       <details><summary>No me sale la opción de elegir Tablero</summary><p>Entra a <b>Ajustes → Apps → Apps predeterminadas → Pantalla de inicio</b> (a veces dice «App de inicio» o «Launcher») y elige Tablero.</p></details>
       <details><summary>Me pide una contraseña</summary><p>Esa es la contraseña de los ajustes de fábrica y no la necesitas. Vuelve atrás y acepta el aviso que sale al tocar Abrir.</p></details>
@@ -66,21 +63,8 @@
   <script>
     (function () {
       var site = (window.TB && window.TB.site) || {};
-      var q = new URLSearchParams(location.search).get('codigo') || '';
-      var ok = /^TBL-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(q.toUpperCase());
-      var code = ok ? q.toUpperCase() : 'TBL-XXXX-XXXX-XXXX';
-      document.getElementById('demo-note').hidden = ok;
-      document.getElementById('code').setAttribute('aria-label', 'Tu código ' + code);
-      document.getElementById('code').innerHTML = code.split('').map(function (ch, i) { return '<span style="animation-delay:' + (200 + i * 45) + 'ms">' + ch + '</span>'; }).join('');
-      var dl = site.downloadUrl ? site.downloadUrl.replace(/^https?:\/\//, '') : '(la dirección de descarga que te enviamos)';
+      var dl = site.downloadUrl ? site.downloadUrl.replace(/^https?:\/\//, '') : 'la dirección de descarga de esta página';
       document.getElementById('url').textContent = dl;
-      var text = 'Mi código de Tablero: ' + code + '\n\nEn el auto, en la pantalla de la radio:\n1. Dale internet a la radio con los datos del celular.\n2. Abre el navegador de la radio y escribe: ' + dl + '\n3. Abre el archivo e instálalo.\n4. Escribe este código y toca Activar.\n5. Toca el botón de inicio y elige Tablero → Siempre.';
-      document.getElementById('wa').href = 'https://wa.me/?text=' + encodeURIComponent(text);
-      var btn = document.getElementById('copy');
-      btn.addEventListener('click', function () {
-        var done = function () { btn.textContent = '¡Copiado!'; setTimeout(function () { btn.textContent = 'Copiar código'; }, 1800); };
-        if (navigator.clipboard) navigator.clipboard.writeText(code).then(done, function () {}); else done();
-      });
       document.getElementById('year').textContent = new Date().getFullYear();
     })();
   </script>

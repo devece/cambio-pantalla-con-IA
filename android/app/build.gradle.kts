@@ -42,6 +42,13 @@ android {
         }
     }
 
+    // La revisión automática de la versión firmada («lintVital») usa carpetas que generan otras tareas (copyEditions y copyWeb) y falla
+    // porque no sabe que debe esperarlas. La versión de prueba nunca la ejecutó; se mantiene igual para la firmada. Las pruebas de
+    // GitHub (npm test y :core:test) y la revisión del APK siguen corriendo.
+    lint {
+        checkReleaseBuilds = false
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false

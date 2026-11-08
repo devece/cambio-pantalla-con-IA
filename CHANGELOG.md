@@ -8,6 +8,7 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 ## [Sin publicar]
 
 ### Agregado
+- **Más lugares para «Invítame un café» en el sitio.** Sección propia antes del cierre de la portada, enlace en el menú y en la barra superior, junto al botón de pedir y en la página de instalación. Sigue siendo opcional.
 - **«Invítame un café».** Un enlace opcional a Ko-fi en el pie del sitio, en la página de instalación y al final de Ajustes en la app. Tablero sigue siendo gratis y nada depende de ese enlace. En una radio sin navegador, el botón avisa en vez de no hacer nada. Además se quitaron dos frases viejas de «te devolvemos tu dinero» de la página de instalación.
 - **Pantalla «Auto» con los datos del scanner.** Con un scanner OBD elegido, aparece «Auto» en la barra de abajo: revoluciones, temperatura
   del motor y voltaje en vivo, la luz del motor y los códigos de falla explicados en palabras simples (solo se leen, no se borran).

@@ -2,7 +2,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { validateOrder, normalizeMobile } = require('../public/shared/order.js');
-const { generateCode, normalizeCode, hashDeviceId, FORMAT } = require('../lib/license.js');
 
 const base = () => ({
   radio: { type: 'android', brand: 'nwd' },
@@ -86,25 +85,6 @@ test('normalizeMobile acepta formatos comunes de Chile', () => {
   assert.equal(normalizeMobile('987654321'), '+56987654321');
   assert.equal(normalizeMobile('56987654321'), '+56987654321');
   assert.equal(normalizeMobile('22345678'), null);
-});
-
-test('códigos de licencia: formato, unicidad y normalización', () => {
-  const seen = new Set();
-  for (let i = 0; i < 500; i++) {
-    const c = generateCode();
-    assert.match(c, FORMAT);
-    seen.add(c);
-  }
-  assert.equal(seen.size, 500);
-  const c = generateCode();
-  assert.equal(normalizeCode(c.toLowerCase().replace(/-/g, ' ')), c);
-  assert.equal(normalizeCode('TBL-1234-5678-9ABC'), null); // contiene caracteres ambiguos
-  assert.equal(normalizeCode('hola'), null);
-});
-
-test('el hash del dispositivo es estable y depende del pepper', () => {
-  assert.equal(hashDeviceId('radio-123456', 'a'), hashDeviceId('radio-123456', 'a'));
-  assert.notEqual(hashDeviceId('radio-123456', 'a'), hashDeviceId('radio-123456', 'b'));
 });
 
 test('la restricción vehicular se calcula con el dígito de la patente (Región Metropolitana)', () => {

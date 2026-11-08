@@ -10,8 +10,7 @@ Un launcher para radios Android de auto, pensado para Chile (restricción vehicu
 
 - **Sitio** estático (HTML/CSS/JS sin build) en `public/`: vista previa de la radio (1024×600) con 9 temas visuales (día y noche), 9 distribuciones, 5 pantallas, fondos, autos en 3D y decoración de temporada (Fiestas Patrias, Halloween, Navidad, Año Nuevo).
 - **App Android** en `android/` (el launcher de la radio): `core` (reglas en Kotlin puro, con pruebas) y `app` (pantallas, GPS, ajustes, scanner OBD opcional).
-- **Funciones de API** (Vercel) en `api/`: `order` (valida y guarda el pedido), `license` (activa un código vinculado a una sola radio), `admin` (panel para entregar códigos), más el análisis opcional de la captura de la radio y de la foto del auto.
-- **Base de datos** Supabase en `supabase/schema.sql` (RLS activado, sin políticas públicas).
+- **Funciones de API** (Vercel) en `api/`: `app` (entrega la APK con el diseño y la foto del cliente ya adentro), `analyze-radio` (analiza la captura de la radio) y `detect-lights` (ubica los faros en la foto del auto). Las dos últimas usan IA y son opcionales. **No hay base de datos ni cuentas**: el sitio no guarda nada de quien lo usa.
 
 ## Cómo se usa (sin pedidos ni códigos)
 
@@ -19,7 +18,7 @@ Un launcher para radios Android de auto, pensado para Chile (restricción vehicu
 2. Descarga la app con su diseño: `GET /api/app?d=…` (o `POST /api/app` con la foto, que no cabe en una dirección; `api/app.js`) toma la APK de `app-latest` y le agrega el diseño y la foto en el bloque de firmas, sin romper la firma (`lib/apk-inject.js`). La foto no se guarda y tiene un tope de tamaño (la respuesta de una función de Vercel no puede pasar de 4,5 MB). Sin diseño, `/app` entrega la APK normal.
 3. Al abrirse por primera vez, la app lee su propio archivo (`ApkBlock.kt`) y aplica el diseño (`DesignImport.kt`). También puede elegir todo en Ajustes → Apariencia y Foto de tu auto. Se guarda en la radio.
 
-Las funciones `api/order`, `api/license` y el panel `admin` quedaron sin uso desde el sitio (solo sirven a radios que ya activaron un código) y se pueden retirar más adelante.
+El antiguo servidor de pedidos y códigos (`api/order`, `api/order-photo`, `api/license`, `api/admin`, la base de datos y el panel `/admin.html`) se retiró: ya no hay códigos. Está en el historial de git si hiciera falta.
 
 ## Cómo correrlo
 
@@ -38,17 +37,14 @@ Copia `.env.example` a `.env`:
 
 | Variable | Para qué |
 |---|---|
-| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Guardar pedidos y licencias |
-| `LICENSE_PEPPER` | Secreto largo y aleatorio para vincular licencias a una radio |
-| `ADMIN_TOKEN` | Clave del panel `/admin.html` |
 | `ANTHROPIC_API_KEY` | Analizar con IA la captura de la radio y los faros de la foto (opcional) |
+| `TABLERO_APK_URL` | De dónde toma el botón «Descargar la app con mi diseño» la APK base (opcional; por defecto, la última compilación) |
 
 ## Publicar en Vercel
 
 1. Sube el repositorio a GitHub e impórtalo en Vercel (la configuración está en `vercel.json`).
-2. Crea el proyecto en Supabase y ejecuta `supabase/schema.sql`.
-3. Carga las variables de entorno en Vercel.
-4. Completa `supportEmail` y `whatsapp` en `public/js/site.js` si quieres que aparezcan en el sitio.
+2. Carga las variables de entorno en Vercel (todas son opcionales).
+3. Completa `supportEmail` y `whatsapp` en `public/js/site.js` si quieres que aparezcan en el sitio.
 
 ## Privacidad y licencia
 

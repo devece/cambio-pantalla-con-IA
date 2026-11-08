@@ -10,6 +10,4 @@ Tablero es gratis: no hay planes, precios ni cobros. Lo que sigue es hacer que l
 ## Después
 - **Conexión OBD (el "Taller")**: km automático, datos del motor y códigos de falla. Plan por fases en [`PLAN_OBD.md`](PLAN_OBD.md).
 - **Límite de velocidad automático por calle**: hoy solo existe el límite fijo (ver `FREE_EDITION.md`).
-- Correo con el código (por ejemplo Resend) con dominio propio, para no depender del mensaje manual.
 - Procesar la foto de fondo (hoy se queda en el navegador y el complemento está oculto).
-- Panel simple para ver pedidos y reenviar códigos (hoy `/admin.html` entrega códigos y administra licencias).

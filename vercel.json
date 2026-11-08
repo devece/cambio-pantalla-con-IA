@@ -68,11 +68,5 @@
       "destination": "/",
       "permanent": false
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/checkout",
-      "destination": "/api/order"
-    }
   ]
 }

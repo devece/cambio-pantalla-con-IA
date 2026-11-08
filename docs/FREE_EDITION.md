@@ -2,7 +2,7 @@
 
 **Por ahora no hay versión de pago: la edición gratuita incluye todo.** El usuario descarga el launcher, lo instala en su radio y puede usar todos los diseños, decoraciones y funciones **sin código**.
 
-**Ya no se piden códigos.** El sitio no emite ni recibe pedidos: el configurador arma el diseño y la APK se descarga con él ya puesto (`api/app.js`), o se elige dentro de la app (Ajustes → Apariencia y Foto de tu auto). La foto del auto también viaja dentro de la APK. La activación de códigos (`TBL-XXXX-XXXX-XXXX`) sigue en el código solo para radios que ya activaron uno; el servidor (`/api/order`, `/api/license`, panel de administración) quedó sin uso desde el sitio y se puede retirar más adelante. No hay planes ni precios.
+**Ya no se piden códigos.** El sitio no emite ni recibe pedidos: el configurador arma el diseño y la APK se descarga con él ya puesto (`api/app.js`), o se elige dentro de la app (Ajustes → Apariencia y Foto de tu auto). La foto del auto también viaja dentro de la APK. La activación de códigos (`TBL-XXXX-XXXX-XXXX`) sigue en el código solo para radios que ya activaron uno; el servidor de pedidos y licencias (`/api/order`, `/api/license`, panel de administración y base de datos) se retiró. No hay planes ni precios.
 
 La fuente de verdad de qué incluye cada nivel es `public/shared/editions.json`. `npm test` comprueba que sea coherente con `catalog.js`.
 

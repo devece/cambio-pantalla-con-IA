@@ -7,6 +7,9 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 
 ## [Sin publicar]
 
+### Agregado
+- **Aviso de actualización dentro de la app.** Al abrir Tablero (con internet) revisa si hay una versión nueva y ofrece «Actualizar ahora» o «Después»; descarga el instalador y Android pide confirmar. Los ajustes y la foto se conservan. En Ajustes → Actualizaciones hay un botón «Buscar actualización». Cada compilación de `main` lleva un número que sube sola (`versionCode`) y publica un `version.json` junto al APK. Requiere que la versión instalada ya esté firmada con la clave fija.
+
 ### Cambiado
 - **Se retiró el código de activación de la app.** Ya no existen la pantalla para escribir un código, su cliente del servidor ni el botón «Activar código» del lanzador. La app queda más liviana y sin nada que apunte a un servidor que ya no existe. Una radio que ya había activado un código conserva su diseño y puede soltarlo desde Ajustes → Apariencia.
 - **Se retiró el servidor de pedidos y códigos.** Ya no existen las funciones `order`, `order-photo`, `license` y `admin`, la base de datos de pedidos ni el panel `/admin.html`: nada del sitio ni de la app nueva las usa. Quedan solo `app` (descarga con tu diseño), `analyze-radio` y `detect-lights`. Una radio que ya había activado un código conserva su diseño en la propia radio.

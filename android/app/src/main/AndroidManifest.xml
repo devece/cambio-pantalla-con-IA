@@ -16,6 +16,9 @@
     <!-- No todas las radios declaran Bluetooth; el scanner es opcional y la app debe poder instalarse igual. -->
     <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
 
+    <!-- Aviso de actualización: instalar la versión nueva de la propia app (Android pide la confirmación al usuario). -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <!-- Ver todas las apps instaladas (el APK no se publica en Play Store): así las reconoce aunque la radio use otro tipo de icono. -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
@@ -53,6 +56,11 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
+
+        <!-- Recibe la respuesta del instalador de Android durante una actualización. -->
+        <receiver
+            android:name=".Updater$UpdateReceiver"
+            android:exported="false" />
 
         <activity
             android:name=".MainActivity"

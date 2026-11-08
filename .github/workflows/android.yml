@@ -78,7 +78,8 @@ jobs:
           TB_KEY_PASSWORD: ${{ secrets.TB_KEY_PASSWORD }}
         run: |
           if [ "${{ steps.sign.outputs.signed }}" = "true" ]; then TASK=:app:assembleRelease; else TASK=:app:assembleDebug; fi
-          ./gradlew --no-daemon $TASK
+          # Cada compilación lleva un número que sube solo: así la app sabe si la publicada es más nueva que la instalada.
+          ./gradlew --no-daemon $TASK -PtableroVersionCode=${{ github.run_number }} -PtableroVersion=1.0.${{ github.run_number }}
 
       - name: Revisar que el APK trae sus datos
         run: |
@@ -93,6 +94,11 @@ jobs:
 
       - name: Dejar el APK con un nombre fijo
         run: cp "${{ steps.sign.outputs.apk }}" tablero.apk
+
+      # Lo que la app consulta para avisar de una versión nueva. Solo con la clave fija: un APK de prueba no se puede instalar encima.
+      - name: Anotar la versión publicada
+        if: steps.sign.outputs.signed == 'true'
+        run: echo '{"versionCode":${{ github.run_number }},"versionName":"1.0.${{ github.run_number }}"}' > version.json
 
       - uses: actions/upload-artifact@v4
         with:
@@ -113,7 +119,10 @@ jobs:
           body: |
             Instalador de la app Tablero para radios Android. Es siempre la última compilación.
             Instrucciones: https://tablero-pearl.vercel.app/listo.html
-          files: tablero.apk
+          files: |
+            tablero.apk
+            version.json
+          fail_on_unmatched_files: false
           prerelease: false
           make_latest: 'false'
 

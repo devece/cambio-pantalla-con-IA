@@ -238,6 +238,16 @@ class SettingsActivity : Activity() {
             setOnClickListener { openCoffee() }
         })
 
+        section("Actualizaciones")
+        form.addView(TextView(this).apply {
+            text = "Versión instalada: ${Updater.installedName()}. Tablero avisa solo cuando hay una nueva (necesita internet)."
+            setTextColor(Ui.SUB)
+        })
+        form.addView(Button(this).apply {
+            text = "Buscar actualización"
+            setOnClickListener { Updater.checkAndOffer(this@SettingsActivity, manual = true) }
+        })
+
         section("Ayuda")
         form.addView(Button(this).apply {
             text = "Diagnóstico de la radio"

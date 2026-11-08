@@ -54,7 +54,7 @@ Elige una forma:
 
 Si la radio bloquea la instalación, activa *Instalar apps de orígenes desconocidos* (o te lleva ahí cuando pulses instalar). Si aparece «Aplicación bloqueada para proteger tu dispositivo» (Google Play Protect), es porque la app no viene de Play Store: toca *Más detalles* y luego *Instalar de todos modos*. La guía con pasos está en https://tablero-pearl.vercel.app/listo.
 
-> **Si ya tenías una versión anterior** y la radio dice que no puede actualizar o hay un conflicto, desinstala la anterior y vuelve a instalar. No está confirmado que todas las compilaciones se firmen con la misma clave.
+> **Si ya tenías una versión anterior** instalada antes de la clave fija, desinstálala una vez e instala la nueva. Desde esa versión, la app avisa sola cuando hay otra y se actualiza encima (*Ajustes → Actualizaciones → Buscar actualización*).
 
 ## 3. Abrirla y dejarla como inicio
 

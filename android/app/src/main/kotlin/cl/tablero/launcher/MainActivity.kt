@@ -105,6 +105,7 @@ class MainActivity : Activity() {
         entitlement = EntitlementStore(this)
         settings = SettingsStore(this)
         importApkDesign()
+        Updater.checkAndOffer(this, manual = false)
         maintenance = Maintenance.parse(assets.open("maintenance.json").bufferedReader().use { it.readText() })
         restriction = RestrictionRules.parse(assets.open("restriction.json").bufferedReader().use { it.readText() })
     }

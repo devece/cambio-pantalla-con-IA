@@ -428,7 +428,9 @@ h1 em, h2 em { font-style: normal; background: linear-gradient(90deg, #ff3a1a, #
 .support p { margin: 12px auto 0; max-width: 560px; color: var(--ink2); font-size: 17px; }
 .support .hero-cta { justify-content: center; margin-top: 22px; }
 
-.stats-line { color: var(--ink2); font-size: 14px; }
+.stats-top { text-align: center; padding: 8px 16px; font-size: 14px; line-height: 1.4; color: var(--ink); background: rgba(255, 255, 255, .09); border-bottom: 1px solid var(--borde); }
+.stats-top[hidden] { display: none; }
+.stats-top b { color: var(--amarillo); font-weight: 700; }
 
 .legal h3 { font: 600 18px/1.2 var(--display); margin: 20px 0 6px; color: var(--ink); }
 .legal h3 small { font-weight: 400; color: var(--ink2); font-size: 14px; }

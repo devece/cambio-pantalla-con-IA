@@ -37,7 +37,9 @@ android {
                 storeFile = file(keystorePath)
                 storePassword = System.getenv("TB_KEYSTORE_PASSWORD")
                 keyAlias = System.getenv("TB_KEY_ALIAS")
-                keyPassword = System.getenv("TB_KEY_PASSWORD")
+                // Si el secreto de la clave viene vacío, se usa el del almacén (en un almacén PKCS12 nuevo son iguales).
+                keyPassword = System.getenv("TB_KEY_PASSWORD").takeUnless { it.isNullOrEmpty() }
+                    ?: System.getenv("TB_KEYSTORE_PASSWORD")
             }
         }
     }

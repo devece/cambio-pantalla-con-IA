@@ -197,7 +197,9 @@ class ObdPoller(
             health = readHealth(s) ?: health
             nextHealthAt = clock() + HEALTH_EVERY_MS
         }
-        listener.onSnapshot(ObdSnapshot(LinkedHashMap(latest), supported ?: emptySet(), s.adapter, clock(), health))
+        val shown = LinkedHashMap(latest)
+        ObdFuel.addDerived(shown)
+        listener.onSnapshot(ObdSnapshot(shown, supported ?: emptySet(), s.adapter, clock(), health))
         return if (latest["rpm"] == 0.0) ENGINE_OFF_MS else FAST_MS
     }
 

@@ -25,9 +25,12 @@ object ObdPids {
         PidSpec(0x0C, "rpm", "Revoluciones", "rpm", 2) { (256 * it[0] + it[1]) / 4.0 },
         PidSpec(0x0D, "speed", "Velocidad", "km/h", 1) { it[0].toDouble() },
         PidSpec(0x0F, "intake", "Temperatura del aire de admisión", "°C", 1) { it[0] - 40.0 },
+        PidSpec(0x10, "maf", "Flujo de aire del motor", "g/s", 2) { (256 * it[0] + it[1]) / 100.0 },
         PidSpec(0x11, "throttle", "Posición del acelerador", "%", 1) { it[0] * 100.0 / 255 },
         PidSpec(0x2F, "fuel", "Nivel de combustible", "%", 1) { it[0] * 100.0 / 255 },
         PidSpec(0x42, "voltage", "Voltaje del auto", "V", 2) { (256 * it[0] + it[1]) / 1000.0 },
+        // Gasto de combustible directo del auto (litros por hora). Solo algunos autos lo entregan.
+        PidSpec(0x5E, "fuelrate", "Gasto de combustible", "L/h", 2) { (256 * it[0] + it[1]) / 20.0 },
         // Solo algunos autos recientes lo entregan; en la mayoría el kilometraje real del tablero no se puede leer por OBD.
         PidSpec(0xA6, "odometer", "Kilometraje", "km", 4) {
             ((it[0].toLong() shl 24) or (it[1].toLong() shl 16) or (it[2].toLong() shl 8) or it[3].toLong()) / 10.0

@@ -46,6 +46,13 @@ class ObdPidsTest {
     }
 
     @Test
+    fun `flujo de aire y gasto de combustible`() {
+        assertEquals(10.0, value(0x10, 0x03, 0xE8), 0.0001) // 1000 / 100 g/s
+        assertEquals(6.0, value(0x5E, 0x00, 0x78), 0.0001) // 120 / 20 L/h
+        assertEquals(3276.75, value(0x5E, 0xFF, 0xFF), 0.0001)
+    }
+
+    @Test
     fun `presion de admision`() {
         assertEquals(101.0, value(0x0B, 101), 0.001)
     }

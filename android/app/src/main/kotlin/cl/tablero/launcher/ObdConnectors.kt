@@ -6,9 +6,14 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import cl.tablero.core.ElmStreamTransport
 import cl.tablero.core.ObdChannel
 import cl.tablero.core.ObdConnector
@@ -29,7 +34,7 @@ data class PairedDevice(val name: String, val address: String) {
     }
 }
 
-/** Todo lo de Bluetooth para el scanner. Solo se usa el permiso de conectarse a un dispositivo ya emparejado. */
+/** Todo lo de Bluetooth para el scanner. */
 object ObdBluetooth {
     /** El canal serie estándar (SPP) que usan los ELM327 Bluetooth. */
     val SPP_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
@@ -37,6 +42,16 @@ object ObdBluetooth {
     /** Desde Android 12 hay que pedir el permiso de Bluetooth en pantalla; antes basta con declararlo. */
     fun hasPermission(c: Context): Boolean =
         Build.VERSION.SDK_INT < 31 || c.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+
+    /** Los permisos que faltan para buscar scanners cerca: Android 12+ pide los de Bluetooth; Android 6 a 11 pide la ubicación para buscar. */
+    fun missingScanPermissions(c: Context): Array<String> {
+        val needed = when {
+            Build.VERSION.SDK_INT >= 31 -> listOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
+            Build.VERSION.SDK_INT >= 23 -> listOf(Manifest.permission.ACCESS_FINE_LOCATION)
+            else -> emptyList()
+        }
+        return needed.filter { c.checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }.toTypedArray()
+    }
 
     fun adapter(c: Context): BluetoothAdapter? =
         (c.applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
@@ -74,11 +89,6 @@ class BluetoothObdConnector(private val context: Context, private val address: S
             } catch (e: IllegalArgumentException) {
                 throw IOException("La dirección del adaptador no es válida. Elígelo de nuevo en Ajustes.")
             }
-            if (device.bondState != BluetoothDevice.BOND_BONDED) {
-                throw IOException(
-                    "El adaptador no está emparejado con la radio. Emparéjalo primero en los ajustes de Bluetooth de la radio (la clave suele ser 1234 o 0000).",
-                )
-            }
             try {
                 adapter.cancelDiscovery() // una búsqueda en curso hace lenta o falla la conexión
             } catch (e: SecurityException) {
@@ -98,9 +108,12 @@ class BluetoothObdConnector(private val context: Context, private val address: S
 
     @SuppressLint("MissingPermission", "DiscouragedPrivateApi")
     private fun connect(device: BluetoothDevice): BluetoothSocket {
+        // Sin emparejar (por ejemplo, si la radio no deja emparejar scanners en sus ajustes) se prueba primero la conexión sin
+        // clave, que aceptan casi todos los ELM327; si no, Android pide la clave (1234 o 0000) al conectar.
+        val secure: () -> BluetoothSocket = { device.createRfcommSocketToServiceRecord(ObdBluetooth.SPP_UUID) }
+        val insecure: () -> BluetoothSocket = { device.createInsecureRfcommSocketToServiceRecord(ObdBluetooth.SPP_UUID) }
         val attempts: List<() -> BluetoothSocket> = listOf(
-            { device.createRfcommSocketToServiceRecord(ObdBluetooth.SPP_UUID) },
-            { device.createInsecureRfcommSocketToServiceRecord(ObdBluetooth.SPP_UUID) },
+            *(if (device.bondState == BluetoothDevice.BOND_BONDED) arrayOf(secure, insecure) else arrayOf(insecure, secure)),
             // Último recurso para clones que no anuncian el servicio: canal 1 directo (método oculto; puede no existir).
             { device.javaClass.getMethod("createRfcommSocket", Int::class.javaPrimitiveType).invoke(device, 1) as BluetoothSocket },
         )
@@ -120,7 +133,8 @@ class BluetoothObdConnector(private val context: Context, private val address: S
             }
         }
         throw IOException(
-            "No se pudo conectar al adaptador. Revisa que esté enchufado al auto y que ningún otro aparato (como tu teléfono) esté conectado a él.",
+            "No se pudo conectar al adaptador. Revisa que esté enchufado al auto, con el contacto puesto, y que ningún otro aparato (como tu teléfono) esté conectado a él." +
+                if (device.bondState == BluetoothDevice.BOND_BONDED) "" else " Si Android pide una clave, es 1234 o 0000.",
             last,
         )
     }
@@ -168,5 +182,94 @@ object ObdConnectors {
             ObdLinkKind.WIFI -> WifiObdConnector(config.address, config.port)
             ObdLinkKind.OFF -> null
         }
+    }
+}
+
+/**
+ * Búsqueda de scanners cerca desde la propia app, para radios cuyos ajustes de Bluetooth solo muestran teléfonos.
+ * Dura unos 15 segundos. Al terminar (o al cancelar) entrega los dispositivos vistos, los que parecen scanners primero.
+ */
+class ObdDiscovery(private val context: Context, private val onDone: (List<PairedDevice>) -> Unit) {
+    private val found = LinkedHashMap<String, PairedDevice>()
+    private val handler = Handler(Looper.getMainLooper())
+    private var receiver: BroadcastReceiver? = null
+    private var finished = false
+
+    /** Empieza la búsqueda. False si la radio no tiene Bluetooth, está apagado o Android no la dejó empezar. */
+    @SuppressLint("MissingPermission")
+    fun start(): Boolean {
+        val adapter = ObdBluetooth.adapter(context) ?: return false
+        return try {
+            if (!adapter.isEnabled) return false
+            // Los ya emparejados también cuentan, por si el scanner ya estaba y solo faltaba elegirlo.
+            ObdBluetooth.paired(context)?.forEach { found[it.address] = it }
+            val r = object : BroadcastReceiver() {
+                override fun onReceive(c: Context, intent: Intent) {
+                    when (intent.action) {
+                        BluetoothDevice.ACTION_FOUND -> {
+                            @Suppress("DEPRECATION")
+                            val d: BluetoothDevice? = if (Build.VERSION.SDK_INT >= 33) {
+                                intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+                            } else {
+                                intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                            }
+                            d?.let {
+                                val name = try { it.name } catch (e: SecurityException) { null }
+                                found[it.address] = PairedDevice(name?.takeIf { n -> n.isNotBlank() } ?: it.address, it.address)
+                            }
+                        }
+                        BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> finish()
+                    }
+                }
+            }
+            val filter = IntentFilter().apply {
+                addAction(BluetoothDevice.ACTION_FOUND)
+                addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+            }
+            if (Build.VERSION.SDK_INT >= 33) context.registerReceiver(r, filter, Context.RECEIVER_EXPORTED) else context.registerReceiver(r, filter)
+            receiver = r
+            if (adapter.isDiscovering) adapter.cancelDiscovery()
+            val ok = adapter.startDiscovery()
+            if (!ok) {
+                stop()
+                return false
+            }
+            handler.postDelayed({ finish() }, MAX_MS)
+            true
+        } catch (e: SecurityException) {
+            stop()
+            false
+        }
+    }
+
+    /** Termina y entrega lo encontrado. */
+    fun finish() {
+        if (finished) return
+        stop()
+        onDone(found.values.sortedWith(compareByDescending<PairedDevice> { it.looksLikeObd }.thenBy { it.name.lowercase() }))
+    }
+
+    /** Termina sin entregar nada (la pantalla se cerró). */
+    @SuppressLint("MissingPermission")
+    fun stop() {
+        finished = true
+        handler.removeCallbacksAndMessages(null)
+        try {
+            ObdBluetooth.adapter(context)?.cancelDiscovery()
+        } catch (e: SecurityException) {
+            // sin permiso: ya no importa
+        }
+        receiver?.let {
+            try {
+                context.unregisterReceiver(it)
+            } catch (e: IllegalArgumentException) {
+                // ya estaba desregistrado
+            }
+        }
+        receiver = null
+    }
+
+    private companion object {
+        const val MAX_MS = 20_000L
     }
 }

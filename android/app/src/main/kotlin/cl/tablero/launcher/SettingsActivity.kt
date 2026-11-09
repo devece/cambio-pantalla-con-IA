@@ -93,6 +93,9 @@ class SettingsActivity : Activity() {
     private var obdName = ""
     private var obdAddress = ""
     private var afterBluetoothPermission: (() -> Unit)? = null
+    private var afterScanPermission: (() -> Unit)? = null
+    private var discovery: ObdDiscovery? = null
+    private var scanDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -641,12 +644,16 @@ class SettingsActivity : Activity() {
         obdDeviceText = TextView(this).apply { setTextColor(Ui.TEXT) }
         obdBluetoothBox.addView(obdDeviceText)
         obdBluetoothBox.addView(Button(this).apply {
-            text = "Elegir el scanner Bluetooth"
-            setOnClickListener { pickBluetoothDevice() }
+            text = "Buscar scanner cerca"
+            setOnClickListener { searchScanner() }
         })
         obdBluetoothBox.addView(TextView(this).apply {
-            text = "Primero empareja el scanner desde los ajustes de Bluetooth de la radio (la clave suele ser 1234 o 0000)."
+            text = "Con el scanner enchufado y el contacto puesto. Sirve aunque los ajustes de Bluetooth de la radio solo dejen emparejar teléfonos. Si Android pide una clave, es 1234 o 0000."
             setTextColor(Ui.SUB)
+        })
+        obdBluetoothBox.addView(Button(this).apply {
+            text = "Elegir uno ya emparejado"
+            setOnClickListener { pickBluetoothDevice() }
         })
         form.addView(obdBluetoothBox)
 
@@ -726,8 +733,82 @@ class SettingsActivity : Activity() {
         requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQ_BLUETOOTH)
     }
 
+    /** Pide los permisos para buscar scanners cerca (si faltan) y sigue con [block] cuando el usuario los da. */
+    private fun withScanPermission(block: () -> Unit) {
+        val missing = ObdBluetooth.missingScanPermissions(this)
+        if (missing.isEmpty()) {
+            block()
+            return
+        }
+        afterScanPermission = block
+        requestPermissions(missing, REQ_SCAN)
+    }
+
+    /** Busca scanners Bluetooth cerca y deja elegir uno, sin pasar por los ajustes de Bluetooth de la radio. */
+    private fun searchScanner() = withScanPermission {
+        discovery?.stop()
+        val d = ObdDiscovery(this) { devices ->
+            scanDialog?.dismiss()
+            scanDialog = null
+            if (!isFinishing) showScanResults(devices)
+        }
+        discovery = d
+        if (!d.start()) {
+            discovery = null
+            Toast.makeText(this, "No se pudo buscar. Revisa que el Bluetooth de la radio esté encendido.", Toast.LENGTH_LONG).show()
+            return@withScanPermission
+        }
+        scanDialog = AlertDialog.Builder(this)
+            .setTitle("Buscando scanners cerca…")
+            .setMessage("Unos 15 segundos. El scanner debe estar enchufado y con el contacto puesto, y sin otro aparato conectado a él.")
+            .setNegativeButton("Terminar ya") { _, _ -> d.finish() }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun showScanResults(devices: List<PairedDevice>) {
+        if (devices.isEmpty()) {
+            AlertDialog.Builder(this)
+                .setTitle("No se encontró ninguno")
+                .setMessage(
+                    "Revisa que el scanner esté enchufado, con el contacto puesto, y que ningún teléfono esté conectado a él. " +
+                        "Algunos scanners Bluetooth 4.0 (BLE) todavía no son compatibles: aparecen en el celular, pero no aquí.",
+                )
+                .setPositiveButton("Entendido", null)
+                .show()
+            return
+        }
+        val labels = devices.map { (if (it.looksLikeObd) "★ " else "") + it.name + "\n" + it.address }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle("Elige tu scanner OBD")
+            .setItems(labels) { _, i ->
+                obdName = devices[i].name
+                obdAddress = devices[i].address
+                refreshObd()
+                Toast.makeText(this, "Listo. Pulsa «Probar conexión». Si Android pide una clave, es 1234 o 0000.", Toast.LENGTH_LONG).show()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    override fun onDestroy() {
+        discovery?.stop()
+        scanDialog?.dismiss()
+        super.onDestroy()
+    }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQ_SCAN) {
+            val next = afterScanPermission
+            afterScanPermission = null
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                next?.invoke()
+            } else {
+                Toast.makeText(this, "Sin el permiso no se puede buscar el scanner.", Toast.LENGTH_LONG).show()
+            }
+            return
+        }
         if (requestCode != REQ_BLUETOOTH) return
         val next = afterBluetoothPermission
         afterBluetoothPermission = null
@@ -805,6 +886,7 @@ class SettingsActivity : Activity() {
 
     private companion object {
         const val REQ_BLUETOOTH = 71
+        const val REQ_SCAN = 72
         const val COFFEE_URL = "https://ko-fi.com/daniexpress"
         const val REQ_PHOTO = 41
     }

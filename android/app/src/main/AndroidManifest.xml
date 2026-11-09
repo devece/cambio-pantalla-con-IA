@@ -13,6 +13,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- Buscar el scanner desde la app (Android 12+), sin usarlo para saber dónde estás. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
     <!-- No todas las radios declaran Bluetooth; el scanner es opcional y la app debe poder instalarse igual. -->
     <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
 

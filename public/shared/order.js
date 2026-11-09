@@ -8,13 +8,14 @@
 })(typeof self !== 'undefined' ? self : this, function (C) {
   const HEX = /^#[0-9a-fA-F]{6}$/;
   const EMAIL = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,}$/;
-  // Celulares: Chile +56 9 XXXX XXXX · Colombia +57 3XX XXX XXXX · Ecuador +593 9X XXX XXXX (con o sin espacios y con o sin el prefijo)
+  // Celulares: Chile +56 9 XXXX XXXX · Colombia +57 3XX XXX XXXX · Ecuador +593 9X XXX XXXX · México +52 XX XXXX XXXX (con o sin espacios y con o sin el prefijo)
   const MOBILE = {
     CL: { re: /^(?:\+?56)?9\d{8}$/, prefix: '+56', tail: 9, example: '+56 9 1234 5678', name: 'chileno' },
     CO: { re: /^(?:\+?57)?3\d{9}$/, prefix: '+57', tail: 10, example: '+57 300 123 4567', name: 'colombiano' },
     EC: { re: /^(?:\+?593)?0?9\d{8}$/, prefix: '+593', tail: 9, example: '+593 99 123 4567', name: 'ecuatoriano' },
+    MX: { re: /^(?:\+?52)?1?\d{10}$/, prefix: '+52', tail: 10, example: '+52 55 1234 5678', name: 'mexicano' },
   };
-  const COUNTRIES = ['CL', 'CO', 'EC'];
+  const COUNTRIES = ['CL', 'CO', 'EC', 'MX'];
 
   const str = (v, max) =>
     typeof v === 'string' ? v.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, max) : '';

@@ -37,6 +37,14 @@ Revisado el **2026-11-05**, salvo Chile (**2026-11-02**). Para cada ciudad se an
 - **No se leyó la ordenanza ni un comunicado de la AMT.** Se menciona un sistema de «tercera placa» para fines de 2026 que cambiaría la regla.
 - La nota no aclara si la regla es para todo el Distrito Metropolitano o solo la zona urbana; el polígono cubre el área urbana.
 
+## Ciudad de México, México · prensa
+
+- Fuente: [N+, calendario del 19 al 24 de octubre de 2026](https://www.nmas.com.mx/ciudad-de-mexico/movilidad/hoy-no-circula-19-24-octubre-2026-cdmx-edomex-engomados-placas-con-restriccion-dia-horario/). Otras notas de prensa coinciden.
+- Se leyó: lunes terminación 5 y 6, martes 7 y 8, miércoles 3 y 4, jueves 1 y 2, viernes 9 y 0; de 5:00 a 22:00. Aplica a autos con holograma 1 y 2; los de holograma 0 y 00, eléctricos e híbridos están exentos.
+- **No se pudo abrir el sitio oficial** (cdmx.gob.mx): no se leyó el programa ni la norma.
+- **Los sábados no están incluidos.** Rige para holograma 1 y 2, pero las notas no coinciden sobre cuáles placas (pares o impares) descansan cada sábado. Tampoco las contingencias ambientales.
+- La regla no distingue por holograma: el aviso de la radio dice que si el auto es 0 o 00 no aplica.
+
 ## Zonas
 
 Todos los polígonos son aproximados y los dibujó una persona a ojo sobre el área urbana. No son límites legales.

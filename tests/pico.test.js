@@ -46,6 +46,20 @@ test('una regla vencida no afirma nada y manda a revisar la fuente oficial', () 
   assert.equal(P.sampleDate(m, 5, at(2027, 1, 4)), null, 'no inventa un día de ejemplo con una regla vencida');
 });
 
+test('Hoy No Circula de la Ciudad de México: un día por dígito, de 5:00 a 22:00 y aviso de exenciones', () => {
+  const m = city('cdmx');
+  assert.equal(P.isRestricted(m, 5, at(2026, 10, 19)), true, 'lunes: 5 y 6');
+  assert.equal(P.isRestricted(m, 0, at(2026, 10, 23)), true, 'viernes: 9 y 0');
+  assert.equal(P.restrictedDigits(m, at(2026, 10, 24)), null, 'sábado no se incluye');
+  const n = P.notice(m, 5, at(2026, 10, 19, 8, 0));
+  assert.equal(n.warn, true);
+  assert.match(n.text, /holograma 0 o 00/);
+  assert.equal(P.notice(m, 5, at(2026, 10, 19, 23, 0)), null, 'ya pasó el horario');
+  assert.equal(P.cityAt(19.43, -99.13, 'MX').id, 'cdmx');
+  assert.equal(P.cityAt(19.43, -99.13, 'CO'), null);
+  assert.match(P.describe(m, 5), /te toca el lunes/);
+});
+
 test('la ciudad se detecta por GPS y solo dentro del país elegido', () => {
   assert.equal(P.cityAt(4.65, -74.08, 'CO').id, 'bogota');
   assert.equal(P.cityAt(6.25, -75.57, 'CO').id, 'medellin');

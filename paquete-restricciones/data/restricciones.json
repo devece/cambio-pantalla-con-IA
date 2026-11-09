@@ -18,6 +18,11 @@
    "id": "EC",
    "name": "Ecuador",
    "label": "pico y placa"
+  },
+  {
+   "id": "MX",
+   "name": "México",
+   "label": "Hoy No Circula"
   }
  ],
  "cities": [
@@ -520,6 +525,89 @@
     [
      -0.2,
      -78.56
+    ]
+   ]
+  },
+  {
+   "id": "cdmx",
+   "country": "MX",
+   "name": "Ciudad de México",
+   "label": "Hoy No Circula",
+   "confidence": "prensa",
+   "sources": [
+    "https://www.nmas.com.mx/ciudad-de-mexico/movilidad/hoy-no-circula-19-24-octubre-2026-cdmx-edomex-engomados-placas-con-restriccion-dia-horario/"
+   ],
+   "checkedAt": "2026-11-09",
+   "validFrom": null,
+   "validTo": null,
+   "note": "Calendario de lunes a viernes para autos con holograma 1 y 2. Los autos con holograma 0 y 00, los eléctricos y los híbridos están exentos. Los sábados también rige para holograma 1 y 2 con otras reglas, y en contingencia ambiental pueden sumarse más restricciones: esos casos no están incluidos.",
+   "months": null,
+   "weekdays": [
+    "lun",
+    "mar",
+    "mie",
+    "jue",
+    "vie"
+   ],
+   "hours": [
+    [
+     300,
+     1320
+    ]
+   ],
+   "rule": {
+    "kind": "weekday",
+    "days": {
+     "lun": [
+      5,
+      6
+     ],
+     "mar": [
+      7,
+      8
+     ],
+     "mie": [
+      3,
+      4
+     ],
+     "jue": [
+      1,
+      2
+     ],
+     "vie": [
+      9,
+      0
+     ]
+    }
+   },
+   "zone": [
+    [
+     19.2,
+     -99.35
+    ],
+    [
+     19.55,
+     -99.3
+    ],
+    [
+     19.6,
+     -99.05
+    ],
+    [
+     19.5,
+     -98.95
+    ],
+    [
+     19.3,
+     -98.95
+    ],
+    [
+     19.15,
+     -99.05
+    ],
+    [
+     19.15,
+     -99.25
     ]
    ]
   }

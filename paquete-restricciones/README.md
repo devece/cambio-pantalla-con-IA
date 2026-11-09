@@ -15,6 +15,7 @@ Nació dentro de [Tablero](https://tablero-pearl.vercel.app) y se ofrece para qu
 | Medellín y Valle de Aburrá | Colombia | prensa | 2026-08-03 a 2026-12-31 |
 | Cali | Colombia | prensa | 2026-07-01 a 2026-12-31 |
 | Quito | Ecuador | prensa | sin fecha: se anuncia un cambio a fines de 2026 |
+| Ciudad de México | México | prensa | sin fecha: confirmar cada año; solo lunes a viernes |
 
 «Oficial» significa que se leyó en un sitio de la autoridad. «Prensa» significa que viene de medios de comunicación que citan a la autoridad. Detalle de cada fuente y lo que **no** se pudo comprobar en [docs/FUENTES.md](docs/FUENTES.md).
 
@@ -35,7 +36,7 @@ docs/FUENTES.md, ACTUALIZAR.md
 Cada ciudad trae:
 
 - `rule`: cómo se decide quién tiene restricción. Hay tres tipos:
-  - `weekday`: dígitos por día de la semana (Medellín, Cali, Quito).
+  - `weekday`: dígitos por día de la semana (Medellín, Cali, Quito, Ciudad de México).
   - `parity`: dígitos según si el **día del mes** es impar o par (Bogotá).
   - `classes`: distinto según la clase de vehículo (Chile: con sello verde, sin sello, inscrito desde 2011), con la opción `alwaysBanned` para quien no puede circular en la zona sin importar el dígito.
 - `weekdays`, `hours` (franjas `[inicio, fin)` en minutos desde la medianoche) y `months` (temporada, o `null` si rige todo el año).

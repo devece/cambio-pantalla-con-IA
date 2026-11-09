@@ -1,5 +1,5 @@
 /*
- * Pico y placa de Colombia y Ecuador (Chile tiene su propio módulo: catalog.restriction).
+ * Pico y placa de Colombia y Ecuador, y Hoy No Circula de México (Chile tiene su propio módulo: catalog.restriction).
  * Corre igual en el navegador (window.TBPico) y en Node (require).
  *
  * IMPORTANTE: estas reglas CAMBIAN. En Colombia rotan cada semestre (Cali, Medellín) o incluso por fecha (Bogotá), y en Ecuador
@@ -15,6 +15,7 @@
     { id: 'CL', name: 'Chile', label: 'restricción vehicular' },
     { id: 'CO', name: 'Colombia', label: 'pico y placa' },
     { id: 'EC', name: 'Ecuador', label: 'pico y placa' },
+    { id: 'MX', name: 'México', label: 'Hoy No Circula' },
   ];
 
   const WEEK = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'];
@@ -63,6 +64,17 @@
       source: 'https://www.expreso.ec/quito/pico-placa-quito-2026-restriccion-vehicular-placas-terminadas-3-4-286671.html',
       note: 'Según la AMT (por la prensa). Se habla de un sistema de "tercera placa" para fines de 2026, que cambiaría las reglas. No rige en feriados.',
       zone: [[-0.33, -78.54], [-0.33, -78.48], [-0.2, -78.44], [-0.05, -78.44], [0.0, -78.46], [-0.05, -78.52], [-0.2, -78.56]],
+    },
+    {
+      id: 'cdmx', country: 'MX', name: 'Ciudad de México', label: 'Hoy No Circula',
+      rule: { kind: 'weekday', days: { lun: [5, 6], mar: [7, 8], mie: [3, 4], jue: [1, 2], vie: [9, 0] } },
+      weekdays: LABORAL, hours: [[300, 1320]],
+      validFrom: null, validTo: null,
+      confidence: 'prensa', checkedAt: '2026-11-09',
+      source: 'https://www.nmas.com.mx/ciudad-de-mexico/movilidad/hoy-no-circula-19-24-octubre-2026-cdmx-edomex-engomados-placas-con-restriccion-dia-horario/',
+      note: 'Calendario de lunes a viernes para autos con holograma 1 y 2. Los autos con holograma 0 y 00, los eléctricos y los híbridos están exentos. Los sábados también rige para holograma 1 y 2 con otras reglas, y en contingencia ambiental pueden sumarse más restricciones: esos casos no están incluidos.',
+      extra: 'Si tu auto tiene holograma 0 o 00 (o es eléctrico o híbrido), no te aplica.',
+      zone: [[19.2, -99.35], [19.55, -99.3], [19.6, -99.05], [19.5, -98.95], [19.3, -98.95], [19.15, -99.05], [19.15, -99.25]],
     },
   ];
 
@@ -120,7 +132,7 @@
     const inside = city.hours.some(([start, end]) => minutes >= start && minutes < end);
     return {
       warn: inside,
-      text: `Entraste a ${city.name}. Hoy tienes ${city.label} (placa terminada en ${digit}): rige ${hoursText(city)}.`,
+      text: `Entraste a ${city.name}. Hoy tienes ${city.label} (placa terminada en ${digit}): rige ${hoursText(city)}.${city.extra ? ' ' + city.extra : ''}`,
     };
   }
 
@@ -138,7 +150,7 @@
     const vig = city.validTo ? ` Vigente hasta el ${city.validTo}; después hay que revisar la nueva rotación.` : '';
     const src = city.confidence === 'oficial' ? 'Fuente oficial.' : 'Fuente: prensa; confírmalo en la secretaría de movilidad de tu ciudad.';
     const dias = city.rule.kind === 'parity' ? ', de lunes a viernes' : '';
-    return `${city.name}: con placa terminada en ${d}, ${when}, ${hoursText(city)}${dias}.${vig} ${src}`;
+    return `${city.name}: con placa terminada en ${d}, ${when}, ${hoursText(city)}${dias}.${vig}${city.extra ? ' ' + city.extra : ''} ${src}`;
   }
 
   /** Un día (a las 10:00) en que a esa placa le toca, dentro de las próximas 2 semanas; null si no hay. */

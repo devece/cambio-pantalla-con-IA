@@ -8,7 +8,7 @@ object ObdFuel {
     /** Densidad de la bencina, en gramos por litro. */
     private const val GASOLINE_G_PER_L = 740.0
 
-    /** Bajo esta velocidad (km/h) no se calcula litros cada 100 km: con el auto casi detenido el número no significa nada. */
+    /** Bajo esta velocidad (km/h) no se calcula el rendimiento: con el auto casi detenido el número no significa nada. */
     const val MIN_SPEED_KMH = 5.0
 
     /**
@@ -21,17 +21,17 @@ object ObdFuel {
         return maf * 3600.0 / (GASOLINE_AIR_FUEL * GASOLINE_G_PER_L)
     }
 
-    /** Litros cada 100 km al instante. Null si el auto va casi detenido o falta algún dato. */
-    fun litersPer100Km(litersPerHour: Double?, speedKmh: Double?): Double? {
-        if (litersPerHour == null || speedKmh == null || speedKmh < MIN_SPEED_KMH) return null
-        return litersPerHour / speedKmh * 100.0
+    /** Rendimiento al instante, en km por litro. Null si el auto va casi detenido, no gasta o falta algún dato. */
+    fun kmPerLiter(litersPerHour: Double?, speedKmh: Double?): Double? {
+        if (litersPerHour == null || litersPerHour <= 0.0 || speedKmh == null || speedKmh < MIN_SPEED_KMH) return null
+        return speedKmh / litersPerHour
     }
 
-    /** Agrega al mapa de valores el gasto (`flow`, L/h) y el consumo (`l100`, L/100 km) cuando se pueden calcular. */
+    /** Agrega al mapa de valores el gasto (`flow`, L/h) y el rendimiento (`kml`, km/L) cuando se pueden calcular. */
     fun addDerived(values: MutableMap<String, Double>) {
         val flow = litersPerHour(values)
         if (flow != null) values["flow"] = flow else values.remove("flow")
-        val l100 = litersPer100Km(flow, values["speed"])
-        if (l100 != null) values["l100"] = l100 else values.remove("l100")
+        val kml = kmPerLiter(flow, values["speed"])
+        if (kml != null) values["kml"] = kml else values.remove("kml")
     }
 }

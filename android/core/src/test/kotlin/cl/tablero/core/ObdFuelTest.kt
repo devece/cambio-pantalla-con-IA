@@ -23,15 +23,16 @@ class ObdFuelTest {
     }
 
     @Test
-    fun `litros cada 100 km`() {
-        assertEquals(6.0, ObdFuel.litersPer100Km(6.0, 100.0)!!, 0.0001)
+    fun `kilometros por litro`() {
+        assertEquals(12.5, ObdFuel.kmPerLiter(8.0, 100.0)!!, 0.0001)
     }
 
     @Test
     fun `casi detenido no se calcula`() {
-        assertNull(ObdFuel.litersPer100Km(1.0, 3.0))
-        assertNull(ObdFuel.litersPer100Km(null, 60.0))
-        assertNull(ObdFuel.litersPer100Km(5.0, null))
+        assertNull(ObdFuel.kmPerLiter(1.0, 3.0))
+        assertNull(ObdFuel.kmPerLiter(null, 60.0))
+        assertNull(ObdFuel.kmPerLiter(5.0, null))
+        assertNull(ObdFuel.kmPerLiter(0.0, 60.0))
     }
 
     @Test
@@ -39,9 +40,9 @@ class ObdFuelTest {
         val v = mutableMapOf("fuelrate" to 5.0, "speed" to 50.0)
         ObdFuel.addDerived(v)
         assertEquals(5.0, v.getValue("flow"), 0.0001)
-        assertEquals(10.0, v.getValue("l100"), 0.0001)
+        assertEquals(10.0, v.getValue("kml"), 0.0001)
         v["speed"] = 0.0
         ObdFuel.addDerived(v)
-        assertFalse("l100" in v)
+        assertFalse("kml" in v)
     }
 }

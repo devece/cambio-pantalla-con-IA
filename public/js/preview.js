@@ -274,7 +274,7 @@
   const DEMO_OBD = {
     state: 'connected',
     detail: 'Conectado (ejemplo)',
-    values: { rpm: 1850, coolant: 90, voltage: 13.9, fuel: 62, flow: 5.4, l100: 7.8 },
+    values: { rpm: 1850, coolant: 90, voltage: 13.9, fuel: 62, flow: 5.4, kml: 12.8 },
     health: { milOn: true, count: 1, codes: [{ code: 'P0171', system: 'Combustible y aire', text: 'La mezcla de aire y combustible tiene demasiado aire (muy pobre). Revisa mangueras de aire y el filtro, o consulta a un mecánico.', known: true }] },
   };
   /** El scanner según la radio, o de ejemplo en el sitio. Null si no hay scanner elegido (entonces no se ofrece la pantalla). */
@@ -285,7 +285,7 @@
     ['voltage', 'Voltaje', 'V', (v) => v.toFixed(1)],
     ['fuel', 'Combustible en el estanque', '%', (v) => String(Math.round(v))],
     ['flow', 'Gasto de combustible', 'L/h', (v) => v.toFixed(1)],
-    ['l100', 'Consumo', 'L/100 km', (v) => v.toFixed(1)],
+    ['kml', 'Rendimiento', 'km/L', (v) => v.toFixed(1)],
   ];
   const obdNum = (o, key, fmtFn) => (o && o.values && typeof o.values[key] === 'number' ? fmtFn(o.values[key]) : '—');
   function obdHealthHtml(o) {

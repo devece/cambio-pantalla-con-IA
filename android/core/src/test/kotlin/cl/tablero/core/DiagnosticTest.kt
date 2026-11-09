@@ -21,6 +21,12 @@ class DiagnosticTest {
     }
 
     @Test
+    fun `muestra el estado del Bluetooth de Android si se pudo leer`() {
+        assertTrue("Bluetooth de Android: apagado, 0 emparejados" in Diagnostic.report(base.copy(bluetooth = "apagado, 0 emparejados")))
+        assertFalse("Bluetooth de Android" in Diagnostic.report(base))
+    }
+
+    @Test
     fun `sin acceso a las notificaciones dice que no se puede saber la radio FM`() {
         val r = Diagnostic.report(base.copy(notificationAccess = false))
         assertTrue("No se puede saber: falta el acceso a las notificaciones" in r)

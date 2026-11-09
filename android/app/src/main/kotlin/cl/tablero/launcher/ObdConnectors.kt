@@ -185,6 +185,9 @@ object ObdConnectors {
     }
 }
 
+/** Cómo salió el intento de empezar la búsqueda: así se le dice al usuario la causa exacta y no un «no se pudo». */
+enum class ScanStart { OK, NO_ADAPTER, OFF, REFUSED, NO_PERMISSION }
+
 /**
  * Búsqueda de scanners cerca desde la propia app, para radios cuyos ajustes de Bluetooth solo muestran teléfonos.
  * Dura unos 15 segundos. Al terminar (o al cancelar) entrega los dispositivos vistos, los que parecen scanners primero.
@@ -195,12 +198,12 @@ class ObdDiscovery(private val context: Context, private val onDone: (List<Paire
     private var receiver: BroadcastReceiver? = null
     private var finished = false
 
-    /** Empieza la búsqueda. False si la radio no tiene Bluetooth, está apagado o Android no la dejó empezar. */
+    /** Empieza la búsqueda y dice cómo salió: [ScanStart.OK] si arrancó, o por qué no. */
     @SuppressLint("MissingPermission")
-    fun start(): Boolean {
-        val adapter = ObdBluetooth.adapter(context) ?: return false
+    fun start(): ScanStart {
+        val adapter = ObdBluetooth.adapter(context) ?: return ScanStart.NO_ADAPTER
         return try {
-            if (!adapter.isEnabled) return false
+            if (!adapter.isEnabled) return ScanStart.OFF
             // Los ya emparejados también cuentan, por si el scanner ya estaba y solo faltaba elegirlo.
             ObdBluetooth.paired(context)?.forEach { found[it.address] = it }
             val r = object : BroadcastReceiver() {
@@ -232,13 +235,13 @@ class ObdDiscovery(private val context: Context, private val onDone: (List<Paire
             val ok = adapter.startDiscovery()
             if (!ok) {
                 stop()
-                return false
+                return ScanStart.REFUSED
             }
             handler.postDelayed({ finish() }, MAX_MS)
-            true
+            ScanStart.OK
         } catch (e: SecurityException) {
             stop()
-            false
+            ScanStart.NO_PERMISSION
         }
     }
 

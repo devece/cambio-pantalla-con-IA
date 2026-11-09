@@ -753,9 +753,10 @@ class SettingsActivity : Activity() {
             if (!isFinishing) showScanResults(devices)
         }
         discovery = d
-        if (!d.start()) {
+        val started = d.start()
+        if (started != ScanStart.OK) {
             discovery = null
-            Toast.makeText(this, "No se pudo buscar. Revisa que el Bluetooth de la radio esté encendido.", Toast.LENGTH_LONG).show()
+            showScanProblem(started)
             return@withScanPermission
         }
         scanDialog = AlertDialog.Builder(this)
@@ -764,6 +765,36 @@ class SettingsActivity : Activity() {
             .setNegativeButton("Terminar ya") { _, _ -> d.finish() }
             .setCancelable(false)
             .show()
+    }
+
+    /** Dice la causa exacta de por qué no arrancó la búsqueda. */
+    private fun showScanProblem(why: ScanStart) {
+        val b = AlertDialog.Builder(this).setNegativeButton("Cerrar", null)
+        when (why) {
+            ScanStart.NO_ADAPTER -> b.setTitle("Esta radio no tiene Bluetooth de Android")
+                .setMessage(
+                    "El Bluetooth de algunas radios es un módulo aparte, solo para llamadas, y Android no lo ve. " +
+                        "Ahí no se puede conectar un scanner Bluetooth; un scanner Wi-Fi sí sirve. " +
+                        "Mándame una foto de Ajustes → Ayuda → Diagnóstico de la radio y lo reviso.",
+                )
+            ScanStart.OFF -> b.setTitle("El Bluetooth de la radio está apagado")
+                .setMessage("Enciéndelo y vuelve a pulsar «Buscar scanner cerca».")
+                .setPositiveButton("Encender") { _, _ ->
+                    try {
+                        startActivity(android.content.Intent(android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE))
+                    } catch (e: Exception) {
+                        Toast.makeText(this, "No se pudo. Enciéndelo desde los ajustes de la radio.", Toast.LENGTH_LONG).show()
+                    }
+                }
+            ScanStart.REFUSED -> b.setTitle("Android no dejó empezar la búsqueda")
+                .setMessage(
+                    "Puede que el Bluetooth de la radio esté ocupado (una llamada o música). Espera un momento y prueba de nuevo. " +
+                        "Si sigue igual, mándame una foto de Ajustes → Ayuda → Diagnóstico de la radio.",
+                )
+            else -> b.setTitle("Falta el permiso")
+                .setMessage("Sin el permiso de Bluetooth no se puede buscar. Dalo en los ajustes de la radio: Apps → Tablero → Permisos.")
+        }
+        b.show()
     }
 
     private fun showScanResults(devices: List<PairedDevice>) {

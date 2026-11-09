@@ -109,7 +109,24 @@ class DiagnosticActivity : Activity() {
             sessions = if (access) mediaSessions() else emptyList(),
             assignedWheelKeys = SettingsStore(this).load().wheelKeys.size,
             keysSeen = keysSeen.toList(),
+            bluetooth = bluetoothState(),
         )
+    }
+
+    /** Lo que ve Android del Bluetooth de la radio: sirve para saber por qué un scanner no se encuentra. */
+    private fun bluetoothState(): String = try {
+        val adapter = ObdBluetooth.adapter(this)
+        if (adapter == null) {
+            "no existe en esta radio"
+        } else {
+            val on = runCatching { adapter.isEnabled }.getOrDefault(false)
+            val paired = ObdBluetooth.paired(this)?.size
+            (if (on) "encendido" else "apagado") + ", " +
+                (paired?.let { "$it emparejados" } ?: "sin permiso para ver los emparejados") + ", " +
+                "permiso de búsqueda: " + if (ObdBluetooth.missingScanPermissions(this).isEmpty()) "sí" else "no"
+        }
+    } catch (e: Exception) {
+        "no se pudo leer"
     }
 
     private fun mediaSessions(): List<MediaSessionInfo> = try {

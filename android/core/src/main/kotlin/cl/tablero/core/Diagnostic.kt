@@ -20,6 +20,8 @@ data class DiagnosticInfo(
     val assignedWheelKeys: Int,
     /** Códigos de tecla que llegaron mientras la pantalla de diagnóstico estaba abierta, del más viejo al más nuevo. */
     val keysSeen: List<Int>,
+    /** Estado del Bluetooth de Android de la radio («encendido, 2 emparejados…» o «no existe»); null si no se pudo saber. */
+    val bluetooth: String? = null,
 )
 
 /**
@@ -40,6 +42,7 @@ object Diagnostic {
         line("Pantalla de inicio de Android", when (info.isHomeApp) { true -> "es Tablero"; false -> "es otra app"; null -> "no se pudo saber" })
         line("Permiso de ubicación", yesNo(info.locationPermission))
         line("Acceso a las notificaciones", yesNo(info.notificationAccess))
+        info.bluetooth?.let { line("Bluetooth de Android", it) }
 
         appendLine()
         appendLine("Radio FM")

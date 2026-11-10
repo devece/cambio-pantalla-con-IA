@@ -65,7 +65,8 @@
             android:exported="false" />
 
         <!-- nosensor: usa la orientación de fábrica de la pantalla de la radio (horizontal en casi todas, vertical en las de 9,7"),
-             sin girar con el sensor. Así una radio horizontal sigue igual que antes. -->
+             sin girar con el sensor. Así una radio horizontal sigue igual que antes, y en una vertical el inicio usa su diseño
+             vertical (public/js/preview.js y public/css/preview.css). -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

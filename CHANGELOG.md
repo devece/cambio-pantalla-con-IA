@@ -7,6 +7,8 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 
 ## [Sin publicar]
 
+## [0.2.0] - 2026-11-10
+
 ### Agregado
 - **Diseño para radios verticales.** En una radio de pantalla vertical (por ejemplo 768 × 1024, o las de 9:16) la pantalla de inicio ya no es la horizontal achicada con franjas: las 9 distribuciones se reordenan para ocupar toda la pantalla (en Consola, el mapa grande arriba y tu auto y la música abajo; en Estelar, la hora arriba, el auto al centro y la música y el clima abajo; y así cada una). La barra de abajo pasa a dos filas, y Radio, Bluetooth, Mantención y Auto también se acomodan a lo alto. La app lo elige sola según la pantalla de la radio, con el mismo diseño que ya tenías. En el configurador del sitio hay un interruptor **Horizontal / Vertical** sobre la vista previa para ver cómo queda. Probado en el navegador a 768 × 1024, 800 × 1280 y 1080 × 1920; falta probarlo en una radio vertical real.
 - **Video de presentación en la portada.** Una sección nueva, antes de «¿Te suena?», con un video de un minuto y medio que muestra los diseños, tu auto, las decoraciones de temporada, los avisos y el scanner OBD con pantallas reales de la app. No se descarga hasta que aprietas reproducir (pesa 6 MB).

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Sintetiza desde cero la música del video de Tablero (sin muestras ni librerías de audio).
 
-120 BPM, La menor, progresión Am – F – C – G (un acorde por compás), 39 compases = 78 s.
+96 BPM, La menor, progresión Am – F – C – G (un acorde por compás), 39 compases = 97,5 s.
 Instrumentos: pad (sierras desafinadas con filtro aditivo), pluck en corcheas con eco,
 bajo, bombo, hi-hat, clap y un lead sencillo. Todo es numpy puro.
 
@@ -13,9 +13,9 @@ import wave
 import numpy as np
 
 SR = 44100
-BPM = 120
-BEAT = 60.0 / BPM           # 0,5 s
-BAR = BEAT * 4              # 2 s
+BPM = 96
+BEAT = 60.0 / BPM           # 0,625 s
+BAR = BEAT * 4              # 2,5 s
 BARS = 39
 DUR = BARS * BAR            # 48 s
 N = int(SR * DUR)

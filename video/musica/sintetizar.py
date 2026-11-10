@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Sintetiza desde cero la música del video de Tablero (sin muestras ni librerías de audio).
 
-120 BPM, La menor, progresión Am – F – C – G (un acorde por compás), 27 compases = 54 s.
+120 BPM, La menor, progresión Am – F – C – G (un acorde por compás), 39 compases = 78 s.
 Instrumentos: pad (sierras desafinadas con filtro aditivo), pluck en corcheas con eco,
 bajo, bombo, hi-hat, clap y un lead sencillo. Todo es numpy puro.
 
@@ -16,7 +16,7 @@ SR = 44100
 BPM = 120
 BEAT = 60.0 / BPM           # 0,5 s
 BAR = BEAT * 4              # 2 s
-BARS = 27
+BARS = 39
 DUR = BARS * BAR            # 48 s
 N = int(SR * DUR)
 rng = np.random.default_rng(7)
@@ -95,9 +95,14 @@ LEAD = {
     20: [(0, 84, 1.5), (2, 81, 0.5), (3, 79, 1.0)],
     21: [(0, 81, 1.5), (2, 79, 0.5), (3, 76, 1.0)],
 }
-LEAD[25] = [(0, 76, 2.0), (2, 72, 2.0)]   # cierre
-LEAD[26] = [(0, 69, 4.0)]
-LEAD[22], LEAD[23], LEAD[24] = LEAD[16], LEAD[17], LEAD[18]
+# la frase de 16 compases se repite hasta el cierre, respetando el acorde de cada compás
+_base = dict(LEAD)
+_orden = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 14, 15]
+LEAD = {b: _base[_orden[(b - 8) % 16]] for b in range(8, BARS - 2)}
+LEAD[BARS - 2] = [(0, 76, 2.0), (2, 72, 2.0)]   # cierre
+LEAD[BARS - 1] = [(0, 69, 4.0)]
+PAUSA = (19, 20)        # respiro sin bombo ni bajo antes de la segunda mitad
+REDOBLES = (3, 7, 20, 29)
 
 
 # ---------------------------------------------------------------- instrumentos
@@ -226,7 +231,7 @@ for bar in range(BARS):
             put(pluckR, t0 + i * BEAT / 2, s, stereo_gain * np.sin(a))
 
     # bajo: desde el compás 4
-    if 4 <= bar < BARS - 2:
+    if 4 <= bar < BARS - 2 and bar not in PAUSA:
         pat = [(0, 1.5), (2.5, 0.5), (3, 0.75), (3.5, 0.5)]
         for off, ln in pat:
             put(bassM, t0 + off * BEAT, bass(midi(root + (12 if off == 3.5 else 0)), ln * BEAT * 0.95), 0.62)
@@ -235,7 +240,7 @@ for bar in range(BARS):
     if bar >= 2 and bar < BARS - 2:
         for i in range(8):                       # hats en corcheas
             put(drums, t0 + i * BEAT / 2, hat(open_=(i % 4 == 3)), 0.28 if i % 2 else 0.2)
-    if 4 <= bar < BARS - 2:
+    if 4 <= bar < BARS - 2 and bar not in PAUSA:
         for b in range(4):                       # bombo a negras
             ts = t0 + b * BEAT
             put(drums, ts, kick(), 0.95)
@@ -246,7 +251,7 @@ for bar in range(BARS):
                 (0.42 + 0.58 * (1 - np.exp(-seg / SR * 11)))[: len(kick_env[i0:i0 + len(seg)])])
         for b in (1, 3):                         # clap en 2 y 4
             put(drums, t0 + b * BEAT, clap(), 0.55)
-    if bar in (3, 7):                            # redoble antes de los cambios
+    if bar in REDOBLES:                            # redoble antes de los cambios
         for i in range(8):
             put(drums, t0 + BAR - BEAT + i * BEAT / 8, clap(), 0.18 + i * 0.05)
     if bar == BARS - 2:                                # compás final: solo un bombo y un platillo

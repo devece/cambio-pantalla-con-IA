@@ -87,6 +87,13 @@
       .paso span { display: block; font-size: 29px; font-weight: 500; color: var(--ink2); margin-top: 14px; line-height: 1.3; }
       .cta { position: absolute; left: 330px; top: 680px; width: 1260px; height: 150px; border-radius: 80px; background: linear-gradient(90deg, #ffc83d, #ffa13d); color: #1a1230; font-size: 58px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 24px; box-shadow: 0 24px 80px rgba(255, 190, 60, 0.5); letter-spacing: -0.02em; }
 
+      /* ---------- tarjetas de funciones y ventajas ---------- */
+      .card { position: absolute; width: 400px; height: 240px; padding: 30px; border-radius: 30px; background: var(--glass); border: 2px solid var(--glass-line); border-top: 8px solid var(--amarillo); }
+      .card b { display: block; font-size: 38px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.12; }
+      .card span { display: block; font-size: 27px; font-weight: 500; color: var(--ink2); margin-top: 12px; line-height: 1.3; }
+      .v6b { position: absolute; width: 820px; height: 100px; display: flex; align-items: center; gap: 24px; padding: 0 30px; border-radius: 24px; background: var(--glass); border: 2px solid var(--glass-line); font-size: 36px; font-weight: 700; }
+      .v6b i { width: 52px; height: 52px; border-radius: 50%; background: var(--amarillo); flex: none; display: grid; place-items: center; }
+
       /* ---------- transición y progreso ---------- */
       #wipe { position: absolute; top: -50px; left: 0; width: 2200px; height: 1180px; background: linear-gradient(100deg, var(--violeta), var(--magenta) 60%, var(--amarillo)); transform: skewX(-8deg); z-index: 50; }
       #prog { position: absolute; left: 0; bottom: 0; height: 8px; width: 1920px; background: linear-gradient(90deg, var(--amarillo), var(--magenta)); z-index: 60; transform-origin: left center; }
@@ -94,12 +101,12 @@
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="54" data-width="1920" data-height="1080">
+    <div id="root" data-composition-id="main" data-start="0" data-duration="78" data-width="1920" data-height="1080">
 
       <!-- Música sintetizada desde cero (video/musica/sintetizar.py) -->
-      <audio id="musica" src="assets/musica.mp3" data-start="0" data-duration="54" data-volume="1"></audio>
+      <audio id="musica" src="assets/musica.mp3" data-start="0" data-duration="78" data-volume="1"></audio>
 
-      <div id="bg" class="clip" data-start="0" data-duration="54">
+      <div id="bg" class="clip" data-start="0" data-duration="78">
         <div class="orb" id="o1"></div><div class="orb" id="o2"></div><div class="orb" id="o3"></div>
       </div>
 
@@ -123,10 +130,11 @@
             </div>
             <div class="h-xl" style="font-size: 132px">Tablero</div>
           </div>
-          <p class="lead" id="lead2" style="margin-top: 40px">El launcher para <b style="color:#fff">radios Android de auto</b>. Para Chile, Colombia, Ecuador y México.</p>
+          <p class="lead" id="lead2" style="margin-top: 40px">El launcher para <b style="color:#fff">radios Android de auto</b>. Funciona en cualquier país.</p>
           <div id="chips2" style="margin-top: 48px; display: flex; gap: 16px; flex-wrap: wrap">
             <span class="chip"><i class="dot"></i>100% gratis</span>
-            <span class="chip"><i class="dot" style="background:var(--cian)"></i>Sin cuentas</span>
+            <span class="chip"><i class="dot" style="background:var(--cian)"></i>Sin anuncios ni cuentas</span>
+            <span class="chip"><i class="dot" style="background:var(--magenta)"></i>Android 5+</span>
           </div>
         </div>
         <div id="persp2" class="abs" style="left: 820px; top: 190px; width: 1000px; perspective: 2200px">
@@ -208,8 +216,62 @@
         <div class="lead abs" id="sub4" style="left: 1260px; top: 900px; width: 560px; font-size: 32px">Se oscura cuando anochece donde está tu auto. Sin internet.</div>
       </div>
 
+      <!-- ===== 4b · TU AUTO (24–30 s) ===== -->
+      <div id="s4b" class="scene clip" data-start="24" data-duration="6">
+        <div class="device" id="dev4b" style="left: 110px; top: 250px; width: 1010px">
+          <div class="scr">
+            <img src="assets/cristal-centro-dia.jpg" alt="Auto al centro, de día" />
+            <img id="noche4b" src="assets/cristal-centro-noche.jpg" alt="Auto al centro, de noche" />
+          </div>
+        </div>
+        <div class="abs" style="left: 1190px; top: 120px; width: 650px">
+          <div class="h-lg" id="h4b" style="font-size: 78px">Tu auto, <span class="grad">protagonista</span></div>
+          <div style="display: flex; flex-direction: column; gap: 22px; margin-top: 44px">
+            <div class="fila f4b"><div><b>Tu foto, sin fondo</b><span>La recortamos en tu celular</span></div></div>
+            <div class="fila f4b"><div><b>De noche, con luces</b><span>Tu auto con los faros encendidos</span></div></div>
+            <div class="fila f4b"><div><b>Te saluda por tu nombre</b><span>Saludo por voz al encender el auto</span></div></div>
+            <div class="fila f4b"><div><b>Tu frase y tus colores</b><span>Fondos, escenas y color de acento</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 4c · DECORACIONES DE TEMPORADA (30–36 s) ===== -->
+      <div id="s4c" class="scene clip" data-start="30" data-duration="6">
+        <div class="h-lg" style="position: absolute; left: 0; width: 1920px; top: 70px; text-align: center">
+          <span class="w4c" style="display:inline-block">Se viste</span>
+          <span class="w4c grad" style="display:inline-block">de fiesta</span>
+        </div>
+        <div class="device" id="dev4c" style="left: 460px; top: 230px; width: 1000px">
+          <div class="scr" id="scr4c">
+            <img class="t4c" src="assets/temp-patrias.jpg" alt="Decoración de Fiestas Patrias" />
+            <img class="t4c" src="assets/temp-halloween.jpg" alt="Decoración de Halloween" />
+            <img class="t4c" src="assets/temp-navidad.jpg" alt="Decoración de Navidad" />
+            <img class="t4c" src="assets/temp-anonuevo.jpg" alt="Decoración de Año Nuevo" />
+          </div>
+        </div>
+        <div id="chips4c" class="abs" style="left: 0; width: 1920px; top: 870px; display: flex; justify-content: center; gap: 22px">
+          <span class="chip">Fiestas Patrias</span><span class="chip">Halloween</span><span class="chip">Navidad</span><span class="chip">Año Nuevo</span>
+        </div>
+        <div class="lead abs" id="sub4c" style="left: 0; width: 1920px; top: 965px; text-align: center; font-size: 32px">Decoraciones de temporada: cambian solas según la fecha.</div>
+      </div>
+
+      <!-- ===== 4d · AL VOLANTE (36–42 s) ===== -->
+      <div id="s4d" class="scene clip" data-start="36" data-duration="6">
+        <div class="h-lg" id="h4d" style="position: absolute; left: 0; width: 1920px; top: 90px; text-align: center; font-size: 80px">
+          Todo a la vista <span class="grad2">mientras manejas</span>
+        </div>
+        <div class="card c4d" style="left: 115px; top: 290px; border-top-color: #29c6f5"><b>Mapa en vivo</b><span>Tu posición y rumbo, también sin internet</span></div>
+        <div class="card c4d" style="left: 545px; top: 290px; border-top-color: #ff4fa3"><b>Música con carátula</b><span>Canción, artista y botones a la vista</span></div>
+        <div class="card c4d" style="left: 975px; top: 290px; border-top-color: #ffc83d"><b>Android Auto y CarPlay</b><span>Un botón para cada uno</span></div>
+        <div class="card c4d" style="left: 1405px; top: 290px; border-top-color: #ff4a4a"><b>Velocidad y límite</b><span>Te avisa si pasas el límite que fijes</span></div>
+        <div class="card c4d" style="left: 115px; top: 570px; border-top-color: #9b8cff"><b>Radio FM</b><span>Emisora y frecuencia en pantalla</span></div>
+        <div class="card c4d" style="left: 545px; top: 570px; border-top-color: #ffc83d"><b>Botones del volante</b><span>Tú eliges qué hace cada uno</span></div>
+        <div class="card c4d" style="left: 975px; top: 570px; border-top-color: #29c6f5"><b>Clima</b><span>Temperatura y sensación térmica</span></div>
+        <div class="card c4d" style="left: 1405px; top: 570px; border-top-color: #ff4fa3"><b>Tus apps a un toque</b><span>Maps, Waze, Spotify y las que elijas</span></div>
+      </div>
+
       <!-- ===== 5 · MANTENCIÓN (24–30 s) ===== -->
-      <div id="s5" class="scene clip" data-start="24" data-duration="6">
+      <div id="s5" class="scene clip" data-start="42" data-duration="6">
         <div class="device" id="dev5" style="left: 110px; top: 250px; width: 1010px">
           <div class="scr"><img src="assets/costa-mant-noche.jpg" alt="Pantalla de mantención" /></div>
         </div>
@@ -225,16 +287,17 @@
       </div>
 
       <!-- ===== 5b · RESTRICCIONES (30–36 s) ===== -->
-      <div id="s5b" class="scene clip" data-start="30" data-duration="6">
+      <div id="s5b" class="scene clip" data-start="48" data-duration="6">
         <div class="abs" style="left: 110px; top: 130px; width: 760px">
-          <div class="h-lg" id="h5b" style="font-size: 80px">Tu restricción, <span class="grad">donde estés</span></div>
-          <p class="lead" id="lead5b" style="font-size: 32px; margin-top: 22px">La radio usa el GPS: al entrar a la ciudad te avisa en pantalla y por voz si hoy te toca.</p>
+          <div class="h-lg" id="h5b" style="font-size: 80px">Avisos de restricción <span class="grad">por GPS</span></div>
+          <p class="lead" id="lead5b" style="font-size: 32px; margin-top: 22px">Te avisa al entrar a la ciudad si hoy te toca.</p>
           <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 34px">
             <div class="fila f5b" style="padding: 18px 30px"><div><b>Chile</b><span>Restricción vehicular · Santiago</span></div></div>
             <div class="fila f5b" style="padding: 18px 30px"><div><b>Colombia</b><span>Pico y placa · Bogotá, Medellín, Cali</span></div></div>
             <div class="fila f5b" style="padding: 18px 30px"><div><b>México</b><span>Hoy No Circula · Ciudad de México</span></div></div>
             <div class="fila f5b" style="padding: 18px 30px"><div><b>Ecuador</b><span>Pico y placa · Quito</span></div></div>
           </div>
+          <div class="chip" id="otros5b" style="margin-top: 22px; background: var(--amarillo); color: #1a1230; border-color: transparent">¿Otro país? Todo lo demás funciona igual</div>
         </div>
         <div class="device" id="dev5b" style="left: 900px; top: 250px; width: 940px">
           <div class="scr" id="scr5b">
@@ -247,7 +310,7 @@
       </div>
 
       <!-- ===== 6 · SCANNER OBD (30–36 s) ===== -->
-      <div id="s6" class="scene clip" data-start="36" data-duration="6">
+      <div id="s6" class="scene clip" data-start="54" data-duration="6">
         <div class="abs" style="left: 110px; top: 150px; width: 700px">
           <div class="chip" id="chip6" style="font-size: 28px"><i class="dot" style="background:var(--cian)"></i>Scanner OBD2 · opcional</div>
           <div class="h-lg" id="h6" style="margin-top: 36px">Tu auto <span class="grad2">te habla</span></div>
@@ -262,8 +325,25 @@
         </div>
       </div>
 
+      <!-- ===== 6b · VENTAJAS (60–66 s) ===== -->
+      <div id="s6b" class="scene clip" data-start="60" data-duration="6">
+        <div class="h-lg" id="h6b" style="position: absolute; left: 0; width: 1920px; top: 90px; text-align: center; font-size: 84px">
+          Y <span class="grad">sin letra chica</span>
+        </div>
+        <div class="v6b" style="left: 125px; top: 270px"><i><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a1230" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Gratis, sin planes ni cobros</div>
+        <div class="v6b" style="left: 975px; top: 270px"><i><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a1230" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Sin anuncios</div>
+        <div class="v6b" style="left: 125px; top: 394px"><i><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a1230" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Sin cuentas ni registro</div>
+        <div class="v6b" style="left: 975px; top: 394px"><i><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a1230" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Tus datos se quedan en tu radio</div>
+        <div class="v6b" style="left: 125px; top: 518px"><i><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a1230" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Sin root ni flashear</div>
+        <div class="v6b" style="left: 975px; top: 518px"><i><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a1230" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Se desinstala como cualquier app</div>
+        <div class="v6b" style="left: 125px; top: 642px"><i><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a1230" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Desde Android 5</div>
+        <div class="v6b" style="left: 975px; top: 642px"><i><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a1230" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Pantallas horizontales y verticales</div>
+        <div class="v6b" style="left: 125px; top: 766px"><i><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a1230" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Se actualiza desde la misma app</div>
+        <div class="v6b" style="left: 975px; top: 766px"><i><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1a1230" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Km o millas · reloj de 12 o 24 h</div>
+      </div>
+
       <!-- ===== 7 · DESCARGA (36–42 s) ===== -->
-      <div id="s7" class="scene clip" data-start="42" data-duration="6">
+      <div id="s7" class="scene clip" data-start="66" data-duration="6">
         <div class="h-lg" id="h7" style="position: absolute; left: 0; width: 1920px; top: 70px; text-align: center; font-size: 80px">
           Diséñala en el sitio. <span class="grad">Descárgala lista.</span>
         </div>
@@ -282,7 +362,7 @@
       </div>
 
       <!-- ===== 8 · CIERRE (42–48 s) ===== -->
-      <div id="s8" class="scene clip" data-start="48" data-duration="6">
+      <div id="s8" class="scene clip" data-start="72" data-duration="6">
         <div class="device" id="d8a" style="left: 40px; top: 560px; width: 760px"><div class="scr"><img src="assets/costa-lateral-dia.jpg" alt="" /></div></div>
         <div class="device" id="d8b" style="left: 1120px; top: 560px; width: 760px"><div class="scr"><img src="assets/patagonia-manejo-noche.jpg" alt="" /></div></div>
         <div class="device" id="d8c" style="left: 580px; top: 640px; width: 760px"><div class="scr"><img src="assets/ruta-estelar-noche.jpg" alt="" /></div></div>
@@ -294,14 +374,14 @@
             <div class="h-xl" style="font-size: 190px">Tablero</div>
           </div>
           <div class="h-md" id="tag8" style="margin-top: 26px"><span class="grad">Tu radio. Tu pantalla.</span></div>
-          <div class="lead" id="sub8" style="margin-top: 14px; font-size: 34px">Gratis · para radios Android de auto</div>
+          <div class="lead" id="sub8" style="margin-top: 14px; font-size: 34px">Gratis · para radios Android de auto · en cualquier país</div>
         </div>
       </div>
 
       <!-- transición, progreso y fundido final -->
-      <div id="wipe" class="clip" data-start="0" data-duration="54"></div>
-      <div id="prog" class="clip" data-start="0" data-duration="54"></div>
-      <div id="negro" class="clip" data-start="0" data-duration="54"></div>
+      <div id="wipe" class="clip" data-start="0" data-duration="78"></div>
+      <div id="prog" class="clip" data-start="0" data-duration="78"></div>
+      <div id="negro" class="clip" data-start="0" data-duration="78"></div>
     </div>
 
     <script>
@@ -312,14 +392,14 @@
       const q = (s) => gsap.utils.toArray(s);
 
       /* --- fondo: los orbes derivan lento durante todo el video --- */
-      tl.to("#o1", { x: 380, y: 260, duration: 54, ease: "none" }, 0);
-      tl.to("#o2", { x: -420, y: -240, duration: 54, ease: "none" }, 0);
-      tl.to("#o3", { x: -300, y: 200, duration: 54, ease: "none" }, 0);
-      tl.fromTo("#prog", { scaleX: 0 }, { scaleX: 1, duration: 54, ease: "none" }, 0);
+      tl.to("#o1", { x: 380, y: 260, duration: 78, ease: "none" }, 0);
+      tl.to("#o2", { x: -420, y: -240, duration: 78, ease: "none" }, 0);
+      tl.to("#o3", { x: -300, y: 200, duration: 78, ease: "none" }, 0);
+      tl.fromTo("#prog", { scaleX: 0 }, { scaleX: 1, duration: 78, ease: "none" }, 0);
 
       /* --- transiciones (cada 2 s = 1 compás; centradas en el cambio de escena) --- */
       tl.set("#wipe", { x: -2300 }, 0);
-      [4, 10, 18, 24, 30, 36, 42, 48].forEach((b) => {
+      [4, 10, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72].forEach((b) => {
         tl.to("#wipe", { x: 0, duration: 0.25, ease: "power2.in" }, b - 0.25);
         tl.to("#wipe", { x: 2300, duration: 0.3, ease: "power2.out" }, b);
         tl.set("#wipe", { x: -2300 }, b + 0.31);
@@ -377,60 +457,93 @@
       tl.to("#div4", { opacity: 0, duration: 0.2 }, 21.2);
       tl.to("#knob4", { x: 190, duration: 0.5, ease: "power2.inOut" }, 20);
       tl.to("#lbDia", { color: "#ffffff", duration: 0.3 }, 20);
+      tl.to("#lbNoche", { color: "#1a1230", duration: 0.3 }, 20.2);
+      tl.to("#lbNoche path", { fill: "#1a1230", duration: 0.3 }, 20.2);
       tl.from("#sub4", { y: 30, opacity: 0, duration: 0.5, ease: OUT }, 21.5);
       tl.to("#dev4", { boxShadow: "0 0 0 2px #2b2b44, 0 50px 120px rgba(0,0,0,.6), 0 0 190px rgba(41,198,245,.5)", duration: 1.2 }, 20);
 
-      /* ===== 5 · mantención ===== */
-      tl.from("#dev5", { x: -200, opacity: 0, duration: 0.7, ease: OUT }, 24.15);
-      tl.from("#h5", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 24.3);
-      tl.from(".f5", { x: 120, opacity: 0, duration: 0.5, stagger: 0.5, ease: OUT }, 25);
-      tl.to("#dev5", { scale: 1.04, duration: 5, ease: "sine.inOut" }, 24.5);
+      /* ===== 4b · tu auto ===== */
+      tl.from("#dev4b", { x: -200, opacity: 0, duration: 0.7, ease: OUT }, 24.15);
+      tl.from("#h4b", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 24.3);
+      tl.from(".f4b", { x: 120, opacity: 0, duration: 0.5, stagger: 0.5, ease: OUT }, 25);
+      tl.fromTo("#noche4b", { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "power2.inOut" }, 27.5);
+      tl.to("#dev4b", { scale: 1.04, duration: 5, ease: "sine.inOut" }, 24.5);
 
-      /* ===== 5b · restricciones: un país cada 1,5 s ===== */
-      tl.from("#h5b", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 30.3);
-      tl.from("#lead5b", { y: 30, opacity: 0, duration: 0.5, ease: OUT }, 30.8);
-      tl.from("#dev5b", { x: 200, opacity: 0, duration: 0.7, ease: OUT }, 30.15);
+      /* ===== 4c · decoraciones de temporada: una por segundo ===== */
+      tl.from(".w4c", { y: 60, opacity: 0, duration: 0.5, stagger: 0.25, ease: OUT }, 30.2);
+      tl.from("#dev4c", { y: 120, opacity: 0, scale: 0.9, duration: 0.7, ease: OUT }, 30.4);
+      tl.from("#chips4c .chip", { y: 30, opacity: 0, duration: 0.35, stagger: 0.1, ease: OUT }, 30.7);
+      const temps = q("#scr4c .t4c");
+      const tchips = q("#chips4c .chip");
+      tl.set(tchips, { opacity: 0.5 }, 30);
+      temps.forEach((im, i) => {
+        const t = 31 + i;
+        if (i > 0) tl.fromTo(im, { x: 90, opacity: 0, scale: 1.04 }, { x: 0, opacity: 1, scale: 1, duration: 0.4, ease: OUT }, t);
+        tl.to(tchips[i], { opacity: 1, scale: 1.12, backgroundColor: "#ffc83d", color: "#1a1230", duration: 0.25, ease: SNAP }, t);
+        if (i < 3) tl.to(tchips[i], { opacity: 0.5, scale: 1, backgroundColor: "rgba(255,255,255,0.08)", color: "#ffffff", duration: 0.25 }, t + 0.8);
+      });
+      tl.from("#sub4c", { y: 30, opacity: 0, duration: 0.5, ease: OUT }, 34.5);
+
+      /* ===== 4d · al volante ===== */
+      tl.from("#h4d", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 36.25);
+      tl.from(".c4d", { y: 80, opacity: 0, scale: 0.92, duration: 0.45, stagger: 0.25, ease: OUT }, 36.75);
+
+      /* ===== 5 · mantención ===== */
+      tl.from("#dev5", { x: -200, opacity: 0, duration: 0.7, ease: OUT }, 42.15);
+      tl.from("#h5", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 42.3);
+      tl.from(".f5", { x: 120, opacity: 0, duration: 0.5, stagger: 0.5, ease: OUT }, 43);
+      tl.to("#dev5", { scale: 1.04, duration: 5, ease: "sine.inOut" }, 42.5);
+
+      /* ===== 5b · restricciones: un país cada 1,25 s ===== */
+      tl.from("#h5b", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 48.3);
+      tl.from("#lead5b", { y: 30, opacity: 0, duration: 0.5, ease: OUT }, 48.8);
+      tl.from("#dev5b", { x: 200, opacity: 0, duration: 0.7, ease: OUT }, 48.15);
       const filas = q(".f5b");
       const rs = q("#scr5b .r5");
-      tl.set(filas, { opacity: 0.45 }, 30);
+      tl.set(filas, { opacity: 0.45 }, 48);
       filas.forEach((f, i) => {
-        const t = 30.5 + i * 1.5;
-        tl.from(f, { x: -100, duration: 0.45, ease: OUT }, 31 + i * 0.25 - 0.25);
+        const t = 48.5 + i * 1.0;
+        tl.from(f, { x: -100, duration: 0.45, ease: OUT }, 48.75 + i * 0.25);
         tl.to(f, { opacity: 1, scale: 1.04, duration: 0.25, ease: SNAP, transformOrigin: "0% 50%" }, t);
-        if (i < 3) tl.to(f, { opacity: 0.45, scale: 1, duration: 0.25 }, t + 1.25);
+        if (i < 3) tl.to(f, { opacity: 0.45, scale: 1, duration: 0.25 }, t + 0.8);
         if (i > 0) tl.fromTo(rs[i], { x: 90, opacity: 0, scale: 1.04 }, { x: 0, opacity: 1, scale: 1, duration: 0.4, ease: OUT }, t);
       });
-      tl.from(rs[0], { opacity: 0, duration: 0.4 }, 30.5);
+      tl.from(rs[0], { opacity: 0, duration: 0.4 }, 48.5);
+      tl.from("#otros5b", { y: 30, opacity: 0, scale: 0.9, duration: 0.5, ease: SNAP }, 52.0);
 
       /* ===== 6 · scanner OBD ===== */
-      tl.from("#chip6", { y: 30, opacity: 0, duration: 0.4, ease: OUT }, 36.2);
-      tl.from("#h6", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 36.5);
-      tl.from(".f6", { x: -120, opacity: 0, duration: 0.5, stagger: 0.5, ease: OUT }, 37);
-      tl.from("#dev6", { x: 200, opacity: 0, duration: 0.7, ease: OUT }, 36.15);
-      tl.fromTo("#scr6 img", { scale: 1, transformOrigin: "50% 40%" }, { scale: 1.1, duration: 5.2, ease: "sine.inOut" }, 36.6);
+      tl.from("#chip6", { y: 30, opacity: 0, duration: 0.4, ease: OUT }, 54.2);
+      tl.from("#h6", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 54.5);
+      tl.from(".f6", { x: -120, opacity: 0, duration: 0.5, stagger: 0.5, ease: OUT }, 55);
+      tl.from("#dev6", { x: 200, opacity: 0, duration: 0.7, ease: OUT }, 54.15);
+      tl.fromTo("#scr6 img", { scale: 1, transformOrigin: "50% 40%" }, { scale: 1.1, duration: 5.2, ease: "sine.inOut" }, 54.6);
+
+      /* ===== 6b · ventajas ===== */
+      tl.from("#h6b", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 60.25);
+      tl.from(".v6b", { x: -80, opacity: 0, duration: 0.4, stagger: 0.25, ease: OUT }, 60.75);
 
       /* ===== 7 · descarga ===== */
-      tl.from("#h7", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 42.25);
-      tl.from("#p1", { y: 90, opacity: 0, duration: 0.55, ease: OUT }, 43);
-      tl.from("#p2", { y: 90, opacity: 0, duration: 0.55, ease: OUT }, 43.5);
-      tl.from("#p3", { y: 90, opacity: 0, duration: 0.55, ease: OUT }, 44);
-      tl.from("#cta7", { y: 120, opacity: 0, scale: 0.9, duration: 0.6, ease: SNAP }, 45);
-      tl.to("#cta7", { scale: 0.96, duration: 0.12 }, 46);
-      tl.to("#cta7", { scale: 1, duration: 0.25, ease: SNAP }, 46.12);
-      tl.fromTo("#cta7", { boxShadow: "0 24px 80px rgba(255,190,60,.5)" }, { boxShadow: "0 24px 140px rgba(255,190,60,.95)", duration: 0.5, yoyo: true, repeat: 1 }, 46);
-      tl.from("#ins7 .chip", { y: 30, opacity: 0, duration: 0.4, stagger: 0.25, ease: OUT }, 46.5);
+      tl.from("#h7", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 66.25);
+      tl.from("#p1", { y: 90, opacity: 0, duration: 0.55, ease: OUT }, 67);
+      tl.from("#p2", { y: 90, opacity: 0, duration: 0.55, ease: OUT }, 67.5);
+      tl.from("#p3", { y: 90, opacity: 0, duration: 0.55, ease: OUT }, 68);
+      tl.from("#cta7", { y: 120, opacity: 0, scale: 0.9, duration: 0.6, ease: SNAP }, 69);
+      tl.to("#cta7", { scale: 0.96, duration: 0.12 }, 70);
+      tl.to("#cta7", { scale: 1, duration: 0.25, ease: SNAP }, 70.12);
+      tl.fromTo("#cta7", { boxShadow: "0 24px 80px rgba(255,190,60,.5)" }, { boxShadow: "0 24px 140px rgba(255,190,60,.95)", duration: 0.5, yoyo: true, repeat: 1 }, 70);
+      tl.from("#ins7 .chip", { y: 30, opacity: 0, duration: 0.4, stagger: 0.25, ease: OUT }, 70.5);
 
       /* ===== 8 · cierre ===== */
-      tl.from("#logo8", { scale: 0.7, opacity: 0, duration: 0.7, ease: SNAP }, 48.3);
-      tl.from("#tag8", { y: 40, opacity: 0, duration: 0.5, ease: OUT }, 49);
-      tl.from("#sub8", { y: 30, opacity: 0, duration: 0.5, ease: OUT }, 49.5);
-      tl.from("#d8c", { y: 500, duration: 0.9, ease: OUT }, 48.5);
-      tl.from("#d8a", { x: -400, y: 300, duration: 0.9, ease: OUT }, 48.8);
-      tl.from("#d8b", { x: 400, y: 300, duration: 0.9, ease: OUT }, 49);
-      tl.to("#d8a", { y: "-=20", duration: 2.5, ease: "sine.inOut" }, 50);
-      tl.to("#d8b", { y: "-=20", duration: 2.5, ease: "sine.inOut" }, 50.2);
-      tl.to("#d8c", { y: "-=24", duration: 2.5, ease: "sine.inOut" }, 50.1);
-      tl.to("#negro", { opacity: 1, duration: 1.2, ease: "power1.in" }, 52.8);
+      tl.from("#logo8", { scale: 0.7, opacity: 0, duration: 0.7, ease: SNAP }, 72.3);
+      tl.from("#tag8", { y: 40, opacity: 0, duration: 0.5, ease: OUT }, 73);
+      tl.from("#sub8", { y: 30, opacity: 0, duration: 0.5, ease: OUT }, 73.5);
+      tl.from("#d8c", { y: 500, duration: 0.9, ease: OUT }, 72.5);
+      tl.from("#d8a", { x: -400, y: 300, duration: 0.9, ease: OUT }, 72.8);
+      tl.from("#d8b", { x: 400, y: 300, duration: 0.9, ease: OUT }, 73);
+      tl.to("#d8a", { y: "-=20", duration: 2.5, ease: "sine.inOut" }, 74);
+      tl.to("#d8b", { y: "-=20", duration: 2.5, ease: "sine.inOut" }, 74.2);
+      tl.to("#d8c", { y: "-=24", duration: 2.5, ease: "sine.inOut" }, 74.1);
+      tl.to("#negro", { opacity: 1, duration: 1.2, ease: "power1.in" }, 76.8);
 
       window.__timelines["main"] = tl;
       tl.seek(0);

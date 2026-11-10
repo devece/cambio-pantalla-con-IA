@@ -1,0 +1,4 @@
+# temporales del render de HyperFrames
+work-*/
+.*.hf-transaction-*/
+*.wav

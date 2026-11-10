@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Sintetiza desde cero la música del video de Tablero (sin muestras ni librerías de audio).
 
-120 BPM, La menor, progresión Am – F – C – G (un acorde por compás), 24 compases = 48 s.
+120 BPM, La menor, progresión Am – F – C – G (un acorde por compás), 27 compases = 54 s.
 Instrumentos: pad (sierras desafinadas con filtro aditivo), pluck en corcheas con eco,
 bajo, bombo, hi-hat, clap y un lead sencillo. Todo es numpy puro.
 
@@ -16,7 +16,7 @@ SR = 44100
 BPM = 120
 BEAT = 60.0 / BPM           # 0,5 s
 BAR = BEAT * 4              # 2 s
-BARS = 24
+BARS = 27
 DUR = BARS * BAR            # 48 s
 N = int(SR * DUR)
 rng = np.random.default_rng(7)
@@ -94,9 +94,10 @@ LEAD = {
     19: [(0, 74, 2.0), (2.5, 76, 0.5), (3, 79, 1.0)],
     20: [(0, 84, 1.5), (2, 81, 0.5), (3, 79, 1.0)],
     21: [(0, 81, 1.5), (2, 79, 0.5), (3, 76, 1.0)],
-    22: [(0, 76, 2.0), (2, 72, 2.0)],
-    23: [(0, 69, 4.0)],
 }
+LEAD[25] = [(0, 76, 2.0), (2, 72, 2.0)]   # cierre
+LEAD[26] = [(0, 69, 4.0)]
+LEAD[22], LEAD[23], LEAD[24] = LEAD[16], LEAD[17], LEAD[18]
 
 
 # ---------------------------------------------------------------- instrumentos
@@ -205,14 +206,14 @@ for bar in range(BARS):
 
     # pad: entra suave, sube en las secciones llenas
     lvl = 0.55 if bar < 4 else 0.7
-    if bar >= 22:
+    if bar >= BARS - 2:
         lvl = 0.6
     p = pad(notes, n) * env(n, 0.35, 0.3, 0.9, 0.5) * lvl
     put(padL, t0, p, 1.0)
     put(padR, t0, np.roll(p, 220), 1.0)  # leve ensanchado estéreo
 
     # pluck en corcheas: patrón de arpegio
-    if bar < 22:
+    if bar < BARS - 2:
         order = [0, 1, 2, 1, 0, 1, 2, 1]
         pl_gain = 0.34 if bar < 2 else 0.5
         for i in range(8):
@@ -225,16 +226,16 @@ for bar in range(BARS):
             put(pluckR, t0 + i * BEAT / 2, s, stereo_gain * np.sin(a))
 
     # bajo: desde el compás 4
-    if 4 <= bar < 22:
+    if 4 <= bar < BARS - 2:
         pat = [(0, 1.5), (2.5, 0.5), (3, 0.75), (3.5, 0.5)]
         for off, ln in pat:
             put(bassM, t0 + off * BEAT, bass(midi(root + (12 if off == 3.5 else 0)), ln * BEAT * 0.95), 0.62)
 
     # batería
-    if bar >= 2 and bar < 22:
+    if bar >= 2 and bar < BARS - 2:
         for i in range(8):                       # hats en corcheas
             put(drums, t0 + i * BEAT / 2, hat(open_=(i % 4 == 3)), 0.28 if i % 2 else 0.2)
-    if 4 <= bar < 22:
+    if 4 <= bar < BARS - 2:
         for b in range(4):                       # bombo a negras
             ts = t0 + b * BEAT
             put(drums, ts, kick(), 0.95)
@@ -248,7 +249,7 @@ for bar in range(BARS):
     if bar in (3, 7):                            # redoble antes de los cambios
         for i in range(8):
             put(drums, t0 + BAR - BEAT + i * BEAT / 8, clap(), 0.18 + i * 0.05)
-    if bar == 22:                                # compás final: solo un bombo y un platillo
+    if bar == BARS - 2:                                # compás final: solo un bombo y un platillo
         put(drums, t0, kick(), 0.9)
         put(drums, t0, hat(True), 0.6)
 
@@ -263,7 +264,7 @@ for i, m in enumerate([81, 85, 88, 93]):
     f = midi(m)
     s = (np.sin(2 * np.pi * f * t) + 0.4 * np.sin(2 * np.pi * f * 2.76 * t) * np.exp(-t * 3)
          + 0.2 * np.sin(2 * np.pi * f * 5.4 * t) * np.exp(-t * 6)) * np.exp(-t * 1.6)
-    stereo(s, 22 * BAR + 1.0 + i * 0.18, 0.18, pan=-0.4 + 0.27 * i)
+    stereo(s, (BARS - 2) * BAR + 1.0 + i * 0.18, 0.18, pan=-0.4 + 0.27 * i)
 
 # sidechain (bombeo) + efectos
 padL *= kick_env

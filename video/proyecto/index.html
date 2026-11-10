@@ -17,7 +17,7 @@
         --rojo: #ff4a4a;
         --glass: rgba(255, 255, 255, 0.08);
         --glass-line: rgba(255, 255, 255, 0.18);
-        --font-display: "Inter", "Inter Display", system-ui, sans-serif;
+        --font-display: "Inter", system-ui, sans-serif;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -94,12 +94,12 @@
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="48" data-width="1920" data-height="1080">
+    <div id="root" data-composition-id="main" data-start="0" data-duration="54" data-width="1920" data-height="1080">
 
       <!-- Música sintetizada desde cero (video/musica/sintetizar.py) -->
-      <audio id="musica" src="assets/musica.mp3" data-start="0" data-duration="48" data-volume="1"></audio>
+      <audio id="musica" src="assets/musica.mp3" data-start="0" data-duration="54" data-volume="1"></audio>
 
-      <div id="bg" class="clip" data-start="0" data-duration="48">
+      <div id="bg" class="clip" data-start="0" data-duration="54">
         <div class="orb" id="o1"></div><div class="orb" id="o2"></div><div class="orb" id="o3"></div>
       </div>
 
@@ -123,7 +123,7 @@
             </div>
             <div class="h-xl" style="font-size: 132px">Tablero</div>
           </div>
-          <p class="lead" id="lead2" style="margin-top: 40px">El launcher para <b style="color:#fff">radios Android de auto</b>, hecho para Chile.</p>
+          <p class="lead" id="lead2" style="margin-top: 40px">El launcher para <b style="color:#fff">radios Android de auto</b>. Para Chile, Colombia, Ecuador y México.</p>
           <div id="chips2" style="margin-top: 48px; display: flex; gap: 16px; flex-wrap: wrap">
             <span class="chip"><i class="dot"></i>100% gratis</span>
             <span class="chip"><i class="dot" style="background:var(--cian)"></i>Sin cuentas</span>
@@ -192,7 +192,7 @@
           <div class="scr" id="scr4">
             <img src="assets/ruta-estelar-dia.jpg" alt="Estelar de día" />
             <img id="noche4" src="assets/ruta-estelar-noche.jpg" alt="Estelar de noche" />
-            <div id="div4" style="position: absolute; top: 0; bottom: 0; width: 6px; background: #fff; box-shadow: 0 0 40px 6px rgba(255,255,255,.8); left: 100%"></div>
+            <div id="div4" style="position: absolute; top: 0; bottom: 0; width: 6px; background: #fff; box-shadow: 0 0 40px 6px rgba(255,255,255,.8); left: 0"></div>
           </div>
         </div>
         <!-- interruptor día / noche -->
@@ -218,14 +218,36 @@
           <div style="display: flex; flex-direction: column; gap: 22px; margin-top: 44px">
             <div class="fila f5"><div class="ic" style="background: #ffc83d33"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#ffc83d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 4 6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 3-6 6-10z"/></svg></div><div><b>Aceite y mantención</b><span>Cuenta tus km con barra y alerta</span></div></div>
             <div class="fila f5"><div class="ic" style="background: #29c6f533"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#29c6f5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div><div><b>Revisión, permiso y SOAP</b><span>Te avisa antes de que venza</span></div></div>
-            <div class="fila f5"><div class="ic" style="background: #ff4fa333"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#ff4fa3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.500" r="2.500"/></svg></div><div><b>Restricción vehicular</b><span>Por GPS · Chile y México</span></div></div>
+            <div class="fila f5"><div class="ic" style="background: #ff4fa333"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#ff4fa3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.500" r="2.500"/></svg></div><div><b>Kilometraje automático</b><span>Suma los km que recorres con el GPS</span></div></div>
             <div class="fila f5"><div class="ic" style="background: #9b8cff33"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#9b8cff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M4 21h12M15 9h2.500a2 2 0 0 1 2 2v5a1.500 1.500 0 0 0 3 0V8l-3-3"/></svg></div><div><b>Combustible</b><span>Cuántos km te quedan con el tanque</span></div></div>
           </div>
         </div>
       </div>
 
+      <!-- ===== 5b · RESTRICCIONES (30–36 s) ===== -->
+      <div id="s5b" class="scene clip" data-start="30" data-duration="6">
+        <div class="abs" style="left: 110px; top: 130px; width: 760px">
+          <div class="h-lg" id="h5b" style="font-size: 80px">Tu restricción, <span class="grad">donde estés</span></div>
+          <p class="lead" id="lead5b" style="font-size: 32px; margin-top: 22px">La radio usa el GPS: al entrar a la ciudad te avisa en pantalla y por voz si hoy te toca.</p>
+          <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 34px">
+            <div class="fila f5b" style="padding: 18px 30px"><div><b>Chile</b><span>Restricción vehicular · Santiago</span></div></div>
+            <div class="fila f5b" style="padding: 18px 30px"><div><b>Colombia</b><span>Pico y placa · Bogotá, Medellín, Cali</span></div></div>
+            <div class="fila f5b" style="padding: 18px 30px"><div><b>México</b><span>Hoy No Circula · Ciudad de México</span></div></div>
+            <div class="fila f5b" style="padding: 18px 30px"><div><b>Ecuador</b><span>Pico y placa · Quito</span></div></div>
+          </div>
+        </div>
+        <div class="device" id="dev5b" style="left: 900px; top: 250px; width: 940px">
+          <div class="scr" id="scr5b">
+            <img class="r5" src="assets/restr-cl.jpg" alt="Aviso en Santiago" />
+            <img class="r5" src="assets/restr-co.jpg" alt="Aviso en Bogotá" />
+            <img class="r5" src="assets/restr-mx.jpg" alt="Aviso en Ciudad de México" />
+            <img class="r5" src="assets/restr-ec.jpg" alt="Aviso en Quito" />
+          </div>
+        </div>
+      </div>
+
       <!-- ===== 6 · SCANNER OBD (30–36 s) ===== -->
-      <div id="s6" class="scene clip" data-start="30" data-duration="6">
+      <div id="s6" class="scene clip" data-start="36" data-duration="6">
         <div class="abs" style="left: 110px; top: 150px; width: 700px">
           <div class="chip" id="chip6" style="font-size: 28px"><i class="dot" style="background:var(--cian)"></i>Scanner OBD2 · opcional</div>
           <div class="h-lg" id="h6" style="margin-top: 36px">Tu auto <span class="grad2">te habla</span></div>
@@ -241,7 +263,7 @@
       </div>
 
       <!-- ===== 7 · DESCARGA (36–42 s) ===== -->
-      <div id="s7" class="scene clip" data-start="36" data-duration="6">
+      <div id="s7" class="scene clip" data-start="42" data-duration="6">
         <div class="h-lg" id="h7" style="position: absolute; left: 0; width: 1920px; top: 70px; text-align: center; font-size: 80px">
           Diséñala en el sitio. <span class="grad">Descárgala lista.</span>
         </div>
@@ -260,7 +282,7 @@
       </div>
 
       <!-- ===== 8 · CIERRE (42–48 s) ===== -->
-      <div id="s8" class="scene clip" data-start="42" data-duration="6">
+      <div id="s8" class="scene clip" data-start="48" data-duration="6">
         <div class="device" id="d8a" style="left: 40px; top: 560px; width: 760px"><div class="scr"><img src="assets/costa-lateral-dia.jpg" alt="" /></div></div>
         <div class="device" id="d8b" style="left: 1120px; top: 560px; width: 760px"><div class="scr"><img src="assets/patagonia-manejo-noche.jpg" alt="" /></div></div>
         <div class="device" id="d8c" style="left: 580px; top: 640px; width: 760px"><div class="scr"><img src="assets/ruta-estelar-noche.jpg" alt="" /></div></div>
@@ -277,9 +299,9 @@
       </div>
 
       <!-- transición, progreso y fundido final -->
-      <div id="wipe" class="clip" data-start="0" data-duration="48"></div>
-      <div id="prog" class="clip" data-start="0" data-duration="48"></div>
-      <div id="negro" class="clip" data-start="0" data-duration="48"></div>
+      <div id="wipe" class="clip" data-start="0" data-duration="54"></div>
+      <div id="prog" class="clip" data-start="0" data-duration="54"></div>
+      <div id="negro" class="clip" data-start="0" data-duration="54"></div>
     </div>
 
     <script>
@@ -290,14 +312,14 @@
       const q = (s) => gsap.utils.toArray(s);
 
       /* --- fondo: los orbes derivan lento durante todo el video --- */
-      tl.to("#o1", { x: 380, y: 260, duration: 48, ease: "none" }, 0);
-      tl.to("#o2", { x: -420, y: -240, duration: 48, ease: "none" }, 0);
-      tl.to("#o3", { x: -300, y: 200, duration: 48, ease: "none" }, 0);
-      tl.fromTo("#prog", { scaleX: 0 }, { scaleX: 1, duration: 48, ease: "none" }, 0);
+      tl.to("#o1", { x: 380, y: 260, duration: 54, ease: "none" }, 0);
+      tl.to("#o2", { x: -420, y: -240, duration: 54, ease: "none" }, 0);
+      tl.to("#o3", { x: -300, y: 200, duration: 54, ease: "none" }, 0);
+      tl.fromTo("#prog", { scaleX: 0 }, { scaleX: 1, duration: 54, ease: "none" }, 0);
 
       /* --- transiciones (cada 2 s = 1 compás; centradas en el cambio de escena) --- */
       tl.set("#wipe", { x: -2300 }, 0);
-      [4, 10, 18, 24, 30, 36, 42].forEach((b) => {
+      [4, 10, 18, 24, 30, 36, 42, 48].forEach((b) => {
         tl.to("#wipe", { x: 0, duration: 0.25, ease: "power2.in" }, b - 0.25);
         tl.to("#wipe", { x: 2300, duration: 0.3, ease: "power2.out" }, b);
         tl.set("#wipe", { x: -2300 }, b + 0.31);
@@ -351,7 +373,7 @@
       tl.from("#dev4", { y: 120, opacity: 0, scale: 0.9, duration: 0.7, ease: OUT }, 18.5);
       tl.from("#tog4", { y: 40, opacity: 0, duration: 0.4, ease: OUT }, 19.0);
       tl.fromTo("#noche4", { clipPath: "inset(0% 0% 0% 100%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, ease: "power2.inOut" }, 20);
-      tl.fromTo("#div4", { left: "100%" }, { left: "0%", duration: 1.2, ease: "power2.inOut" }, 20);
+      tl.fromTo("#div4", { x: 972 }, { x: 0, duration: 1.2, ease: "power2.inOut" }, 20);
       tl.to("#div4", { opacity: 0, duration: 0.2 }, 21.2);
       tl.to("#knob4", { x: 190, duration: 0.5, ease: "power2.inOut" }, 20);
       tl.to("#lbDia", { color: "#ffffff", duration: 0.3 }, 20);
@@ -364,35 +386,51 @@
       tl.from(".f5", { x: 120, opacity: 0, duration: 0.5, stagger: 0.5, ease: OUT }, 25);
       tl.to("#dev5", { scale: 1.04, duration: 5, ease: "sine.inOut" }, 24.5);
 
+      /* ===== 5b · restricciones: un país cada 1,5 s ===== */
+      tl.from("#h5b", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 30.3);
+      tl.from("#lead5b", { y: 30, opacity: 0, duration: 0.5, ease: OUT }, 30.8);
+      tl.from("#dev5b", { x: 200, opacity: 0, duration: 0.7, ease: OUT }, 30.15);
+      const filas = q(".f5b");
+      const rs = q("#scr5b .r5");
+      tl.set(filas, { opacity: 0.45 }, 30);
+      filas.forEach((f, i) => {
+        const t = 30.5 + i * 1.5;
+        tl.from(f, { x: -100, duration: 0.45, ease: OUT }, 31 + i * 0.25 - 0.25);
+        tl.to(f, { opacity: 1, scale: 1.04, duration: 0.25, ease: SNAP, transformOrigin: "0% 50%" }, t);
+        if (i < 3) tl.to(f, { opacity: 0.45, scale: 1, duration: 0.25 }, t + 1.25);
+        if (i > 0) tl.fromTo(rs[i], { x: 90, opacity: 0, scale: 1.04 }, { x: 0, opacity: 1, scale: 1, duration: 0.4, ease: OUT }, t);
+      });
+      tl.from(rs[0], { opacity: 0, duration: 0.4 }, 30.5);
+
       /* ===== 6 · scanner OBD ===== */
-      tl.from("#chip6", { y: 30, opacity: 0, duration: 0.4, ease: OUT }, 30.2);
-      tl.from("#h6", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 30.5);
-      tl.from(".f6", { x: -120, opacity: 0, duration: 0.5, stagger: 0.5, ease: OUT }, 31);
-      tl.from("#dev6", { x: 200, opacity: 0, duration: 0.7, ease: OUT }, 30.15);
-      tl.fromTo("#scr6 img", { scale: 1, transformOrigin: "50% 40%" }, { scale: 1.1, duration: 5.2, ease: "sine.inOut" }, 30.6);
+      tl.from("#chip6", { y: 30, opacity: 0, duration: 0.4, ease: OUT }, 36.2);
+      tl.from("#h6", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 36.5);
+      tl.from(".f6", { x: -120, opacity: 0, duration: 0.5, stagger: 0.5, ease: OUT }, 37);
+      tl.from("#dev6", { x: 200, opacity: 0, duration: 0.7, ease: OUT }, 36.15);
+      tl.fromTo("#scr6 img", { scale: 1, transformOrigin: "50% 40%" }, { scale: 1.1, duration: 5.2, ease: "sine.inOut" }, 36.6);
 
       /* ===== 7 · descarga ===== */
-      tl.from("#h7", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 36.25);
-      tl.from("#p1", { y: 90, opacity: 0, duration: 0.55, ease: OUT }, 37.0);
-      tl.from("#p2", { y: 90, opacity: 0, duration: 0.55, ease: OUT }, 37.5);
-      tl.from("#p3", { y: 90, opacity: 0, duration: 0.55, ease: OUT }, 38.0);
-      tl.from("#cta7", { y: 120, opacity: 0, scale: 0.9, duration: 0.6, ease: SNAP }, 39.0);
-      tl.to("#cta7", { scale: 0.96, duration: 0.12 }, 40.0);
-      tl.to("#cta7", { scale: 1, duration: 0.25, ease: SNAP }, 40.12);
-      tl.fromTo("#cta7", { boxShadow: "0 24px 80px rgba(255,190,60,.5)" }, { boxShadow: "0 24px 140px rgba(255,190,60,.95)", duration: 0.5, yoyo: true, repeat: 1 }, 40.0);
-      tl.from("#ins7 .chip", { y: 30, opacity: 0, duration: 0.4, stagger: 0.25, ease: OUT }, 40.5);
+      tl.from("#h7", { y: 50, opacity: 0, duration: 0.55, ease: OUT }, 42.25);
+      tl.from("#p1", { y: 90, opacity: 0, duration: 0.55, ease: OUT }, 43);
+      tl.from("#p2", { y: 90, opacity: 0, duration: 0.55, ease: OUT }, 43.5);
+      tl.from("#p3", { y: 90, opacity: 0, duration: 0.55, ease: OUT }, 44);
+      tl.from("#cta7", { y: 120, opacity: 0, scale: 0.9, duration: 0.6, ease: SNAP }, 45);
+      tl.to("#cta7", { scale: 0.96, duration: 0.12 }, 46);
+      tl.to("#cta7", { scale: 1, duration: 0.25, ease: SNAP }, 46.12);
+      tl.fromTo("#cta7", { boxShadow: "0 24px 80px rgba(255,190,60,.5)" }, { boxShadow: "0 24px 140px rgba(255,190,60,.95)", duration: 0.5, yoyo: true, repeat: 1 }, 46);
+      tl.from("#ins7 .chip", { y: 30, opacity: 0, duration: 0.4, stagger: 0.25, ease: OUT }, 46.5);
 
       /* ===== 8 · cierre ===== */
-      tl.from("#logo8", { scale: 0.7, opacity: 0, duration: 0.7, ease: SNAP }, 42.3);
-      tl.from("#tag8", { y: 40, opacity: 0, duration: 0.5, ease: OUT }, 43.0);
-      tl.from("#sub8", { y: 30, opacity: 0, duration: 0.5, ease: OUT }, 43.5);
-      tl.from("#d8c", { y: 500, duration: 0.9, ease: OUT }, 42.5);
-      tl.from("#d8a", { x: -400, y: 300, duration: 0.9, ease: OUT }, 42.8);
-      tl.from("#d8b", { x: 400, y: 300, duration: 0.9, ease: OUT }, 43.0);
-      tl.to("#d8a", { y: "-=20", duration: 2.5, ease: "sine.inOut" }, 44);
-      tl.to("#d8b", { y: "-=20", duration: 2.5, ease: "sine.inOut" }, 44.2);
-      tl.to("#d8c", { y: "-=24", duration: 2.5, ease: "sine.inOut" }, 44.1);
-      tl.to("#negro", { opacity: 1, duration: 1.2, ease: "power1.in" }, 46.8);
+      tl.from("#logo8", { scale: 0.7, opacity: 0, duration: 0.7, ease: SNAP }, 48.3);
+      tl.from("#tag8", { y: 40, opacity: 0, duration: 0.5, ease: OUT }, 49);
+      tl.from("#sub8", { y: 30, opacity: 0, duration: 0.5, ease: OUT }, 49.5);
+      tl.from("#d8c", { y: 500, duration: 0.9, ease: OUT }, 48.5);
+      tl.from("#d8a", { x: -400, y: 300, duration: 0.9, ease: OUT }, 48.8);
+      tl.from("#d8b", { x: 400, y: 300, duration: 0.9, ease: OUT }, 49);
+      tl.to("#d8a", { y: "-=20", duration: 2.5, ease: "sine.inOut" }, 50);
+      tl.to("#d8b", { y: "-=20", duration: 2.5, ease: "sine.inOut" }, 50.2);
+      tl.to("#d8c", { y: "-=24", duration: 2.5, ease: "sine.inOut" }, 50.1);
+      tl.to("#negro", { opacity: 1, duration: 1.2, ease: "power1.in" }, 52.8);
 
       window.__timelines["main"] = tl;
       tl.seek(0);

@@ -425,3 +425,98 @@
 .scr [data-clock] { white-space: nowrap; }
 .scr .status .ap { font-size: 13px; color: inherit; margin-left: .2em; }
 .scr[data-clock12='1'] .clk b { font-size: 46px; }
+
+/* ======================================================================================================
+ * Radios verticales (por ejemplo 768 × 1024): lienzo de 720 de ancho y el alto de la radio (ver preview.js).
+ * No es la pantalla horizontal girada ni achicada: cada distribución se reordena para ocupar toda la pantalla.
+ * ====================================================================================================== */
+.scr[data-orient='v'] .home { bottom: var(--dockh, 184px); }
+.scr[data-orient='v'] .dock { height: var(--dockh, 184px); display: grid; grid-template-columns: repeat(var(--dockc, 6), 1fr); align-content: center; justify-items: center; row-gap: 6px; padding: 6px 10px; }
+.scr[data-orient='v'] .dk { min-width: 0; }
+.scr[data-orient='v'] .home > section, .scr[data-orient='v'] .home > nav { min-height: 0; }
+
+/* Reproductor compacto, a lo ancho: carátula, canción y botones en una fila */
+.scr[data-orient='v'] .l-tarjetas .music { grid-template-columns: 96px 1fr auto; grid-template-areas: 'disc t ctl' 'disc a ctl'; align-items: center; justify-items: start; gap: 2px 18px; text-align: left; width: 100%; }
+.scr[data-orient='v'] .l-tarjetas .music .src { display: none; }
+.scr[data-orient='v'] .l-tarjetas .music .disc, .scr[data-orient='v'] .l-tarjetas .music .art { grid-area: disc; width: 96px; height: 96px; margin: 0; }
+.scr[data-orient='v'] .l-tarjetas .music img.art { border-radius: 18px; object-fit: cover; }
+.scr[data-orient='v'] .l-tarjetas .music b { grid-area: t; align-self: end; font-size: 26px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scr[data-orient='v'] .l-tarjetas .music > span:not(.src) { grid-area: a; align-self: start; font-size: 19px; }
+.scr[data-orient='v'] .l-tarjetas .music .ctl { grid-area: ctl; margin: 0; }
+
+/* Tarjetas: saludo y auto arriba, hora y radio al medio, música abajo */
+.scr[data-orient='v'] .l-tarjetas { grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1.55fr) minmax(0, .7fr) minmax(0, .7fr); grid-template-areas: 'greet greet' 'clock radio' 'music music'; }
+.scr[data-orient='v'] .greet { grid-template-rows: auto minmax(0, 1fr) auto; }
+.scr[data-orient='v'] .greet .car { width: 60%; justify-self: center; }
+.scr[data-orient='v'] .greet .car-photo { height: 210px; }
+.scr[data-orient='v'] .greet-txt h2 { font-size: 42px; }
+.scr[data-orient='v'] .greet-txt p { font-size: 21px; }
+
+/* Auto al centro: el auto ocupa la mitad de arriba */
+.scr[data-orient='v'] .l-centro { grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1.6fr) minmax(0, .75fr) minmax(0, .6fr); grid-template-areas: 'hero hero' 'clock radio' 'wx music'; }
+.scr[data-orient='v'] .hero .car { width: 70%; justify-self: center; }
+.scr[data-orient='v'] .l-centro .clock { flex-direction: row; align-items: center; justify-content: space-between; }
+.scr[data-orient='v'] .l-centro .spd { text-align: right; }
+.scr[data-orient='v'] .hero .car-photo { height: 250px; }
+
+/* Modo manejo: velocidad y límite arriba; la indicación y la radio, a lo ancho */
+.scr[data-orient='v'] .l-manejo { grid-template-columns: 1.4fr 1fr; grid-template-rows: minmax(0, 1.5fr) minmax(0, .55fr) minmax(0, .55fr); grid-template-areas: 'speed limit' 'nav nav' 'radio radio'; }
+.scr[data-orient='v'] .speedbig b { font-size: 210px; }
+.scr[data-orient='v'] .mini-car { width: 300px; margin-top: 22px; }
+.scr[data-orient='v'] .sign { width: 168px; height: 168px; border-width: 16px; }
+.scr[data-orient='v'] .sign b { font-size: 70px; }
+.scr[data-orient='v'] .nav b { font-size: 28px; }
+
+/* Minimalista: el reloj crece */
+.scr[data-orient='v'] .bigclock b { font-size: 200px; }
+.scr[data-orient='v'] .bigclock span { font-size: 30px; }
+.scr[data-orient='v'] .bigclock p { font-size: 34px; margin-top: 18px; }
+
+/* Tablero: velocidad y auto, luego altitud y rumbo, y el mapa abajo */
+.scr[data-orient='v'] .l-tablero { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1.35fr) auto minmax(0, 1fr); grid-template-areas: 'left' 'route' 'map'; }
+.scr[data-orient='v'] .t-left { grid-template-rows: auto minmax(0, 1fr) auto; }
+.scr[data-orient='v'] .t-left .car { width: 52%; justify-self: center; }
+.scr[data-orient='v'] .t-speed b { font-size: 132px; }
+
+/* Menú lateral: el menú pasa arriba, como una fila */
+.scr[data-orient='v'] .l-lateral { grid-template-columns: 1fr 1fr; grid-template-rows: 96px minmax(0, .65fr) minmax(0, 1.35fr); grid-template-areas: 'menu menu' 'clock wx' 'music music'; }
+.scr[data-orient='v'] .side-menu { grid-template-rows: 1fr; grid-template-columns: repeat(4, 1fr); }
+
+/* Todoterreno: ya era una columna; la camioneta crece */
+.scr[data-orient='v'] .tt-car .car { width: 86%; }
+.scr[data-orient='v'] .l-todoterreno { grid-template-rows: auto minmax(0, 1fr) 84px; }
+.scr[data-orient='v'] .tt-speed b { font-size: 150px; }
+
+/* Estelar: hora y velocidad arriba, el auto al centro, música y clima abajo */
+.scr[data-orient='v'] .l-estelar { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: 'left' 'stage' 'right'; }
+.scr[data-orient='v'] .l-estelar .st-left { flex-direction: row; align-items: center; padding: 0 8px; }
+.scr[data-orient='v'] .l-estelar .st-clock b { font-size: 96px; }
+.scr[data-orient='v'] .l-estelar .st-right { grid-template-rows: 1fr; grid-template-columns: 1.2fr 1fr; }
+.scr[data-orient='v'] .l-estelar .st-car { width: 62%; justify-self: center; align-self: center; margin-bottom: 0; }
+.scr[data-orient='v'] .l-estelar .st-car .car-photo { height: 220px; }
+.scr[data-orient='v'] .l-estelar .st-car .car-svg { max-height: 240px; }
+.scr[data-orient='v'] .l-estelar .st-hello h2 { font-size: 40px; }
+
+/* Consola: mapa grande arriba; tu auto y la música abajo, lado a lado */
+.scr[data-orient='v'] .home.l-consola { grid-template-columns: 1fr 1fr; grid-template-rows: auto minmax(0, 1.1fr) minmax(0, 1fr); grid-template-areas: 'top top' 'map map' 'veh mus'; }
+.scr[data-orient='v'] .c-clock span { font-size: 17px; }
+.scr[data-orient='v'] .c-right { gap: 14px; font-size: 19px; }
+.scr[data-orient='v'] .cm-ring { width: 112px; height: 112px; }
+.scr[data-orient='v'] .cm-ring .art { width: 88px; height: 88px; }
+.scr[data-orient='v'] .c-car .car-photo { height: 150px; }
+.scr[data-orient='v'] .c-car .car-svg { max-height: 150px; }
+/* En el inicio de Consola la barra de arriba va llena: el aviso de velocidad baja al borde del mapa */
+.scr[data-orient='v'][data-layout='consola'][data-screen='inicio'] .alert { left: 50%; top: 66px; }
+.scr[data-orient='v'][data-layout='consola'] .alert { left: 50%; }
+
+/* Otras pantallas */
+.scr[data-orient='v'] .presets { grid-template-columns: repeat(3, 1fr); }
+.scr[data-orient='v'] .bt-pane { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+.scr[data-orient='v'] .phone { padding: 26px 20px; }
+.scr[data-orient='v'] .mt-pane { grid-template-columns: 1fr; }
+.scr[data-orient='v'] .mrow { padding: 16px 20px; }
+.scr[data-orient='v'] .mrow b { font-size: 25px; }
+.scr[data-orient='v'] .mrow > span { font-size: 19px; }
+.scr[data-orient='v'] .og-row { grid-template-columns: repeat(2, 1fr); }
+.scr[data-orient='v'] .codes { max-height: 260px; }
+.scr[data-orient='v'] .zone-alert { max-width: 90%; }

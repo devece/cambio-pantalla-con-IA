@@ -72,7 +72,7 @@ Marca cada punto con ✅ o ❌ y escríbeme lo que veas. Están en orden de impo
 - [ ] Se instala sin errores
 - [ ] Abre y muestra reloj, fecha y saludo
 - [ ] La pantalla se ve completa (no cortada ni con letras enormes), en 1280 × 720 o el tamaño de tu radio
-- [ ] Queda en la orientación de la pantalla de tu radio (horizontal; si la pantalla es vertical, el inicio se ve reducido con franjas arriba y abajo, y se puede leer todo)
+- [ ] Queda en la orientación de la pantalla de tu radio (horizontal; si la pantalla es vertical, el inicio usa el diseño vertical: ocupa toda la pantalla, sin franjas, y nada queda cortado ni encimado)
 - [ ] El botón *Inicio* de la radio vuelve a Tablero
 - [ ] Cuando la apagas y prendes, sigue con tus ajustes
 

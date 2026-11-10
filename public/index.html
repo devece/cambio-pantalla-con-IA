@@ -70,6 +70,20 @@
       <div><b>Android 5+</b><span>Radios de pantalla grande</span></div>
     </section>
 
+    <section class="sec wrap" id="video">
+      <div class="sec-head">
+        <p class="eyebrow">Video</p>
+        <h2>Míralo <em>en un minuto y medio.</em></h2>
+        <p>Los diseños, tu auto, los avisos y el scanner OBD, con pantallas reales de la app.</p>
+      </div>
+      <figure class="device-hero video-hero">
+        <video controls preload="none" playsinline poster="video/tablero-poster.jpg" width="1280" height="720" aria-label="Video de presentación de Tablero (1 minuto y 37 segundos, con música)">
+          <source src="video/tablero.mp4" type="video/mp4">
+          Tu navegador no reproduce este video. <a href="video/tablero.mp4">Descárgalo aquí</a>.
+        </video>
+      </figure>
+    </section>
+
     <section class="sec wrap" id="problema">
       <div class="sec-head">
         <p class="eyebrow">¿Te suena?</p>
@@ -149,13 +163,17 @@
     <section class="studio wrap" id="configurador" aria-label="Configurador">
       <div class="stage">
         <div class="stage-top">
-          <p class="stage-title">Así se verá en tu radio (1024 × 600)</p>
+          <p class="stage-title" id="stage-title">Así se verá en tu radio (1024 × 600)</p>
         </div>
         <div class="stage-bar">
           <div class="tabs" role="tablist" aria-label="Pantallas de la radio" id="screen-tabs"></div>
           <div class="daynight" role="group" aria-label="Modo de la pantalla">
             <button type="button" id="mode-day" class="on" aria-pressed="true">Día</button>
             <button type="button" id="mode-night" aria-pressed="false">Luces encendidas</button>
+          </div>
+          <div class="daynight" role="group" aria-label="Forma de la pantalla de tu radio">
+            <button type="button" id="orient-h" class="on" aria-pressed="true">Horizontal</button>
+            <button type="button" id="orient-v" aria-pressed="false">Vertical</button>
           </div>
         </div>
         <div class="choices season-pills" data-choices="style.season" role="radiogroup" aria-label="Decoración de temporada"></div>
@@ -460,7 +478,7 @@
       <div class="sec-head">
         <p class="eyebrow">Compatibilidad</p>
         <h2>¿Funciona en <em>mi radio?</em></h2>
-        <p>Si es Android, de pantalla grande y horizontal, muy probablemente sí. En el primer paso del configurador puedes subir una captura de tu radio y la revisamos.</p>
+        <p>Si es Android y de pantalla grande, horizontal o vertical, muy probablemente sí. En el primer paso del configurador puedes subir una captura de tu radio y la revisamos.</p>
       </div>
       <div class="grid3">
         <article class="feat"><h3>Android 5.0 o superior</h3><p>Es lo que pide la app. Si tu radio abre la Play Store o instala apps como YouTube o Waze, es Android.</p></article>

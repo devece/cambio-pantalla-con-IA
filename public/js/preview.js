@@ -32,6 +32,13 @@
   let scr = null;
   let host = null;
   let current = null;
+  /* Radios verticales: en vez de achicar la pantalla horizontal, se usa un lienzo propio de 720 de ancho y el alto
+   * que dé la radio (960 en una de 768 × 1024), con cada distribución reorganizada para llenarlo (ver preview.css). */
+  const VW = 720;
+  const DOCK_COLS = 6;
+  let vert = false;
+  let vertH = 960;
+  let fitNow = null;
 
   /** La hora lista para dibujar: «21:05» o, con la opción de 12 horas, «9:05» con un «PM» chico al lado (para que no se parta en dos líneas). */
   function clockText(d, state) {
@@ -473,6 +480,12 @@
     // «Apps» (todas las apps instaladas) y «Ajustes» están en todas las distribuciones, no solo en Consola.
     items.push({ open: 'drawer', ic: 'todas', t: 'Apps' });
     items.push({ open: 'settings', ic: 'ajustes', t: 'Ajustes' });
+    // En vertical los botones van en filas de hasta seis: el alto de la barra depende de cuántos haya.
+    if (scr) {
+      const rows = Math.ceil(items.length / DOCK_COLS);
+      scr.style.setProperty('--dockh', rows * 86 + 12 + 'px');
+      scr.style.setProperty('--dockc', String(Math.ceil(items.length / rows))); // filas parejas: 10 botones son 5 + 5
+    }
     return `<nav class="dock">${items
       .map((i) => `<button class="dk${i.go && i.go === ui.screen ? ' on' : ''}" ${i.open && appMode() ? `data-open="${i.open}"` : i.go ? `data-go="${i.go}"` : ''} ${i.app ? `data-app="${i.app}"` : ''}><span class="ic">${icon(i.ic, 30)}</span><small>${esc(i.t)}</small></button>`)
       .join('')}</nav>`;
@@ -507,6 +520,7 @@
     scr.dataset.night = ui.night ? '1' : '0';
     scr.dataset.screen = ui.screen;
     scr.dataset.clock12 = state.features.clock12 ? '1' : '0';
+    scr.dataset.orient = vert ? 'v' : 'h';
 
     let body;
     if (ui.screen === 'inicio') {
@@ -523,11 +537,12 @@
     if (bg && mode === 'photo') customBg = `<image href="${bg}" x="0" y="0" width="1024" height="600" preserveAspectRatio="xMidYMid slice"/><rect width="1024" height="600" fill="rgba(0,0,0,.38)"/>`;
     else if (bg && mode === 'logo') customBg += `<image href="${bg}" x="262" y="110" width="500" height="380" preserveAspectRatio="xMidYMid meet" opacity=".14"/>`;
     scr.innerHTML =
-      `<svg class="scene" viewBox="0 0 1024 600" preserveAspectRatio="none" aria-hidden="true">${customBg}</svg>` +
+      // En vertical el fondo no se estira: se recorta al centro, apoyado abajo (donde están los cerros y el suelo).
+      `<svg class="scene" viewBox="0 0 1024 600" preserveAspectRatio="${vert ? 'xMidYMax slice' : 'none'}" aria-hidden="true">${customBg}</svg>` +
       `<div class="tint tint-${sceneTime(state)}"></div>` +
       `<header class="status">${bg && mode === 'badge' ? `<img class="badge-logo" src="${bg}" alt="">` : '<span></span>'}<b data-clock>${clockText(new Date(), state)}</b></header>` +
       body +
-      `<svg class="decor" viewBox="0 0 1024 600" aria-hidden="true">${TB.decor(season, ui.night)}</svg>` +
+      `<svg class="decor" viewBox="0 0 1024 600"${vert ? ' preserveAspectRatio="xMidYMin meet"' : ''} aria-hidden="true">${TB.decor(season, ui.night)}</svg>` +
       `<canvas class="fx" width="1024" height="600" aria-hidden="true"></canvas>` +
       dock(state, ui) +
       `<div class="alert" hidden></div>` +
@@ -597,21 +612,43 @@
     scr.className = 'scr';
     host.appendChild(scr);
     const fit = () => {
+      const was = vert;
       if (appMode()) {
-        // Pantalla completa: la radio se ajusta a lo ancho o a lo alto, lo que quepa, y queda centrada.
-        // Si el WebView de la radio es viejo y el contenedor midió 0, se usa el tamaño de la ventana: nunca dejar la pantalla en escala 0 (se vería negra).
+        // Pantalla completa. Si el WebView de la radio es viejo y el contenedor midió 0, se usa el tamaño de la ventana:
+        // nunca dejar la pantalla en escala 0 (se vería negra).
         const w = host.clientWidth || window.innerWidth || 1024;
         const h = host.clientHeight || window.innerHeight || 600;
-        const s = Math.min(w / 1024, h / 600);
+        vert = h > w * 1.1; // la radio es vertical (por ejemplo 768 × 1024)
+        if (vert) vertH = clamp(Math.round((VW * h) / w), 900, 1600);
+        const cw = vert ? VW : 1024;
+        const ch = vert ? vertH : 600;
+        // Se ajusta a lo ancho o a lo alto, lo que quepa, y queda centrada.
+        const s = Math.min(w / cw, h / ch);
+        scr.style.width = cw + 'px';
+        scr.style.height = ch + 'px';
         scr.style.transform = `scale(${s})`;
-        scr.style.left = Math.round((w - 1024 * s) / 2) + 'px';
-        scr.style.top = Math.round((h - 600 * s) / 2) + 'px';
-        return;
+        scr.style.left = Math.round((w - cw * s) / 2) + 'px';
+        scr.style.top = Math.round((h - ch * s) / 2) + 'px';
+      } else if (vert) {
+        // En el sitio, la vista vertical es la de una radio de 768 × 1024, centrada y sin pasar de 640 px de alto.
+        vertH = 960;
+        const s = Math.min(host.clientWidth / VW, 640 / vertH);
+        scr.style.width = VW + 'px';
+        scr.style.height = vertH + 'px';
+        scr.style.transform = `scale(${s})`;
+        scr.style.left = Math.round((host.clientWidth - VW * s) / 2) + 'px';
+        host.style.height = Math.round(vertH * s) + 'px';
+      } else {
+        const s = host.clientWidth / 1024;
+        scr.style.width = '';
+        scr.style.height = '';
+        scr.style.left = '';
+        scr.style.transform = `scale(${s})`;
+        host.style.height = Math.round(600 * s) + 'px';
       }
-      const s = host.clientWidth / 1024;
-      scr.style.transform = `scale(${s})`;
-      host.style.height = Math.round(600 * s) + 'px';
+      if (was !== vert && current) render(current.state, current.ui);
     };
+    fitNow = fit;
     fit();
     if ('ResizeObserver' in window) new ResizeObserver(fit).observe(host);
     else window.addEventListener('resize', fit);
@@ -658,5 +695,13 @@
     if (za) { za.hidden = false; za.className = 'zone-alert' + (n.warn ? ' warn' : ''); za.firstElementChild.textContent = n.text; }
   }
 
-  TB.preview = { mount, render, onGo: null, maintItems, doneButton, showZoneNotice, updateMusic, updateRadio, updateObd, updateMap, app: null };
+  /** En el sitio: muestra la vista previa como se ve en una radio vertical (o vuelve a la horizontal). */
+  function setVertical(on) {
+    if (appMode() || vert === !!on) return;
+    vert = !!on;
+    if (fitNow) fitNow();
+    if (current) render(current.state, current.ui);
+  }
+
+  TB.preview = { mount, render, setVertical, onGo: null, maintItems, doneButton, showZoneNotice, updateMusic, updateRadio, updateObd, updateMap, app: null };
 })();

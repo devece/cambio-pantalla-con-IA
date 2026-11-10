@@ -24,7 +24,7 @@
       speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: true, miles: false, gallons: false, clock12: false,
     },
   });
-  const ui = { step: 1, screen: 'inicio', night: false };
+  const ui = { step: 1, screen: 'inicio', night: false, vertical: false };
   let state = defaults();
 
   function merge(base, saved) {
@@ -380,6 +380,11 @@
     $('#mode-night').classList.toggle('on', ui.night);
     $('#mode-day').setAttribute('aria-pressed', String(!ui.night));
     $('#mode-night').setAttribute('aria-pressed', String(ui.night));
+    $('#orient-h').classList.toggle('on', !ui.vertical);
+    $('#orient-v').classList.toggle('on', ui.vertical);
+    $('#orient-h').setAttribute('aria-pressed', String(!ui.vertical));
+    $('#orient-v').setAttribute('aria-pressed', String(ui.vertical));
+    $('#stage-title').textContent = ui.vertical ? 'Así se verá en una radio vertical (768 × 1024)' : 'Así se verá en tu radio (1024 × 600)';
     $('#photo-clear').hidden = !state.car.photo;
     // El color es solo del auto de ejemplo: con la foto del cliente no se usa.
     $('#car-color-group').hidden = !!state.car.photo;
@@ -516,6 +521,9 @@
     $('#back').addEventListener('click', () => go(ui.step - 1));
     $('#mode-day').addEventListener('click', () => { ui.night = false; update(); });
     $('#mode-night').addEventListener('click', () => { ui.night = true; update(); });
+    // La app elige sola según la pantalla de la radio; aquí se puede ver cómo queda en cada una.
+    $('#orient-h').addEventListener('click', () => { ui.vertical = false; TB.preview.setVertical(false); update(); });
+    $('#orient-v').addEventListener('click', () => { ui.vertical = true; TB.preview.setVertical(true); update(); });
     TB.preview.onGo = (id) => { ui.screen = id; update(); };
 
     $('#photo').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadPhoto(f); e.target.value = ''; });

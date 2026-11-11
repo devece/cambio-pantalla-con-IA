@@ -114,13 +114,22 @@ test('POST /api/stats suma una visita, salvo robots y tipos inválidos', async (
   } finally { restore(); }
 });
 
+/** La respuesta de la red falsa para la APK y su version.json (con la huella real), como la publica la compilación. */
+function apkResponse(url, apk) {
+  if (/version\.json$/.test(String(url))) {
+    const body = JSON.stringify({ versionCode: 1155, sha256: require('node:crypto').createHash('sha256').update(apk).digest('hex') });
+    return { ok: true, status: 200, text: async () => body };
+  }
+  return { ok: true, status: 200, arrayBuffer: async () => apk.buffer.slice(apk.byteOffset, apk.byteOffset + apk.length) };
+}
+
 test('cada descarga de la APK suma una, sin importar si lleva diseño', async () => {
   withEnv();
   const { apk } = fakeApk();
   const tipos = [];
   global.fetch = async (url, opts) => {
     if (String(url).includes('/rpc/')) { tipos.push(JSON.parse(opts.body).p_kind); return okEmpty; }
-    return { ok: true, status: 200, arrayBuffer: async () => apk.buffer.slice(apk.byteOffset, apk.byteOffset + apk.length) };
+    return apkResponse(url, apk);
   };
   const app = require('../api/app.js');
   app._resetCache();
@@ -148,7 +157,7 @@ test('si el contador falla, la descarga sale igual', async () => {
   const { apk } = fakeApk();
   global.fetch = async (url) => {
     if (String(url).includes('/rpc/')) throw new Error('base caída');
-    return { ok: true, status: 200, arrayBuffer: async () => apk.buffer.slice(apk.byteOffset, apk.byteOffset + apk.length) };
+    return apkResponse(url, apk);
   };
   const app = require('../api/app.js');
   app._resetCache();

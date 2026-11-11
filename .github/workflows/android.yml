@@ -23,6 +23,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # scripts/version.js cuenta los commits: necesita la historia completa
 
       - uses: actions/setup-node@v4
         with:
@@ -33,6 +35,11 @@ jobs:
 
       - name: Pruebas del sitio y del servidor
         run: npm test
+
+      # Una sola numeración para la app: versionCode = 1000 + commits, y el commit de origen (scripts/version.js).
+      - name: Calcular la versión
+        id: ver
+        run: node scripts/version.js github-output >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-java@v4
         with:
@@ -71,6 +78,13 @@ jobs:
             echo "::warning::Sin clave de firma: se publica el APK de prueba (debug)."
           fi
 
+      # En main la APK pública debe salir con la clave fija: sin ella, las radios con la app ya instalada no podrían actualizarse encima.
+      - name: Exigir la clave de firma en main
+        if: github.ref == 'refs/heads/main' && steps.sign.outputs.signed != 'true'
+        run: |
+          echo "::error::En main la APK debe firmarse con la clave fija (faltan los secretos TB_*); no se publica una APK de prueba."
+          exit 1
+
       - name: Compilar el APK
         working-directory: android
         env:
@@ -80,8 +94,37 @@ jobs:
           TB_KEY_PASSWORD: ${{ github.ref == 'refs/heads/main' && secrets.TB_KEY_PASSWORD || '' }}
         run: |
           if [ "${{ steps.sign.outputs.signed }}" = "true" ]; then TASK=:app:assembleRelease; else TASK=:app:assembleDebug; fi
-          # Cada compilación lleva un número que sube solo: así la app sabe si la publicada es más nueva que la instalada.
-          ./gradlew --no-daemon $TASK -PtableroVersionCode=${{ github.run_number }} -PtableroVersion=1.0.${{ github.run_number }}
+          # Cada compilación lleva un número que solo sube (1000 + commits de main) y el commit del que salió.
+          ./gradlew --no-daemon $TASK \
+            -PtableroVersionCode=${{ steps.ver.outputs.code }} \
+            -PtableroVersion=${{ steps.ver.outputs.name }} \
+            -PtableroCommit=${{ steps.ver.outputs.commit }}
+
+      # La variante de Play Store (sin actualizador ni permiso de instalar apps) debe seguir compilando; aquí solo se comprueba, no se publica.
+      - name: Compilar la variante de Play
+        working-directory: android
+        run: |
+          ./gradlew --no-daemon :app:assemblePlay \
+            -PtableroVersionCode=${{ steps.ver.outputs.code }} \
+            -PtableroVersion=${{ steps.ver.outputs.name }} \
+            -PtableroCommit=${{ steps.ver.outputs.commit }}
+
+      - name: Revisar la versión y la firma del APK
+        run: |
+          APK="${{ steps.sign.outputs.apk }}"
+          BT="$ANDROID_HOME/build-tools/34.0.0"
+          # Que lleve la versión y el número calculados: si no, las radios no sabrían si es más nueva.
+          "$BT/aapt2" dump badging "$APK" > badging.txt
+          grep -q "versionCode='${{ steps.ver.outputs.code }}'" badging.txt || { echo "::error::El APK no trae el versionCode ${{ steps.ver.outputs.code }}"; exit 1; }
+          grep -q "versionName='${{ steps.ver.outputs.name }}'" badging.txt || { echo "::error::El APK no trae la versión ${{ steps.ver.outputs.name }}"; exit 1; }
+          # Firmada con la clave fija de Tablero (la huella pública está en android/firma-sha256.txt).
+          if [ "${{ steps.sign.outputs.signed }}" = "true" ]; then
+            "$BT/apksigner" verify --print-certs "$APK" | tee firma.txt
+            DIGEST="$(grep -m1 'Signer #1 certificate SHA-256 digest' firma.txt | awk '{print $NF}' | tr 'A-F' 'a-f')"
+            EXPECTED="$(tr -d ': \n' < android/firma-sha256.txt | tr 'A-F' 'a-f')"
+            [ -n "$DIGEST" ] && [ "$DIGEST" = "$EXPECTED" ] || { echo "::error::La APK no está firmada con la clave de Tablero (huella $DIGEST)"; exit 1; }
+            echo "La APK está firmada con la clave de Tablero."
+          fi
 
       - name: Revisar que el APK trae sus datos
         run: |
@@ -100,7 +143,10 @@ jobs:
       # Lo que la app consulta para avisar de una versión nueva. Solo con la clave fija: un APK de prueba no se puede instalar encima.
       - name: Anotar la versión publicada
         if: steps.sign.outputs.signed == 'true'
-        run: echo '{"versionCode":${{ github.run_number }},"versionName":"1.0.${{ github.run_number }}"}' > version.json
+        run: |
+          node scripts/version.js json tablero.apk > version.json
+          sha256sum tablero.apk > tablero.apk.sha256
+          cat version.json
 
       - uses: actions/upload-artifact@v4
         with:
@@ -108,6 +154,7 @@ jobs:
           path: |
             tablero.apk
             version.json
+            tablero.apk.sha256
           if-no-files-found: warn
 
       - uses: actions/upload-artifact@v4
@@ -147,6 +194,7 @@ jobs:
           files: |
             dist/tablero.apk
             dist/version.json
+            dist/tablero.apk.sha256
           fail_on_unmatched_files: false
           prerelease: false
           make_latest: 'false'

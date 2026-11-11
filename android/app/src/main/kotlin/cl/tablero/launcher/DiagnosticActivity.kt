@@ -95,7 +95,7 @@ class DiagnosticActivity : Activity() {
         val access = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")?.contains(packageName) == true
         val metrics = resources.displayMetrics
         return DiagnosticInfo(
-            appVersion = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull() ?: "?",
+            appVersion = (runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull() ?: "?") + " (${BuildConfig.GIT_COMMIT})",
             androidRelease = Build.VERSION.RELEASE ?: "?",
             sdk = Build.VERSION.SDK_INT,
             device = "${Build.MANUFACTURER} ${Build.MODEL}".trim(),

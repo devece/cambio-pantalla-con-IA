@@ -4,7 +4,20 @@ const assert = require('node:assert/strict');
 const { fakeApk } = require('./fake-apk.js');
 const { readPair, DESIGN_ID, PHOTO_DAY_ID, PHOTO_NIGHT_ID } = require('../lib/apk-inject.js');
 
+const crypto = require('node:crypto');
 const handler = require('../api/app.js');
+
+/** Una red falsa: la APK y su version.json (con la huella real de esa APK, o la que se indique). */
+function fakeNetwork(apk, { sha, versionStatus = 200, onFetch } = {}) {
+  return async (url) => {
+    if (onFetch) onFetch(url);
+    if (/version\.json$/.test(url)) {
+      const body = JSON.stringify({ versionCode: 1155, versionName: '0.2.0+155', sha256: sha === undefined ? crypto.createHash('sha256').update(apk).digest('hex') : sha });
+      return { ok: versionStatus === 200, status: versionStatus, text: async () => body };
+    }
+    return { ok: true, status: 200, arrayBuffer: async () => apk.buffer.slice(apk.byteOffset, apk.byteOffset + apk.length) };
+  };
+}
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 
 function call(query, method = 'GET', body) {
@@ -31,7 +44,7 @@ test('entrega la APK con el diseño limpio adentro', async () => {
   const { apk } = fakeApk();
   const realFetch = global.fetch;
   let pedidos = 0;
-  global.fetch = async () => { pedidos++; return { ok: true, status: 200, arrayBuffer: async () => apk.buffer.slice(apk.byteOffset, apk.byteOffset + apk.length) }; };
+  global.fetch = fakeNetwork(apk, { onFetch: (url) => { if (/\.apk$/.test(url)) pedidos++; } });
   try {
     const r = await call({ d: b64(design) });
     assert.equal(r.status, 200);
@@ -102,7 +115,7 @@ async function withApk(fn) {
   const { apk } = fakeApk();
   const realFetch = global.fetch;
   handler._resetCache();
-  global.fetch = async () => ({ ok: true, status: 200, arrayBuffer: async () => apk.buffer.slice(apk.byteOffset, apk.byteOffset + apk.length) });
+  global.fetch = fakeNetwork(apk);
   try { return await fn(apk); } finally { global.fetch = realFetch; }
 }
 
@@ -137,3 +150,52 @@ test('POST: una foto que no coincide con lo que dice ser, o muy grande, se recha
   assert.equal((await call({}, 'POST', { d: 'basura', photo: { day: png(), cut: true } })).status, 400);
   assert.equal((await call({}, 'POST', undefined)).status, 400);
 }));
+
+test('si la APK no coincide con la huella publicada, no se usa y se entrega la normal', async () => {
+  const { apk } = fakeApk();
+  const realFetch = global.fetch;
+  handler._resetCache();
+  global.fetch = fakeNetwork(apk, { sha: 'a'.repeat(64) });
+  try {
+    const r = await call({ d: b64(design) });
+    assert.equal(r.status, 302, 'una APK que no es la publicada no debe recibir el diseño');
+    const p = await call({ d: b64(design) }, 'POST', { d: b64(design) });
+    assert.equal(p.status, 502);
+  } finally {
+    global.fetch = realFetch;
+    handler._resetCache();
+  }
+});
+
+test('sin version.json o sin huella en él, tampoco se usa la APK', async () => {
+  const { apk } = fakeApk();
+  const realFetch = global.fetch;
+  try {
+    handler._resetCache();
+    global.fetch = fakeNetwork(apk, { versionStatus: 404 });
+    assert.equal((await call({ d: b64(design) })).status, 302, 'version.json ausente');
+    handler._resetCache();
+    global.fetch = fakeNetwork(apk, { sha: '' });
+    assert.equal((await call({ d: b64(design) })).status, 302, 'version.json sin huella');
+    handler._resetCache();
+    global.fetch = fakeNetwork(apk, { sha: 'no-es-hex' });
+    assert.equal((await call({ d: b64(design) })).status, 302, 'huella mal formada');
+  } finally {
+    global.fetch = realFetch;
+    handler._resetCache();
+  }
+});
+
+test('con la huella correcta (aunque venga en mayúsculas) se usa la APK', async () => {
+  const { apk } = fakeApk();
+  const realFetch = global.fetch;
+  handler._resetCache();
+  global.fetch = fakeNetwork(apk, { sha: crypto.createHash('sha256').update(apk).digest('hex').toUpperCase() });
+  try {
+    const r = await call({ d: b64(design) });
+    assert.equal(r.status, 200);
+  } finally {
+    global.fetch = realFetch;
+    handler._resetCache();
+  }
+});

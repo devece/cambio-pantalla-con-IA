@@ -29,6 +29,16 @@ Distinto del workflow **Android**, que en cada cambio actualiza `app-latest` (la
 Si algo falla no se publica nada. Para repetir: corrige, y si ya habías subido la etiqueta, bórrala y créala de nuevo (`git push --delete origin vX.Y.Z`, luego `git tag -d vX.Y.Z`).
 
 ## Cómo se numera el APK
-- `versionName` es la etiqueta sin la `v` (`1.2.3`).
-- `versionCode` (lo que Android compara para actualizar) es `mayor×10000 + menor×100 + parche`: `1.2.3 → 10203`. Siempre crece con la versión.
-- Para ver el cálculo: `node scripts/changelog.js code 1.2.3`. Para ver las notas que se publicarán: `node scripts/changelog.js notes 1.2.3`.
+Una sola numeración para los releases y para la descarga pública (`app-latest`), calculada por `scripts/version.js`:
+
+- `versionCode` (lo que Android compara para actualizar) es **1000 + el número de commits** de la historia (`git rev-list --count HEAD`). Crece con cada commit de `main`, no depende de ningún contador de la CI y se puede reconstruir desde cualquier commit. Una etiqueta sale siempre de `main`, así que su código es mayor que el de todo lo anterior. La base de 1000 la deja por encima de lo publicado antes (200 y 138).
+- `versionName` de un release es la etiqueta sin la `v` (`1.2.3`). El de la descarga pública es `última versión publicada + commits` (`0.2.0+155`).
+- La APK lleva además el **commit** del que salió (`BuildConfig.GIT_COMMIT`): se ve en Ajustes y en el diagnóstico de la radio.
+- Para ver los valores de este commit: `node scripts/version.js github-output` (necesita la historia completa: `git fetch --unshallow` si el clon es recortado). Las notas que se publicarán: `node scripts/changelog.js notes 1.2.3`.
+
+### Lo que publica la descarga pública
+`app-latest` lleva tres archivos: `tablero.apk`, `tablero.apk.sha256` y `version.json` (`versionCode`, `versionName`, `commit`, `sha256`, `size`). La app comprueba la huella y el tamaño antes de instalar una actualización, y el sitio (`/api/app`) solo inyecta el diseño en una APK cuya huella coincide con la de `version.json`.
+
+### Firma
+La CI compara el certificado de la APK con la huella pública de la clave de Tablero (`android/firma-sha256.txt`) y rechaza cualquier otra. En `main` no se publica nunca una APK de prueba: si faltan los secretos de firma, el flujo falla.
+

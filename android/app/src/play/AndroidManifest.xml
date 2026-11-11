@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Variante «play» (Play Store): quita lo que Play no permite en una app distribuida por Play.
+  - REQUEST_INSTALL_PACKAGES: la app no puede instalar actualizaciones por su cuenta; las entrega Play.
+  - el receptor del instalador del actualizador, que ya no se usa.
+  Los demás permisos sensibles (QUERY_ALL_PACKAGES, ubicación, notificaciones) hay que justificarlos en la consola de Play (docs/PLAY_STORE.md).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />
+
+    <application>
+        <receiver android:name=".Updater$UpdateReceiver" tools:node="remove" />
+    </application>
+</manifest>

@@ -89,7 +89,7 @@ jobs:
           for f in editions maintenance restriction obd-codes; do
             grep -q "assets/$f.json" contenido.txt || { echo "::error::Falta assets/$f.json dentro del APK"; exit 1; }
           done
-          for f in launcher.html css/preview.css js/preview.js js/launcher.js js/art.js js/themes.js js/fx.js shared/catalog.js shared/daylight.js shared/pico.js img/auto.png img/suv.png; do
+          for f in launcher.html css/preview.css js/preview.js js/launcher.js js/art.js js/themes.js js/fx.js shared/catalog.js shared/daylight.js shared/pico.js shared/profile.js img/auto.png img/suv.png; do
             grep -q "assets/web/$f" contenido.txt || { echo "::error::Falta assets/web/$f dentro del APK"; exit 1; }
           done
           echo "El APK trae sus datos y la pantalla de inicio."

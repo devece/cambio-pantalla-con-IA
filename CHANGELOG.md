@@ -7,6 +7,9 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 
 ## [Sin publicar]
 
+### Corregido
+- **La app de la radio ya muestra las opciones que elegiste en el sitio.** Al bajar la app «con mi diseño», los documentos (revisión técnica, permiso de circulación, seguro), el combustible, los otros mantenimientos, el intervalo del cambio de aceite y las opciones desactivadas no llegaban a la pantalla de la radio: se veían los valores de fábrica. Ahora llegan todas, junto con el país, la patente y las unidades (millas y galones). El pico y placa de Colombia, Ecuador y México se activa en la radio con el GPS (antes solo el de Chile). Una patente de más de un dígito («55») ya no se corta a un dígito al importar el diseño, y un mantenimiento desconocido ya no descarta a los demás.
+
 ## [0.2.0] - 2026-11-10
 
 Es la primera versión publicada en GitHub Releases. Junta todo lo que se sumó desde el prototipo 0.1.0.

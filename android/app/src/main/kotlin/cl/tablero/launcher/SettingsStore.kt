@@ -43,6 +43,10 @@ class SettingsStore(context: Context) {
             restrDays = list("restrDays", d.restrDays),
             voice = p.getBoolean("voice", d.voice),
             clock12 = p.getBoolean("clock12", d.clock12),
+            country = (p.getString("country", d.country) ?: d.country).takeIf { it in COUNTRIES } ?: d.country,
+            plate = p.getString("plate", d.plate) ?: d.plate,
+            miles = p.getBoolean("miles", d.miles),
+            gallons = p.getBoolean("gallons", d.gallons),
             wheelKeys = WheelKeys.parse(p.getString("wheelKeys", null)),
             welcomeDone = p.getBoolean("welcomeDone", d.welcomeDone),
             look = Look(
@@ -94,6 +98,10 @@ class SettingsStore(context: Context) {
             .putString("restrDays", c.restrDays.joinToString(","))
             .putBoolean("voice", c.voice)
             .putBoolean("clock12", c.clock12)
+            .putString("country", c.country)
+            .putString("plate", c.plate)
+            .putBoolean("miles", c.miles)
+            .putBoolean("gallons", c.gallons)
             .putString("wheelKeys", WheelKeys.serialize(c.wheelKeys))
             .putBoolean("welcomeDone", c.welcomeDone)
             .putString("lookTheme", c.look.theme)
@@ -165,6 +173,7 @@ class SettingsStore(context: Context) {
 
     private companion object {
         const val CARRY_KEY = "odometerCarryM"
+        val COUNTRIES = setOf("CL", "CO", "EC", "MX")
         const val MAX_KM = 999_999
     }
 

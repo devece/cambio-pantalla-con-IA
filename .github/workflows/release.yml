@@ -34,7 +34,8 @@ jobs:
         id: version
         run: |
           VERSION="${REF_NAME#v}"
-          CODE="$(node scripts/changelog.js code "$VERSION")"
+          # Misma numeración que la descarga pública (scripts/version.js): 1000 + commits. Una etiqueta sale siempre de main.
+          CODE="$(node scripts/version.js code)"
           node scripts/changelog.js notes "$VERSION" > "$RUNNER_TEMP/notas.md"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "code=$CODE" >> "$GITHUB_OUTPUT"
@@ -100,7 +101,8 @@ jobs:
         run: |
           ./gradlew --no-daemon :app:assembleRelease \
             -PtableroVersion="${{ steps.version.outputs.version }}" \
-            -PtableroVersionCode="${{ steps.version.outputs.code }}"
+            -PtableroVersionCode="${{ steps.version.outputs.code }}" \
+            -PtableroCommit="$(node scripts/version.js commit)"
 
       - name: Revisar el APK (versión, firma y datos)
         run: |
@@ -116,6 +118,10 @@ jobs:
           "$BT/apksigner" verify --print-certs "$APK" | tee firma.txt
           grep -q "Signer #1 certificate DN" firma.txt || { echo "::error::El APK no está firmado"; exit 1; }
           if grep -qi "CN=Android Debug" firma.txt; then echo "::error::El APK está firmado con la clave de prueba"; exit 1; fi
+          # Y con la clave de Tablero: la huella pública está en android/firma-sha256.txt.
+          DIGEST="$(grep -m1 'Signer #1 certificate SHA-256 digest' firma.txt | awk '{print $NF}' | tr 'A-F' 'a-f')"
+          EXPECTED="$(tr -d ': \n' < android/firma-sha256.txt | tr 'A-F' 'a-f')"
+          [ -n "$DIGEST" ] && [ "$DIGEST" = "$EXPECTED" ] || { echo "::error::La APK no está firmada con la clave de Tablero (huella $DIGEST)"; exit 1; }
 
           # Que traiga sus datos y la pantalla de inicio (como en el workflow Android).
           unzip -l "$APK" > contenido.txt

@@ -7,6 +7,10 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 
 ## [Sin publicar]
 
+### Cambiado
+- **Las actualizaciones dentro de la app se verifican antes de instalarse.** Antes de entregar la APK nueva al instalador de Android, la app comprueba que sea exactamente la publicada (huella SHA-256 y tamaño) y, en Android 9 o más nuevo, que esté firmada con la misma clave de Tablero. Si algo no cuadra, no se instala nada y avisa. Ajustes → Actualizaciones muestra además de qué commit salió tu versión.
+- **Una sola numeración de versiones.** Las versiones de la descarga pública y de los releases ahora siguen la misma cuenta (1000 + commits), que solo crece. Con esto las radios con la app instalada pueden actualizar siempre sin importar de dónde bajaron la anterior. Por única vez el número salta a más de 1000.
+
 ## [0.2.0] - 2026-11-10
 
 Es la primera versión publicada en GitHub Releases. Junta todo lo que se sumó desde el prototipo 0.1.0.

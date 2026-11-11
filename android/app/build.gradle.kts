@@ -11,9 +11,14 @@ android {
         applicationId = "cl.tablero.launcher"
         minSdk = 21 // las radios chinas de auto suelen traer Android 5 a 10
         targetSdk = 34
-        // En un release el workflow las pasa desde la etiqueta (-PtableroVersion=1.2.3 -PtableroVersionCode=10203); a mano, estas.
+        // Los pasa la CI desde scripts/version.js (-PtableroVersionCode=1155 -PtableroVersion=0.2.0+155 -PtableroCommit=ee17774da76f);
+        // a mano, estos valores de desarrollo.
         versionCode = providers.gradleProperty("tableroVersionCode").map { it.toInt() }.getOrElse(1)
         versionName = providers.gradleProperty("tableroVersion").getOrElse("0.1.0")
+        // El commit del que salió esta APK (se ve en Ajustes y en el diagnóstico de la radio).
+        buildConfigField("String", "GIT_COMMIT", "\"${providers.gradleProperty("tableroCommit").getOrElse("desarrollo")}\"")
+        // La descarga directa se actualiza sola con el aviso de la app; la variante de Play Store no (Play lo prohíbe y es Play quien actualiza).
+        buildConfigField("boolean", "IN_APP_UPDATE", "true")
 
     }
 
@@ -55,6 +60,13 @@ android {
         release {
             isMinifyEnabled = false
             signingConfigs.findByName("tablero")?.let { signingConfig = it }
+        }
+        // Variante para Play Store: igual que release pero sin el actualizador ni el permiso de instalar apps (src/play/AndroidManifest.xml).
+        // Se compila con :app:assemblePlay o :app:bundlePlay. Ver docs/PLAY_STORE.md.
+        create("play") {
+            initWith(getByName("release"))
+            matchingFallbacks += "release"
+            buildConfigField("boolean", "IN_APP_UPDATE", "false")
         }
     }
 }

@@ -22,6 +22,15 @@ import kotlin.test.assertEquals
 class SettingsStoreTest {
     private fun store() = SettingsStore(ApplicationProvider.getApplicationContext<Application>())
 
+    /** Compara campo por campo para que, si algo no vuelve igual, el mensaje diga cuál. */
+    private fun assertSame(expected: LauncherConfig, actual: LauncherConfig) {
+        for (f in LauncherConfig::class.java.declaredFields) {
+            if (java.lang.reflect.Modifier.isStatic(f.modifiers)) continue
+            f.isAccessible = true
+            assertEquals(f.get(expected), f.get(actual), "el campo «${f.name}» no volvio igual")
+        }
+    }
+
     @Test
     fun `sin nada guardado se lee la configuracion de fabrica`() {
         assertEquals(LauncherConfig(), store().load())
@@ -41,13 +50,13 @@ class SettingsStoreTest {
             wheelKeys = mapOf(24 to WheelAction.entries.first()),
             welcomeDone = true, odometerAuto = false,
             obd = ObdLinkConfig(kind = ObdLinkKind.WIFI, address = "192.168.0.10", name = "OBDII", port = 35_000),
-            look = Look(theme = "costa", layout = "minimal", scene = "nieve", sceneTime = "noche", season = "navidad", accent = "#4cc9f0"),
+            look = Look(theme = "costa", layout = "minimal", scene = "costa", sceneTime = "noche", season = "navidad", accent = "#4cc9f0"),
         )
         val s = store()
         s.save(c)
-        assertEquals(c.copy(look = c.look), s.load().copy(look = s.load().look))
+        assertSame(c, s.load())
         // Lo guardado sobrevive a una instancia nueva (como al reiniciar la radio).
-        assertEquals(s.load(), store().load())
+        assertSame(s.load(), store().load())
     }
 
     @Test

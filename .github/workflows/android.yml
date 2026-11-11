@@ -59,6 +59,18 @@ jobs:
         working-directory: android
         run: ./gradlew --no-daemon :core:test
 
+      # Pruebas del módulo de la app (Robolectric simula Android 5 a 14 en el PC) y revisión de lint contra la versión mínima.
+      - name: Pruebas de la app (varias versiones de Android)
+        working-directory: android
+        run: ./gradlew --no-daemon :app:testDebugUnitTest
+
+      - name: Revisión de lint (compatibilidad con Android 5 a 14)
+        working-directory: android
+        run: |
+          ./gradlew --no-daemon :app:lintDebug
+          echo "----- informe de lint -----"
+          cat app/build/reports/lint-results.txt 2>/dev/null || echo "(sin informe)"
+
       # Firma fija: solo en main. Allí, si existen los secretos TB_KEYSTORE_B64, TB_KEYSTORE_PASSWORD, TB_KEY_ALIAS y TB_KEY_PASSWORD
       # se compila el APK de release firmado (las actualizaciones se instalan encima sin desinstalar).
       # En cualquier otra rama los secretos ni siquiera se entregan al paso: se compila el APK de prueba (debug).

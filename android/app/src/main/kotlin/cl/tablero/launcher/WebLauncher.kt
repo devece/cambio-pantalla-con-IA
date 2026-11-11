@@ -106,6 +106,7 @@ class WebLauncher(private val activity: Activity, private val designJson: String
             override fun onPageFinished(v: WebView, url: String) {
                 ready = true
                 v.evaluateJavascript("TBApp.init(" + JSONObject.quote(designJson) + ")", null)
+                v.evaluateJavascript("TBApp.setOrient(" + JSONObject.quote(settings.orient()) + ")", null)
                 progressJson(settings.load())?.let { v.evaluateJavascript("TBApp.setProgress(" + JSONObject.quote(it) + ")", null) }
                 pending.forEach { v.evaluateJavascript(it, null) }
                 pending.clear()

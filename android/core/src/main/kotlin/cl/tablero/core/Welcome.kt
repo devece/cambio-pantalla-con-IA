@@ -1,5 +1,6 @@
 package cl.tablero.core
 
+import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -21,6 +22,31 @@ object Welcome {
      * Lo que el usuario contó, para la pantalla de inicio cuando aún no hay un diseño del sitio (edición gratuita).
      * Va en una clave aparte (`profile`) para no confundirse con un diseño real (el que se activó antes con un código).
      */
+    /** Las opciones del cliente en el formato que lee la pantalla de la radio (public/shared/profile.js). */
+    fun featuresJson(c: LauncherConfig): JSONObject = JSONObject()
+        .put("country", c.country)
+        .put("oilOn", c.oilOn)
+        .put("odometer", c.odometer)
+        .put("lastOil", c.lastOil)
+        .put("oilEvery", c.oilEvery)
+        .put("others", JSONArray(c.otherMaintenance))
+        .put("docsOn", c.docsOn)
+        .put("rtMonth", c.rtMonth)
+        .put("fuelOn", c.fuelOn)
+        .put("tankL", c.tankL)
+        .put("kmPerL", c.kmPerL)
+        .put("speedShow", c.speedShow)
+        .put("speedAlert", c.speedAlert)
+        .put("manualLimit", c.manualLimit)
+        .put("restrOn", c.restrOn)
+        .put("restrType", c.restrType)
+        .put("restrDigit", c.restrDigit)
+        .put("restrDays", JSONArray(c.restrDays))
+        .put("voice", c.voice)
+        .put("miles", c.miles)
+        .put("gallons", c.gallons)
+        .put("clock12", c.clock12)
+
     fun profileJson(c: LauncherConfig, photoUrl: String? = null, photoCut: Boolean = false, photoNightUrl: String? = null): String {
         val profile = JSONObject()
             .put("name", c.name)
@@ -29,6 +55,10 @@ object Welcome {
             .put("type", c.carType)
             .put("color", c.carColor)
         if (c.clock12) profile.put("clock12", true)
+        if (c.plate.isNotBlank()) profile.put("plate", c.plate)
+        // Las opciones del cliente (aceite, documentos, combustible, restricción, país, unidades…): sin ellas la pantalla de la radio
+        // se quedaba con los valores de fábrica. Las claves son las de public/shared/design-contract.json.
+        profile.put("features", featuresJson(c))
         // La apariencia elegida en Ajustes: solo lo que el usuario escogió, para que lo demás quede como siempre.
         val look = c.look.cleaned()
         val style = JSONObject()

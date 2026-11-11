@@ -29,6 +29,7 @@ tasks.test {
     systemProperty("maintenance.path", rootProject.file("../public/shared/maintenance.json").absolutePath)
     systemProperty("restriction.path", rootProject.file("../public/shared/restriction.json").absolutePath)
     systemProperty("obd.codes.path", rootProject.file("../public/shared/obd-codes.json").absolutePath)
+    systemProperty("design.contract.path", rootProject.file("../public/shared/design-contract.json").absolutePath)
     // Para revisar los autos a ojo: ./gradlew :core:test -Dcar3d.out=/carpeta
     System.getProperty("car3d.out")?.let { systemProperty("car3d.out", it) }
 }

@@ -104,30 +104,10 @@
 
   /**
    * Sin un diseño del sitio (edición gratuita), la app le pasa lo que el usuario contó en el primer arranque o en Ajustes:
-   * nombre, saludo, frase, tipo de auto y color. Un diseño del sitio manda sobre esto.
+   * nombre, saludo, frase, tipo de auto y color, la apariencia y las opciones (aceite, documentos, combustible, restricción,
+   * país, unidades…). La lógica y su validación viven en shared/profile.js, que también prueba el contrato con la app.
    */
-  function applyProfile(p) {
-    if (!p || typeof p !== 'object') return;
-    const car = state.car;
-    const text = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
-    if (text(p.name, 24)) car.name = text(p.name, 24);
-    if (text(p.greeting, 16)) car.greeting = text(p.greeting, 16);
-    if (text(p.phrase, 28)) car.phrase = text(p.phrase, 28);
-    if (['auto', 'suv', 'camioneta'].includes(p.type)) car.type = p.type;
-    if (typeof p.color === 'string' && /^#[0-9a-f]{6}$/i.test(p.color)) car.color = p.color;
-    if (p.clock12 === true) state.features.clock12 = true;
-    // Apariencia elegida en Ajustes: solo se acepta lo que existe en el catálogo; lo demás queda como el diseño por defecto.
-    const st = p.style;
-    if (st && typeof st === 'object') {
-      const set = (key, list) => { if (typeof st[key] === 'string' && list.includes(st[key])) state.style[key] = st[key]; };
-      set('theme', C.themes);
-      set('layout', C.layouts);
-      set('scene', C.scenes);
-      set('sceneTime', C.sceneTimes);
-      set('season', C.seasons);
-      if (typeof st.accent === 'string' && /^#[0-9a-f]{6}$/i.test(st.accent)) state.style.accent = st.accent;
-    }
-  }
+  function applyProfile(p) { window.TBProfile.apply(state, p); }
 
   function setDesign(design) {
     state = defaults();

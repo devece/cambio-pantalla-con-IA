@@ -44,6 +44,13 @@ data class LauncherConfig(
     val obd: ObdLinkConfig = ObdLinkConfig(),
     /** La apariencia que el usuario eligió en Ajustes (vacío = la de siempre). */
     val look: Look = Look(),
+    /** País del cliente (CL, CO, EC o MX): decide qué reglas de restricción o pico y placa avisa la radio. Viene del diseño del sitio. */
+    val country: String = "CL",
+    /** Patente del auto, tal como la escribió el cliente en el sitio (se muestra en algunos diseños). */
+    val plate: String = "",
+    /** Velocidad y distancias en millas, y combustible en galones: vienen del diseño del sitio. */
+    val miles: Boolean = false,
+    val gallons: Boolean = false,
 )
 
 /** El "candado": ajusta una configuración a lo que permite el nivel de la radio. */

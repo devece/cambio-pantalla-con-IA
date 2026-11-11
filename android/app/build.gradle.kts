@@ -103,5 +103,5 @@ android.sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("ge
 tasks.configureEach {
     if (name.startsWith("merge") && name.endsWith("Assets")) dependsOn(copyEditions, copyWeb)
     // Lint también lee esas carpetas generadas (si no las espera, falla con «implicit dependency»).
-    if (name.contains("Lint") && (name.startsWith("lint") || name.startsWith("generate"))) dependsOn(copyEditions, copyWeb)
+    if (name.contains("lint", ignoreCase = true) && (name.startsWith("lint") || name.startsWith("generate"))) dependsOn(copyEditions, copyWeb)
 }

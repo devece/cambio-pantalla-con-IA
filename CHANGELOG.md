@@ -7,6 +7,9 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 
 ## [Sin publicar]
 
+### Corregido
+- **La restricción vehicular ya no afirma una tabla de otro año.** Los dígitos de cada día cambian con la resolución de cada año; desde ahora, al entrar a Santiago en un año distinto al de la tabla cargada (2026), la radio no dice «te toca» ni «no te toca», sino que avisa que hay que revisar la regla vigente. Las tablas de Chile se contrastaron con la resolución oficial N.º 1698/2026 y coinciden; la regla de Bogotá también coincide con la Secretaría de Movilidad.
+
 ## [0.2.0] - 2026-11-10
 
 Es la primera versión publicada en GitHub Releases. Junta todo lo que se sumó desde el prototipo 0.1.0.

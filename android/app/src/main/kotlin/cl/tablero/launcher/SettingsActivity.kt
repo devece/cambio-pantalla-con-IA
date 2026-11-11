@@ -58,6 +58,7 @@ class SettingsActivity : Activity() {
     private lateinit var lookScene: Spinner
     private lateinit var lookSceneTime: Spinner
     private lateinit var lookSeason: Spinner
+    private lateinit var orientSpinner: Spinner
     private var lookAccent = ""
     private val accentChips = linkedMapOf<String, View>()
     private val lookIds = HashMap<Spinner, List<String>>()
@@ -325,6 +326,7 @@ class SettingsActivity : Activity() {
                 clock12 = clock12.isChecked,
             ),
         )
+        settings.setOrient(pickedId(orientSpinner))
         Toast.makeText(this, "Guardado", Toast.LENGTH_SHORT).show()
         finish()
     }
@@ -420,6 +422,7 @@ class SettingsActivity : Activity() {
         lookScene = lookSpinner("Fondo", Look.SCENES, look.scene)
         lookSceneTime = lookSpinner("Hora del fondo", Look.SCENE_TIMES, look.sceneTime)
         lookSeason = lookSpinner("Decoración de temporada", Look.SEASONS, look.season)
+        orientSpinner = lookSpinner("Orientación de la pantalla (Como viene = automática)", linkedMapOf("v" to "Vertical", "h" to "Horizontal"), settings.orient())
         form.addView(TextView(this).apply {
             text = "Color de acento"
             setTextColor(Ui.SUB)

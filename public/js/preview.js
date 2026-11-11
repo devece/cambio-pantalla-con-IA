@@ -37,6 +37,7 @@
   const VW = 720;
   const DOCK_COLS = 6;
   let vert = false;
+  let orient = 'auto'; // 'auto' | 'h' | 'v': lo que eligió el usuario en Ajustes → Orientación de la pantalla
   let vertH = 960;
   let fitNow = null;
 
@@ -618,7 +619,11 @@
         // nunca dejar la pantalla en escala 0 (se vería negra).
         const w = host.clientWidth || window.innerWidth || 1024;
         const h = host.clientHeight || window.innerHeight || 600;
-        vert = h > w * 1.1; // la radio es vertical (por ejemplo 768 × 1024)
+        // Vertical si el usuario lo eligió; en automático, si el área es más alta que ancha. Las radios verticales con barras
+        // propias (arriba y abajo) le dejan a la app un área casi cuadrada (≈ 1000 × 860), así que si la pantalla física es
+        // vertical basta con que el área sea más alta que el 80 % de su ancho.
+        const tallScreen = !!(window.screen && window.screen.height > window.screen.width);
+        vert = orient === 'v' ? true : orient === 'h' ? false : h > w * 1.1 || (tallScreen && h > w * 0.8);
         if (vert) vertH = clamp(Math.round((VW * h) / w), 900, 1600);
         const cw = vert ? VW : 1024;
         const ch = vert ? vertH : 600;
@@ -703,5 +708,11 @@
     if (current) render(current.state, current.ui);
   }
 
-  TB.preview = { mount, render, setVertical, onGo: null, maintItems, doneButton, showZoneNotice, updateMusic, updateRadio, updateObd, updateMap, app: null };
+  /** La app avisa la orientación elegida en Ajustes: 'v' (vertical), 'h' (horizontal) o cualquier otra cosa (automática). */
+  function setOrient(mode) {
+    orient = mode === 'v' || mode === 'h' ? mode : 'auto';
+    if (fitNow) fitNow();
+  }
+
+  TB.preview = { mount, render, setVertical, setOrient, onGo: null, maintItems, doneButton, showZoneNotice, updateMusic, updateRadio, updateObd, updateMap, app: null };
 })();

@@ -277,6 +277,7 @@
       if (!fin) { mapSaveText('Guardando… ' + Math.round((done / Math.max(1, total)) * 100) + '%'); return; }
       mapSaveText(failed >= total ? 'Sin internet: no se guardó' : failed > 0 ? 'Guardado (' + failed + ' sin bajar)' : 'Mapa guardado ✓', 6000);
     },
+    setOrient(mode) { TB.preview.setOrient(mode); },
     setNight(on) { nightForced = on === null || on === undefined ? null : !!on; render(); },
     zoneNotice(text, warn) { TB.preview.showZoneNotice({ text: String(text), warn: !!warn }); },
   };

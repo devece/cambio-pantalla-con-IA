@@ -67,6 +67,13 @@ class SettingsStore(context: Context) {
         )
     }
 
+    /** Orientación elegida en Ajustes: "v" (vertical), "h" (horizontal) o "" (automática, según la pantalla de la radio). */
+    fun orient(): String = (p.getString("orient", "") ?: "").takeIf { it == "v" || it == "h" } ?: ""
+
+    fun setOrient(mode: String) {
+        p.edit().putString("orient", if (mode == "v" || mode == "h") mode else "").apply()
+    }
+
     fun save(c: LauncherConfig) {
         // Si el usuario corrigió el kilometraje a mano, los metros sueltos que el GPS había juntado ya no valen.
         val corrected = p.contains("odometer") && p.getInt("odometer", 0) != c.odometer

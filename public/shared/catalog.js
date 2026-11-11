@@ -32,12 +32,13 @@
   /*
    * Restricción vehicular permanente. En Chile, para autos particulares, solo existe de forma permanente en la
    * Región Metropolitana (Provincia de Santiago, San Bernardo y Puente Alto). Revisar cada año: el MTT publica
-   * la resolución nueva en abril. Datos de la temporada 2026 (Resolución Exenta SEREMI RM N.º 1698/2026);
-   * contrastados con prensa y MTT el 2026-11-02, sin poder abrir el PDF oficial desde el entorno de desarrollo.
+   * la resolución nueva en abril. Datos de la temporada 2026: Resolución Exenta N.º 1698/2026 de la SEREMI de Transportes RM,
+   * contrastados línea por línea con el PDF oficial el 2026-11-11 (temporada, horario, zona y las dos tablas de dígitos).
+   * Los dígitos cambian cada año: la radio y el sitio solo afirman esta tabla durante {year} (ver restrictionNotice).
    */
   const restriction = {
     year: 2026,
-    verifiedAt: '2026-11-02',
+    verifiedAt: '2026-11-11',
     season: { from: '1 de mayo', to: '31 de agosto', months: [5, 6, 7, 8], hours: '7:30 a 21:00', days: 'de lunes a viernes, excepto festivos' },
     // Zona donde rige (la radio la detecta con el GPS). Polígono aproximado de la Provincia de Santiago más
     // San Bernardo y Puente Alto, en [latitud, longitud]. Se afinará con los límites comunales oficiales (BCN).

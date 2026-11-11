@@ -590,7 +590,7 @@ class MainActivity : Activity() {
         if (inside && !insideZone) {
             val cal = Calendar.getInstance()
             val minutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
-            restriction.notice(config, Reminders.weekdayId(cal.get(Calendar.DAY_OF_WEEK)), cal.get(Calendar.MONTH) + 1, minutes)
+            restriction.notice(config, Reminders.weekdayId(cal.get(Calendar.DAY_OF_WEEK)), cal.get(Calendar.MONTH) + 1, minutes, cal.get(Calendar.YEAR))
                 ?.let { showZoneNotice(it) }
         }
         insideZone = inside

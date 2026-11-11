@@ -38,6 +38,7 @@ Copia `.env.example` a `.env`:
 | Variable | Para qué |
 |---|---|
 | `ANTHROPIC_API_KEY` | Analizar con IA la captura de la radio y los faros de la foto (opcional) |
+| `AI_DAILY_MAX` | Tope diario de llamadas a la IA. Sin él, la IA queda apagada aunque haya clave (ver `docs/SEGURIDAD.md`) |
 | `STATS_SUPABASE_URL`, `STATS_SUPABASE_ANON_KEY`, `STATS_HIT_KEY` | Contadores de visitas y descargas (opcionales). Viven en dos tablas de Supabase (`tablero_stats` y `tablero_stats_key`) que solo se tocan por las funciones `tablero_hit` y `tablero_totals`; sumar exige la clave `STATS_HIT_KEY`. Las descargas se cuentan en total y por tipo (`downloads_design`, `downloads_plain`) |
 | `TABLERO_APK_URL` | De dónde toma el botón «Descargar la app con mi diseño» la APK base (opcional; por defecto, la última compilación) |
 

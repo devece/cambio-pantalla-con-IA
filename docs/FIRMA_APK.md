@@ -15,3 +15,12 @@ Con una firma propia y fija, Play Protect desconfía menos y las actualizaciones
 4. Haz push o ejecuta el workflow "Android": publicará el APK firmado en `app-latest`.
 
 Nunca subas `tablero.jks` ni las contraseñas al repositorio.
+
+## La huella de la clave (pública)
+`android/firma-sha256.txt` guarda la huella SHA-256 del certificado de Tablero (no es un secreto). La CI la compara con la de cada APK y falla si no coincide. Si algún día se cambia de clave, hay que cambiar esa huella en el mismo commit y tener en cuenta que las radios con la app instalada **no podrán actualizarse encima** de una APK firmada con otra clave.
+
+Para ver la huella de tu clave:
+
+```bash
+keytool -list -v -keystore tablero.jks -alias tablero | grep SHA256
+```

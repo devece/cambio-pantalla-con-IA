@@ -54,7 +54,8 @@
   }
 
   /**
-   * Aviso al entrar a la zona. `ctx`: { weekday: 'lun'..'vie'|'sab'|'dom', month: 1-12, minutes: minutos desde la medianoche }.
+   * Aviso al entrar a la zona. `ctx`: { weekday: 'lun'..'vie'|'sab'|'dom', month: 1-12, minutes: minutos desde la medianoche, year?: año de hoy }.
+   * Con `year` distinto del de la tabla, no afirma nada y avisa que hay que revisar la regla vigente (sin `year` no se comprueba).
    * Devuelve { warn, text } o null si no hay nada que avisar. No sabe de festivos (la radio no los conoce).
    */
   function restrictionNotice(f, ctx) {
@@ -65,6 +66,11 @@
     if (!r.season.months.includes(c.month)) return null;
     if (!C.weekdays.includes(c.weekday)) return null;
     if (c.minutes < 7 * 60 + 30 || c.minutes >= 21 * 60) return null;
+    // Los dígitos de cada día cambian con la resolución de cada año: la tabla cargada solo vale para su año. En otro año no se afirma
+    // nada (ni «te toca» ni «no te toca»): se avisa que hay que revisar la regla vigente.
+    if (Number.isInteger(c.year) && c.year !== r.year) {
+      return { warn: false, stale: true, text: `Entraste a ${r.zone.name}. Tablero trae la tabla de restricción de ${r.year} y estamos en ${c.year}: revisa en mtt.gob.cl cuál rige este año, puede haber cambiado.` };
+    }
     const parts = [];
     let warn = false;
     if (restrDaysFor(x).includes(c.weekday)) {

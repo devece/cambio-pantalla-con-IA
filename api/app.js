@@ -10,12 +10,15 @@
  * La foto del auto solo viaja por POST (no cabe en una dirección) y pasa una sola vez por aquí: no se guarda. Si es muy grande o
  * no es una imagen válida, se responde 413/422 y el sitio entrega la APK sin ella (se elige en la app: Ajustes → Foto de tu auto).
  */
+const crypto = require('node:crypto');
 const { rateLimit } = require('../lib/http.js');
 const { DESIGN_ID, PHOTO_DAY_ID, PHOTO_NIGHT_ID, injectPair } = require('../lib/apk-inject.js');
 const { validateOrder } = require('../public/shared/order.js');
 const stats = require('../lib/stats.js');
 
 const APK_URL = process.env.TABLERO_APK_URL || 'https://github.com/devece/cambio-pantalla-con-IA/releases/download/app-latest/tablero.apk';
+// Junto a la APK, la compilación publica version.json con su huella SHA-256: la APK base solo se usa si coincide.
+const VERSION_URL = process.env.TABLERO_VERSION_URL || APK_URL.replace(/[^/]*$/, '') + 'version.json';
 const MAX_PARAM = 6000;
 const MAX_APK = 12 * 1024 * 1024;
 const TTL_MS = 5 * 60 * 1000;
@@ -25,12 +28,26 @@ const MAX_PHOTOS_TOTAL = 2_100_000;
 
 let cache = { at: 0, buf: null };
 
+/** Que la APK bajada sea exactamente la publicada: su huella SHA-256 debe coincidir con la de version.json. Lanza si no se puede comprobar. */
+async function verifyBase(buf) {
+  const r = await fetch(VERSION_URL, { redirect: 'follow' });
+  if (!r.ok) throw new Error('No se pudo comprobar la APK (version.json ' + r.status + ')');
+  let info;
+  try { info = JSON.parse(await r.text()); } catch (_) { throw new Error('version.json no es válido.'); }
+  const expected = String((info && info.sha256) || '').toLowerCase();
+  if (!/^[0-9a-f]{64}$/.test(expected)) throw new Error('version.json no trae la huella de la APK.');
+  const actual = crypto.createHash('sha256').update(buf).digest('hex');
+  if (actual !== expected) throw new Error('La APK no coincide con la huella publicada.');
+}
+
 async function baseApk() {
   if (cache.buf && Date.now() - cache.at < TTL_MS) return cache.buf;
   const r = await fetch(APK_URL, { redirect: 'follow' });
   if (!r.ok) throw new Error('No se pudo bajar la APK (' + r.status + ')');
   const buf = Buffer.from(await r.arrayBuffer());
   if (buf.length < 64 || buf.length > MAX_APK) throw new Error('La APK tiene un tamaño inesperado.');
+  // Si no se puede comprobar, no se usa: el cliente recibe la APK normal (sin su diseño) en vez de una que no sabemos si es la publicada.
+  await verifyBase(buf);
   cache = { at: Date.now(), buf };
   return buf;
 }

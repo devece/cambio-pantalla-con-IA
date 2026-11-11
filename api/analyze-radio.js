@@ -9,6 +9,7 @@
  */
 const Anthropic = require('@anthropic-ai/sdk');
 const { allowMethod, readJson, rateLimit } = require('../lib/http.js');
+const budget = require('../lib/budget.js');
 const { SCHEMA, SYSTEM, parseImage, cleanAnalysis } = require('../lib/radio-analysis.js');
 
 const MODEL = process.env.ANALYSIS_MODEL || 'claude-opus-5-5';
@@ -25,6 +26,14 @@ module.exports = async function handler(req, res) {
   const body = readJson(req) || {};
   const img = parseImage(body.image);
   if (!img) return res.status(400).json({ ok: false, error: 'La imagen no es válida o pesa demasiado. Usa una captura en PNG, JPG o WebP.' });
+
+  // Tope diario: sin AI_DAILY_MAX la IA queda apagada, y al llegar al tope se deja de llamar hasta el día siguiente.
+  const cupo = budget.take();
+  if (!cupo.ok) {
+    return cupo.reason === 'cap'
+      ? res.status(429).json({ ok: false, error: 'Hoy ya se hicieron todos los análisis automáticos posibles. Inténtalo mañana.' })
+      : res.status(503).json({ ok: false, error: 'El análisis automático aún no está disponible.' });
+  }
 
   try {
     const client = new Anthropic();

@@ -15,6 +15,8 @@ class RestrictionRules private constructor(
     private val zoneName: String,
     private val polygon: List<Pair<Double, Double>>,
     private val digits: Map<String, Map<String, Set<Int>>>,
+    /** El año al que pertenece la tabla de dígitos (los dígitos cambian con la resolución de cada año). 0 = no se sabe. */
+    private val tableYear: Int = 0,
 ) {
     /** ¿Está el punto dentro de la zona? (algoritmo del rayo; mismo que `inRestrictionZone` del sitio) */
     fun inZone(lat: Double, lon: Double): Boolean {
@@ -42,12 +44,17 @@ class RestrictionRules private constructor(
      * Qué avisar al entrar a la zona, o null si no hay nada que avisar.
      * @param weekday id del día (lun..vie) o null si es fin de semana, ver [Reminders.weekdayId]
      * @param minutes minutos desde la medianoche
+     * @param year el año de hoy. Si no coincide con el de la tabla, no se afirma nada: se avisa que hay que revisar la regla vigente
+     *   (null = no se comprueba, solo para pruebas).
      * No conoce los festivos: en un festivo avisará igual (mejor un aviso de más que uno de menos).
      */
-    fun notice(c: LauncherConfig, weekday: String?, month: Int, minutes: Int): RestrictionNotice? {
+    fun notice(c: LauncherConfig, weekday: String?, month: Int, minutes: Int, year: Int? = null): RestrictionNotice? {
         if (!c.restrOn || c.restrType == "nuevo") return null
         if (month !in months || weekday == null) return null
         if (minutes < 7 * 60 + 30 || minutes >= 21 * 60) return null
+        if (year != null && tableYear > 0 && year != tableYear) {
+            return RestrictionNotice(false, "Entraste a $zoneName. Tablero trae la tabla de restricción de $tableYear y estamos en $year: revisa en mtt.gob.cl cuál rige este año, puede haber cambiado.")
+        }
         val parts = mutableListOf<String>()
         var warn = false
         if (weekday in daysFor(c.restrType, c.restrDigit)) {
@@ -76,7 +83,7 @@ class RestrictionRules private constructor(
                 val t = d.getJSONObject(type)
                 t.keys().asSequence().associateWith { day -> t.getJSONArray(day).let { a -> (0 until a.length()).map { a.getInt(it) }.toSet() } }
             }
-            return RestrictionRules(months, zone.getString("name"), poly, digits)
+            return RestrictionRules(months, zone.getString("name"), poly, digits, o.optInt("year", 0))
         }
     }
 }

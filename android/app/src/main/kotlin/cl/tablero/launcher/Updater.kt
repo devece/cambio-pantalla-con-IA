@@ -6,10 +6,13 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInfo
 import android.content.pm.PackageInstaller
+import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
 import cl.tablero.core.AppUpdate
+import cl.tablero.core.DownloadCheck
 import cl.tablero.core.UpdateInfo
 import java.io.File
 import java.net.HttpURLConnection
@@ -37,6 +40,8 @@ object Updater {
      * [manual] = el usuario pulsó «Buscar actualización»: no respeta el «Después» ni el intervalo, y siempre responde algo.
      */
     fun checkAndOffer(activity: Activity, manual: Boolean) {
+        // La variante de Play Store no se actualiza por su cuenta: la actualiza Play.
+        if (!BuildConfig.IN_APP_UPDATE) return
         val p = prefs(activity)
         if (!manual && System.currentTimeMillis() - p.getLong("lastCheck", 0L) < CHECK_EVERY_MS) return
         Thread {
@@ -46,7 +51,10 @@ object Updater {
                 if (activity.isFinishing || activity.isDestroyed) return@runOnUiThread
                 when {
                     latest == null -> if (manual) toast(activity, "No se pudo revisar. ¿La radio tiene internet?")
-                    AppUpdate.shouldOffer(installedCode(), latest, if (manual) 0 else p.getInt("postponed", 0)) -> offer(activity, latest)
+                    AppUpdate.shouldOffer(installedCode(), latest, if (manual) 0 else p.getInt("postponed", 0)) ->
+                        // Solo se ofrece lo que se puede verificar (el version.json trae la huella SHA-256 del APK).
+                        if (AppUpdate.isVerifiable(latest)) offer(activity, latest)
+                        else if (manual) toast(activity, "Hay una versión nueva, pero no se pudo verificar. Descárgala desde tablero-pearl.vercel.app/app.")
                     manual -> toast(activity, "Ya tienes la última versión (${installedName()}).")
                 }
             }
@@ -123,10 +131,55 @@ object Updater {
                 if (file == null) {
                     toast(activity, "No se pudo descargar la actualización. Intenta de nuevo más tarde.")
                 } else if (!activity.isFinishing) {
-                    install(activity, file, latest)
+                    // Antes de entregarla al instalador: que sea exactamente la publicada y que la firme la misma clave de esta app.
+                    val problema = verify(activity, file, latest)
+                    if (problema != null) {
+                        file.delete()
+                        toast(activity, problema)
+                    } else {
+                        install(activity, file, latest)
+                    }
                 }
             }
         }.start()
+    }
+
+    /** Un mensaje si el APK descargado no es de fiar, o null si todo cuadra. */
+    private fun verify(context: Context, file: File, info: UpdateInfo): String? {
+        val sha = try {
+            file.inputStream().use { AppUpdate.sha256Hex(it) }
+        } catch (e: Exception) {
+            return "No se pudo revisar la descarga. No se instaló nada."
+        }
+        when (AppUpdate.checkDownload(info, file.length(), sha)) {
+            DownloadCheck.OK -> Unit
+            DownloadCheck.SIN_HUELLA -> return "No se puede verificar esta actualización. No se instaló nada."
+            DownloadCheck.TAMANO, DownloadCheck.HUELLA -> return "La descarga no coincide con la versión publicada. No se instaló nada."
+        }
+        // En Android 9 o más nuevo se compara además la clave con la que está firmado. En versiones anteriores esa lectura no es
+        // fiable: ahí lo comprueba el instalador de Android, que no deja actualizar una app con otra firma.
+        if (Build.VERSION.SDK_INT >= 28 && !sameSigner(context, file)) {
+            return "La actualización no está firmada con la misma clave de Tablero. No se instaló nada."
+        }
+        return null
+    }
+
+    @android.annotation.TargetApi(28)
+    private fun signerDigests(info: PackageInfo?): Set<String> {
+        val signing = info?.signingInfo ?: return emptySet()
+        val certs = if (signing.hasMultipleSigners()) signing.apkContentsSigners else signing.signingCertificateHistory
+        return certs.orEmpty().map { AppUpdate.sha256Hex(it.toByteArray()) }.toSet()
+    }
+
+    @android.annotation.TargetApi(28)
+    private fun sameSigner(context: Context, file: File): Boolean = try {
+        val pm = context.packageManager
+        val flags = PackageManager.GET_SIGNING_CERTIFICATES
+        val mine = signerDigests(pm.getPackageInfo(context.packageName, flags))
+        val theirs = signerDigests(pm.getPackageArchiveInfo(file.absolutePath, flags))
+        mine.isNotEmpty() && theirs.isNotEmpty() && mine.any { it in theirs }
+    } catch (e: Exception) {
+        false
     }
 
     /** Entrega el APK al instalador de Android. Él pide la confirmación y, si falta, el permiso de instalar desde esta app. */

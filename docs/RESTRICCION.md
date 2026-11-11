@@ -30,7 +30,7 @@ Un sitio comercial afirma que Temuco, Rancagua, Talca, Chillán, Los Ángeles y 
 
 **Fuentes:** [MTT, inicio del período 2026](https://mtt.gob.cl/inicia-periodo-de-restriccion-vehicular-2026-region-metropolitana/) y [Resolución Exenta 2026 de la Seremi RM](https://mtt.gob.cl/wp-content/uploads/2026/04/Res-2026-Restriccion-vehicular-permanente-ano-2026_firmado_GCB.pdf).
 
-> **Pendiente de verificar:** no se pudo abrir el PDF oficial desde el entorno de desarrollo. La tabla viene de la prensa (BioBioChile, La Tercera, Emol) y de buscadores que citan la Resolución Exenta N.º 1698/2026, y una fuente discrepaba en el calendario de los autos sin sello verde. Antes de vender, **compárala con el PDF oficial**.
+> **Verificado contra la fuente oficial el 2026-11-11.** Se leyó el PDF de la Resolución Exenta N.º 1698/2026 de la SEREMI de Transportes y Telecomunicaciones RM: la temporada (1 de mayo al 31 de agosto), el horario (7:30 a 21:00), la zona (Provincia de Santiago, San Bernardo y Puente Alto), el anillo Américo Vespucio para los autos sin sello verde y **las dos tablas de dígitos** coinciden con las de arriba. Una nota de prensa que traía otra tabla de sello verde estaba equivocada. `tests/restriccion-oficial.test.js` y `RestrictionTest.kt` fijan esa transcripción.
 
 ## Cómo se aplica en el producto
 
@@ -48,6 +48,12 @@ La radio no conoce los **festivos**: en un festivo avisará igual. Es preferible
 - Copia para la radio: `public/shared/restriction.json`. Una prueba exige que sea idéntica al catálogo.
 - Android: `android/core/.../Restriction.kt` (misma lógica, con prueba `RestrictionTest.kt`), aviso en `MainActivity.kt` y formulario en `SettingsActivity.kt`.
 
+## Qué pasa en otro año
+Los dígitos de cada día **cambian con la resolución de cada año**. La tabla cargada solo se afirma durante su año (`restriction.year`): en otro año, el aviso al entrar a Santiago no dice «te toca» ni «no te toca», sino «Tablero trae la tabla de 2026 y estamos en 2027: revisa en mtt.gob.cl cuál rige este año». Así la radio no da un aviso falso mientras no se cargue la resolución nueva.
+
+## Otros países
+Solo Chile y Bogotá están contrastados con su fuente oficial (la Secretaría Distrital de Movilidad, semana del 21 al 27 de septiembre de 2026: días impares circulan las placas 1 a 5, días pares 6, 7, 8, 9 y 0, de 6:00 a 21:00). **Medellín, Cali, Quito y Ciudad de México siguen como «prensa»**: no se pudieron verificar (páginas sin contenido legible o inaccesibles desde el entorno de desarrollo). La app lo dice en la descripción de cada ciudad.
+
 ## Actualización anual
 
-Cada abril el MTT publica la resolución del año. Para actualizar: editar `restriction` en `catalog.js` (año, fechas, tabla), regenerar `restriction.json` y correr `npm test`. Revisar también si cambió el horario o el alcance geográfico.
+Cada abril el MTT publica la resolución del año. Para actualizar: editar `restriction` en `catalog.js` (año, fechas, tabla), regenerar `restriction.json`, **actualizar la transcripción de `tests/restriccion-oficial.test.js` y `RestrictionTest.kt` con lo que dice la resolución nueva** y correr `npm test`. Sin ese cambio, a partir del 1 de enero la radio avisa que la tabla es del año anterior. Revisar también si cambió el horario o el alcance geográfico.

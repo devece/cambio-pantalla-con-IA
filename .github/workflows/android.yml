@@ -18,10 +18,13 @@ jobs:
   apk:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Compilar solo necesita leer. Publicar la descarga (que sí escribe) está en el trabajo «publish», que no recibe la clave de firma.
     permissions:
-      contents: write   # para publicar el APK como descarga pública
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # scripts/version.js cuenta los commits: necesita la historia completa
 
       - uses: actions/setup-node@v4
         with:
@@ -32,6 +35,11 @@ jobs:
 
       - name: Pruebas del sitio y del servidor
         run: npm test
+
+      # Una sola numeración para la app: versionCode = 1000 + commits, y el commit de origen (scripts/version.js).
+      - name: Calcular la versión
+        id: ver
+        run: node scripts/version.js github-output >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-java@v4
         with:
@@ -63,13 +71,14 @@ jobs:
           echo "----- informe de lint -----"
           cat app/build/reports/lint-results.txt 2>/dev/null || echo "(sin informe)"
 
-      # Firma fija: si existen los secretos TB_KEYSTORE_B64, TB_KEYSTORE_PASSWORD, TB_KEY_ALIAS y TB_KEY_PASSWORD
+      # Firma fija: solo en main. Allí, si existen los secretos TB_KEYSTORE_B64, TB_KEYSTORE_PASSWORD, TB_KEY_ALIAS y TB_KEY_PASSWORD
       # se compila el APK de release firmado (las actualizaciones se instalan encima sin desinstalar).
-      # Sin ellos se sigue compilando el APK de prueba, como hasta ahora.
+      # En cualquier otra rama los secretos ni siquiera se entregan al paso: se compila el APK de prueba (debug).
+      # Ver docs/SEGURIDAD.md (cómo limitarlos además con un Environment de GitHub).
       - name: Preparar la firma
         id: sign
         env:
-          KS: ${{ secrets.TB_KEYSTORE_B64 }}
+          KS: ${{ github.ref == 'refs/heads/main' && secrets.TB_KEYSTORE_B64 || '' }}
         run: |
           if [ -n "$KS" ]; then
             echo "$KS" | base64 -d > "$RUNNER_TEMP/tablero.jks"
@@ -81,17 +90,53 @@ jobs:
             echo "::warning::Sin clave de firma: se publica el APK de prueba (debug)."
           fi
 
+      # En main la APK pública debe salir con la clave fija: sin ella, las radios con la app ya instalada no podrían actualizarse encima.
+      - name: Exigir la clave de firma en main
+        if: github.ref == 'refs/heads/main' && steps.sign.outputs.signed != 'true'
+        run: |
+          echo "::error::En main la APK debe firmarse con la clave fija (faltan los secretos TB_*); no se publica una APK de prueba."
+          exit 1
+
       - name: Compilar el APK
         working-directory: android
         env:
           TB_KEYSTORE_FILE: ${{ runner.temp }}/tablero.jks
-          TB_KEYSTORE_PASSWORD: ${{ secrets.TB_KEYSTORE_PASSWORD }}
-          TB_KEY_ALIAS: ${{ secrets.TB_KEY_ALIAS }}
-          TB_KEY_PASSWORD: ${{ secrets.TB_KEY_PASSWORD }}
+          TB_KEYSTORE_PASSWORD: ${{ github.ref == 'refs/heads/main' && secrets.TB_KEYSTORE_PASSWORD || '' }}
+          TB_KEY_ALIAS: ${{ github.ref == 'refs/heads/main' && secrets.TB_KEY_ALIAS || '' }}
+          TB_KEY_PASSWORD: ${{ github.ref == 'refs/heads/main' && secrets.TB_KEY_PASSWORD || '' }}
         run: |
           if [ "${{ steps.sign.outputs.signed }}" = "true" ]; then TASK=:app:assembleRelease; else TASK=:app:assembleDebug; fi
-          # Cada compilación lleva un número que sube solo: así la app sabe si la publicada es más nueva que la instalada.
-          ./gradlew --no-daemon $TASK -PtableroVersionCode=${{ github.run_number }} -PtableroVersion=1.0.${{ github.run_number }}
+          # Cada compilación lleva un número que solo sube (1000 + commits de main) y el commit del que salió.
+          ./gradlew --no-daemon $TASK \
+            -PtableroVersionCode=${{ steps.ver.outputs.code }} \
+            -PtableroVersion=${{ steps.ver.outputs.name }} \
+            -PtableroCommit=${{ steps.ver.outputs.commit }}
+
+      # La variante de Play Store (sin actualizador ni permiso de instalar apps) debe seguir compilando; aquí solo se comprueba, no se publica.
+      - name: Compilar la variante de Play
+        working-directory: android
+        run: |
+          ./gradlew --no-daemon :app:assemblePlay \
+            -PtableroVersionCode=${{ steps.ver.outputs.code }} \
+            -PtableroVersion=${{ steps.ver.outputs.name }} \
+            -PtableroCommit=${{ steps.ver.outputs.commit }}
+
+      - name: Revisar la versión y la firma del APK
+        run: |
+          APK="${{ steps.sign.outputs.apk }}"
+          BT="$ANDROID_HOME/build-tools/34.0.0"
+          # Que lleve la versión y el número calculados: si no, las radios no sabrían si es más nueva.
+          "$BT/aapt2" dump badging "$APK" > badging.txt
+          grep -q "versionCode='${{ steps.ver.outputs.code }}'" badging.txt || { echo "::error::El APK no trae el versionCode ${{ steps.ver.outputs.code }}"; exit 1; }
+          grep -q "versionName='${{ steps.ver.outputs.name }}'" badging.txt || { echo "::error::El APK no trae la versión ${{ steps.ver.outputs.name }}"; exit 1; }
+          # Firmada con la clave fija de Tablero (la huella pública está en android/firma-sha256.txt).
+          if [ "${{ steps.sign.outputs.signed }}" = "true" ]; then
+            "$BT/apksigner" verify --print-certs "$APK" | tee firma.txt
+            DIGEST="$(grep -m1 'Signer #1 certificate SHA-256 digest' firma.txt | awk '{print $NF}' | tr 'A-F' 'a-f')"
+            EXPECTED="$(tr -d ': \n' < android/firma-sha256.txt | tr 'A-F' 'a-f')"
+            [ -n "$DIGEST" ] && [ "$DIGEST" = "$EXPECTED" ] || { echo "::error::La APK no está firmada con la clave de Tablero (huella $DIGEST)"; exit 1; }
+            echo "La APK está firmada con la clave de Tablero."
+          fi
 
       - name: Revisar que el APK trae sus datos
         run: |
@@ -99,7 +144,7 @@ jobs:
           for f in editions maintenance restriction obd-codes; do
             grep -q "assets/$f.json" contenido.txt || { echo "::error::Falta assets/$f.json dentro del APK"; exit 1; }
           done
-          for f in launcher.html css/preview.css js/preview.js js/launcher.js js/art.js js/themes.js js/fx.js shared/catalog.js shared/daylight.js shared/pico.js img/auto.png img/suv.png; do
+          for f in launcher.html css/preview.css js/preview.js js/launcher.js js/art.js js/themes.js js/fx.js shared/catalog.js shared/daylight.js shared/pico.js shared/profile.js img/auto.png img/suv.png; do
             grep -q "assets/web/$f" contenido.txt || { echo "::error::Falta assets/web/$f dentro del APK"; exit 1; }
           done
           echo "El APK trae sus datos y la pantalla de inicio."
@@ -110,33 +155,19 @@ jobs:
       # Lo que la app consulta para avisar de una versión nueva. Solo con la clave fija: un APK de prueba no se puede instalar encima.
       - name: Anotar la versión publicada
         if: steps.sign.outputs.signed == 'true'
-        run: echo '{"versionCode":${{ github.run_number }},"versionName":"1.0.${{ github.run_number }}"}' > version.json
+        run: |
+          node scripts/version.js json tablero.apk > version.json
+          sha256sum tablero.apk > tablero.apk.sha256
+          cat version.json
 
       - uses: actions/upload-artifact@v4
         with:
           name: tablero-apk
-          path: tablero.apk
-          if-no-files-found: error
-
-      # Descarga pública y siempre igual:
-      # https://github.com/devece/cambio-pantalla-con-IA/releases/download/app-latest/tablero.apk
-      # Solo desde main: la gente descarga de aquí, así que una rama a medio probar no puede reemplazarla.
-      # El APK de cualquier rama igual queda como artefacto de esta ejecución ("tablero-apk", arriba) para probarlo.
-      - name: Publicar la descarga
-        if: github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: app-latest
-          name: App de la radio (última versión)
-          body: |
-            Instalador de la app Tablero para radios Android. Es siempre la última compilación.
-            Instrucciones: https://tablero-pearl.vercel.app/listo.html
-          files: |
+          path: |
             tablero.apk
             version.json
-          fail_on_unmatched_files: false
-          prerelease: false
-          make_latest: 'false'
+            tablero.apk.sha256
+          if-no-files-found: warn
 
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -145,3 +176,37 @@ jobs:
           path: |
             android/core/build/reports/tests
             android/app/build/reports
+
+  # Descarga pública y siempre igual:
+  # https://github.com/devece/cambio-pantalla-con-IA/releases/download/app-latest/tablero.apk
+  # Solo desde main: la gente descarga de aquí, así que una rama a medio probar no puede reemplazarla.
+  # El APK de cualquier rama igual queda como artefacto de la ejecución ("tablero-apk") para probarlo.
+  # Este trabajo es el único con permiso de escribir y no recibe ningún secreto de firma.
+  publish:
+    needs: apk
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: tablero-apk
+          path: dist
+
+      - name: Publicar la descarga
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: app-latest
+          name: App de la radio (última versión)
+          body: |
+            Instalador de la app Tablero para radios Android. Es siempre la última compilación.
+            Instrucciones: https://tablero-pearl.vercel.app/listo.html
+          files: |
+            dist/tablero.apk
+            dist/version.json
+            dist/tablero.apk.sha256
+          fail_on_unmatched_files: false
+          prerelease: false
+          make_latest: 'false'

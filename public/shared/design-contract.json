@@ -1,0 +1,30 @@
+{
+  "_comment": "Contrato de la configuración que viaja del configurador (public/shared/order.js) a la radio (DesignImport.kt, Welcome.profileJson y public/shared/profile.js). Una prueba exige que las claves de aquí sean exactamente las que valida order.js, y que cada una llegue a la pantalla de la radio. Si agregas una opción, decláraila aquí y pásala por todo el camino. `sample` es un valor válido distinto del de fábrica; `bad` son valores que se deben ignorar.",
+  "version": 1,
+  "car": ["type", "color", "name", "greeting", "phrase", "plate"],
+  "style": ["theme", "layout", "scene", "sceneTime", "season", "accent", "apps"],
+  "features": {
+    "country":     { "kind": "enum", "values": ["CL", "CO", "EC", "MX"], "default": "CL", "sample": "CO", "bad": ["ZZ", 5, null] },
+    "oilOn":       { "kind": "bool", "default": true, "sample": false, "bad": ["si", 3] },
+    "odometer":    { "kind": "int", "min": 0, "max": 999999, "default": 0, "sample": 45000, "bad": ["12abc", -5, null] },
+    "lastOil":     { "kind": "int", "min": 0, "max": 999999, "default": 0, "sample": 42000, "bad": ["x", -1] },
+    "oilEvery":    { "kind": "int", "min": 1000, "max": 30000, "default": 5000, "sample": 8000, "bad": ["x", 5] },
+    "others":      { "kind": "list", "values": ["filtro", "bujias", "pastillas", "frenos"], "default": [], "sample": ["frenos", "filtro"], "bad": ["frenos", [1, 2], ["no_existe"]] },
+    "docsOn":      { "kind": "bool", "default": false, "sample": true, "bad": ["si"] },
+    "rtMonth":     { "kind": "int", "min": 1, "max": 12, "default": 1, "sample": 6, "bad": [0, 13, "x"] },
+    "fuelOn":      { "kind": "bool", "default": false, "sample": true, "bad": ["si"] },
+    "tankL":       { "kind": "int", "min": 10, "max": 150, "default": 45, "sample": 60, "bad": [5, "x"] },
+    "kmPerL":      { "kind": "int", "min": 3, "max": 40, "default": 12, "sample": 15, "bad": [1, "x"] },
+    "speedShow":   { "kind": "bool", "default": true, "sample": false, "bad": ["no"] },
+    "speedAlert":  { "kind": "enum", "values": ["auto", "manual", "off"], "default": "auto", "sample": "manual", "bad": ["siempre", 1] },
+    "manualLimit": { "kind": "int", "min": 20, "max": 140, "default": 60, "sample": 90, "bad": [10, "x"] },
+    "restrOn":     { "kind": "bool", "default": false, "sample": true, "bad": ["si"] },
+    "restrType":   { "kind": "enum", "values": ["sello", "sin", "nuevo"], "default": "sello", "sample": "sin", "bad": ["otro", 2] },
+    "restrDigit":  { "kind": "digit", "default": "", "sample": "8", "bad": ["55", "x", 12] },
+    "restrDays":   { "kind": "list", "values": ["lun", "mar", "mie", "jue", "vie"], "default": [], "sample": ["lun", "mie"], "bad": ["lun", ["sab"], [1]] },
+    "voice":       { "kind": "bool", "default": false, "sample": true, "bad": ["si"] },
+    "miles":       { "kind": "bool", "default": false, "sample": true, "bad": ["si"] },
+    "gallons":     { "kind": "bool", "default": false, "sample": true, "bad": ["si"] },
+    "clock12":     { "kind": "bool", "default": false, "sample": true, "bad": ["si"] }
+  }
+}

@@ -10,7 +10,7 @@ import org.json.JSONObject
  */
 object DesignImport {
     /** La configuración con el diseño aplicado, o null si el texto no es un diseño válido. */
-    fun apply(base: LauncherConfig, json: String): LauncherConfig? {
+    fun apply(base: LauncherConfig, json: String, knownMaintenance: Set<String>? = null): LauncherConfig? {
         val root = try {
             JSONObject(json)
         } catch (e: Exception) {
@@ -32,6 +32,7 @@ object DesignImport {
                     else -> c.carType
                 },
                 carColor = if (HEX.matches(color)) color.lowercase() else c.carColor,
+                plate = car.text("plate").trim().uppercase().take(PLATE_MAX),
             )
         }
         root.optJSONObject("style")?.let { st ->
@@ -51,12 +52,17 @@ object DesignImport {
         root.optJSONObject("features")?.let { f ->
             val speedAlert = f.text("speedAlert")
             val restrType = f.text("restrType")
+            val country = f.text("country")
             c = c.copy(
+                country = if (country in COUNTRIES) country else c.country,
+                miles = f.optBoolean("miles", c.miles),
+                gallons = f.optBoolean("gallons", c.gallons),
                 oilOn = f.optBoolean("oilOn", c.oilOn),
                 odometer = f.optInt("odometer", c.odometer).coerceIn(0, 999_999),
                 lastOil = f.optInt("lastOil", c.lastOil).coerceIn(0, 999_999),
                 oilEvery = f.optInt("oilEvery", c.oilEvery).coerceIn(1_000, 30_000),
-                otherMaintenance = strings(f.optJSONArray("others")).filter { it.isNotBlank() }.distinct(),
+                // Solo mantenimientos que existen en el catálogo (si se conoce) y que vengan como texto: lo demás se descarta.
+                otherMaintenance = onlyText(f.optJSONArray("others")).filter { it.isNotBlank() && (knownMaintenance == null || it in knownMaintenance) }.distinct(),
                 docsOn = f.optBoolean("docsOn", c.docsOn),
                 rtMonth = f.optInt("rtMonth", c.rtMonth).coerceIn(1, 12),
                 fuelOn = f.optBoolean("fuelOn", c.fuelOn),
@@ -67,7 +73,7 @@ object DesignImport {
                 manualLimit = f.optInt("manualLimit", c.manualLimit).coerceIn(20, 140),
                 restrOn = f.optBoolean("restrOn", c.restrOn),
                 restrType = if (restrType in RESTR_TYPES) restrType else c.restrType,
-                restrDigit = f.text("restrDigit").take(1).filter { it.isDigit() },
+                restrDigit = digitOr(f.text("restrDigit"), c.restrDigit),
                 restrDays = strings(f.optJSONArray("restrDays")).filter { it in WEEKDAYS },
                 voice = f.optBoolean("voice", c.voice),
                 clock12 = f.optBoolean("clock12", c.clock12),
@@ -87,6 +93,15 @@ object DesignImport {
     }
 
     private val HEX = Regex("^#[0-9a-fA-F]{6}$")
+    private const val PLATE_MAX = 10
+
+    /** Un solo dígito del 0 al 9 (como en el sitio y en la pantalla de la radio); vacío = sin dígito; cualquier otra cosa se ignora. */
+    private fun digitOr(raw: String, current: String): String = when {
+        raw.isEmpty() -> ""
+        raw.length == 1 && raw[0] in '0'..'9' -> raw
+        else -> current
+    }
+    private val COUNTRIES = setOf("CL", "CO", "EC", "MX")
     private val SPEED_ALERTS = setOf("auto", "manual", "off")
     private val RESTR_TYPES = setOf("sello", "sin", "nuevo")
     private val WEEKDAYS = setOf("lun", "mar", "mie", "jue", "vie")
@@ -94,6 +109,9 @@ object DesignImport {
 
     /** Un texto del JSON, o vacío si falta o es null (org.json devolvería la palabra «null»). */
     private fun JSONObject.text(key: String): String = if (isNull(key)) "" else optString(key, "")
+
+    /** Los elementos que son texto de verdad (un número como 1 no se convierte en «1»). */
+    private fun onlyText(a: JSONArray?): List<String> = if (a == null) emptyList() else (0 until a.length()).mapNotNull { a.opt(it) as? String }
 
     private fun strings(a: JSONArray?): List<String> = if (a == null) emptyList() else (0 until a.length()).map { a.optString(it, "") }
 }

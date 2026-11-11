@@ -6,6 +6,7 @@
  */
 const Anthropic = require('@anthropic-ai/sdk');
 const { allowMethod, readJson, rateLimit } = require('../lib/http.js');
+const budget = require('../lib/budget.js');
 const { parseImage } = require('../lib/radio-analysis.js');
 const { SCHEMA, SYSTEM, cleanLights } = require('../lib/lights.js');
 
@@ -21,6 +22,14 @@ module.exports = async function handler(req, res) {
   }
   const img = parseImage((readJson(req) || {}).image);
   if (!img) return res.status(400).json({ ok: false, error: 'La imagen no es válida o pesa demasiado.' });
+
+  // Tope diario: sin AI_DAILY_MAX la IA queda apagada, y al llegar al tope se deja de llamar hasta el día siguiente.
+  const cupo = budget.take();
+  if (!cupo.ok) {
+    return cupo.reason === 'cap'
+      ? res.status(429).json({ ok: false, error: 'Hoy ya se hicieron todos los análisis automáticos posibles. Inténtalo mañana.' })
+      : res.status(503).json({ ok: false, error: 'La detección automática aún no está disponible. Marca los faros tocando la foto.' });
+  }
 
   try {
     const client = new Anthropic();

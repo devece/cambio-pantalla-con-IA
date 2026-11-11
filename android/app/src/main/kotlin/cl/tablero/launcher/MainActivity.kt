@@ -130,7 +130,8 @@ class MainActivity : Activity() {
             if (hash == settings.apkDesignHash()) return
             // Se anota primero: si algo falla a medias, no se reintenta en cada arranque.
             settings.setApkDesignHash(hash)
-            val merged = DesignImport.apply(settings.load(), json) ?: return
+            val known = Maintenance.parse(assets.open("maintenance.json").bufferedReader().use { it.readText() }).map { it.id }.toSet()
+            val merged = DesignImport.apply(settings.load(), json, known) ?: return
             settings.save(merged)
             // La foto que vino en la APK (si vino): reemplaza a la que hubiera.
             if (photo != null && day != null) PhotoStore(this).saveBytes(day, photo.first, night)
@@ -583,7 +584,8 @@ class MainActivity : Activity() {
 
     /** Avisa una sola vez, al pasar de "afuera" a "adentro" de la zona de Santiago. */
     private fun checkZone(lat: Double, lon: Double) {
-        if (!config.restrOn) return
+        // Las reglas de este aviso son las de Santiago: en otro país (pico y placa de Colombia, Ecuador, México) las avisa la pantalla.
+        if (!config.restrOn || config.country != "CL") return
         val inside = restriction.inZone(lat, lon)
         if (inside && !insideZone) {
             val cal = Calendar.getInstance()

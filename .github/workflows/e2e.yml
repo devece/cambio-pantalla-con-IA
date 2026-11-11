@@ -1,0 +1,33 @@
+name: Pantalla de la radio (navegador)
+
+# Prueba con un navegador real lo que la app le entrega a la pantalla de la radio (tests/e2e/pantalla-radio.e2e.cjs).
+# Es un flujo aparte para no alargar el de la APK; se ejecuta al tocar el motor de la pantalla, sus datos o la prueba, y a mano.
+on:
+  push:
+    paths:
+      - 'public/**'
+      - 'tests/e2e/**'
+      - '.github/workflows/e2e.yml'
+  workflow_dispatch:
+
+jobs:
+  pantalla:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Playwright no es dependencia del proyecto: se instala solo aquí, con versión fija.
+      - name: Instalar el navegador de prueba
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.63.0
+          npx playwright install --with-deps chromium
+
+      - name: Probar la pantalla de la radio
+        run: node tests/e2e/pantalla-radio.e2e.cjs

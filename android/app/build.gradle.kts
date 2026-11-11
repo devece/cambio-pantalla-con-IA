@@ -44,11 +44,21 @@ android {
         }
     }
 
-    // La revisión automática de la versión firmada («lintVital») usa carpetas que generan otras tareas (copyEditions y copyWeb) y falla
-    // porque no sabe que debe esperarlas. La versión de prueba nunca la ejecutó; se mantiene igual para la firmada. Las pruebas de
-    // GitHub (npm test y :core:test) y la revisión del APK siguen corriendo.
+    // Lint revisa el código contra la versión mínima de Android (minSdk 21): atrapa llamadas a APIs que no existen en Android 5 a 10 y
+    // permisos mal usados. Sus tareas leen los assets que generan copyEditions y copyWeb: abajo se declara esa dependencia (era la
+    // causa de que «lintVital» fallara en la versión firmada, y por eso estaba apagado).
     lint {
-        checkReleaseBuilds = false
+        abortOnError = false          // por ahora informa; cuando el informe quede limpio se vuelve estricto (docs/CALIDAD.md)
+        textReport = true
+        textOutput = layout.buildDirectory.file("reports/lint-results.txt").get().asFile
+        checkReleaseBuilds = true
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
     }
 
     buildTypes {
@@ -61,6 +71,11 @@ android {
 
 dependencies {
     implementation(project(":core"))
+
+    // Pruebas del módulo de la app. Robolectric simula Android en el PC (en cada versión que se pida) sin necesidad de un emulador.
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation(kotlin("test"))
 }
 
 // Estos JSON viven en public/shared/ (los comparte el sitio): se copian a los assets al compilar.
@@ -86,4 +101,6 @@ android.sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("ge
 // y el APK queda sin sus JSON (la app se cerraría al abrir). Se verifica además en el flujo de GitHub.
 tasks.configureEach {
     if (name.startsWith("merge") && name.endsWith("Assets")) dependsOn(copyEditions, copyWeb)
+    // Lint también lee esas carpetas generadas (si no las espera, falla con «implicit dependency»).
+    if (name.startsWith("lint") || name.startsWith("generate") && name.endsWith("LintReportModel")) dependsOn(copyEditions, copyWeb)
 }

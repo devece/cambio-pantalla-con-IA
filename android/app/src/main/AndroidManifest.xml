@@ -100,5 +100,10 @@
             android:name=".DiagnosticActivity"
             android:exported="false"
             android:screenOrientation="nosensor" />
+
+        <activity
+            android:name=".CanProbeActivity"
+            android:exported="false"
+            android:screenOrientation="nosensor" />
     </application>
 </manifest>

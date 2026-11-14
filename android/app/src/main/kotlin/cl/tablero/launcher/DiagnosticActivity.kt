@@ -69,6 +69,7 @@ class DiagnosticActivity : Activity() {
         button("Copiar") { copy() }
         button("Compartir") { share() }
         button("Notificaciones de Android") { openNotificationAccess() }
+        button("Datos del auto (CAN)") { startActivity(Intent(this, CanProbeActivity::class.java)) }
         button("Volver") { finish() }
         root.addView(buttons)
 

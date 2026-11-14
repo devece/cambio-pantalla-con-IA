@@ -470,7 +470,16 @@ class WebLauncher(private val activity: Activity, private val designJson: String
     }
 
     private fun openRadio() {
-        val pkg = FmRadio.PACKAGES.firstOrNull { Apps.isInstalled(activity.packageManager, it) }
+        val pm = activity.packageManager
+        // 1) Las apps de radio más comunes; 2) cualquier app instalada que se llame como una radio FM; 3) por el nombre que se ve en pantalla.
+        val pkg = FmRadio.PACKAGES.firstOrNull { Apps.isInstalled(pm, it) }
+            ?: try {
+                pm.getInstalledApplications(0).map { it.packageName }
+                    .firstOrNull { it != activity.packageName && FmRadio.isRadioPackage(it) && Apps.isInstalled(pm, it) }
+            } catch (e: Exception) {
+                null
+            }
+            ?: Apps.findByLabel(pm, activity.packageName, listOf("radio fm", "fm radio", "radio"))
         if (pkg == null) toast("No encontramos la app de radio de tu equipo.") else launch(pkg)
     }
 

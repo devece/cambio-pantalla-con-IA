@@ -91,4 +91,20 @@ class WelcomeTest {
         assertFalse(JSONObject(Welcome.profileJson(LauncherConfig())).getJSONObject("profile").has("clock12"))
         assertTrue(JSONObject(Welcome.profileJson(LauncherConfig(clock12 = true))).getJSONObject("profile").getBoolean("clock12"))
     }
+
+    @Test
+    fun `lo de Ajustes manda sobre los valores del diseno bajado del sitio`() {
+        val diseno = """{"config":{"car":{"name":"Ana"},"features":{"oilEvery":5000,"speedShow":false,"restrDigit":"3"}}}"""
+        val c = LauncherConfig(oilEvery = 10000, lastOil = 180000, odometer = 186000, otherMaintenance = listOf("filtro"))
+        val f = JSONObject(Welcome.withFeatures(diseno, c)).getJSONObject("config")
+        assertEquals(10000, f.getJSONObject("features").getInt("oilEvery"))
+        assertEquals(listOf("filtro"), (0 until f.getJSONObject("features").getJSONArray("others").length()).map { f.getJSONObject("features").getJSONArray("others").getString(it) })
+        assertEquals("Ana", f.getJSONObject("car").getString("name"), "lo demás del diseño no se toca")
+    }
+
+    @Test
+    fun `un diseno sin features o ilegible no rompe`() {
+        assertEquals(10000, JSONObject(Welcome.withFeatures("{}", LauncherConfig(oilEvery = 10000))).getJSONObject("config").getJSONObject("features").getInt("oilEvery"))
+        assertEquals("esto no es json", Welcome.withFeatures("esto no es json", LauncherConfig()))
+    }
 }

@@ -47,6 +47,23 @@ object Welcome {
         .put("gallons", c.gallons)
         .put("clock12", c.clock12)
 
+    /**
+     * Lo que el usuario cambia en Ajustes (cada cuántos km va el aceite, qué mantenciones sigue, combustible, documentos…)
+     * se guarda en la configuración de la radio, pero un diseño bajado del sitio trae sus propios valores y la pantalla
+     * de inicio los usaba en vez de los de Ajustes: por eso «cambio cada 10.000» no se notaba. Esto pone los de Ajustes
+     * encima de los del diseño. Si el diseño no se entiende, lo devuelve igual.
+     */
+    fun withFeatures(designJson: String, c: LauncherConfig): String = try {
+        val root = JSONObject(designJson)
+        val config = root.optJSONObject("config") ?: JSONObject().also { root.put("config", it) }
+        val features = config.optJSONObject("features") ?: JSONObject().also { config.put("features", it) }
+        val mine = featuresJson(c)
+        mine.keys().forEach { features.put(it, mine.get(it)) }
+        root.toString()
+    } catch (e: Exception) {
+        designJson
+    }
+
     fun profileJson(c: LauncherConfig, photoUrl: String? = null, photoCut: Boolean = false, photoNightUrl: String? = null): String {
         val profile = JSONObject()
             .put("name", c.name)

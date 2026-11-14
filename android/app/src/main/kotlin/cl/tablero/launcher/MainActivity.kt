@@ -156,7 +156,7 @@ class MainActivity : Activity() {
         }
         // Con o sin código se dibuja con el motor del sitio; sin código, con el diseño base de la edición gratuita
         // y lo que el usuario contó (nombre, auto y color).
-        val launcher = WebLauncher(this, saved ?: PhotoStore(this).let { Welcome.profileJson(config, it.url(), it.isCut(), it.nightUrl()) })
+        val launcher = WebLauncher(this, saved?.let { Welcome.withFeatures(it, config) } ?: PhotoStore(this).let { Welcome.profileJson(config, it.url(), it.isCut(), it.nightUrl()) })
         web = launcher
         setContentView(launcher.view)
         startSpeed()

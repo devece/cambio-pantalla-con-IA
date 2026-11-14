@@ -210,4 +210,11 @@ class RemindersTest {
         val c = LauncherConfig(odometer = 1000)
         assertEquals(c, Reminders.markDone(c, "no-existe", maintenance))
     }
+
+    @Test
+    fun `aceite cada 10000, ultimo cambio en 180000 y 186000 km faltan 4000`() {
+        val r = build(LauncherConfig(odometer = 186000, lastOil = 180000, oilEvery = 10000)).single()
+        assertEquals("faltan 4.000 km", r.text)
+        assertFalse(r.warn)
+    }
 }

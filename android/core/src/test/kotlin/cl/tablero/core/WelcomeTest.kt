@@ -116,4 +116,15 @@ class WelcomeTest {
         assertEquals("vivo", Motion.clean(null))
         assertEquals("off", Motion.clean("off"))
     }
+
+    @Test
+    fun `con el pais Otro nunca viaja una restriccion hacia la pantalla`() {
+        val otro = Welcome.featuresJson(LauncherConfig(country = "OTRO", restrOn = true, restrDigit = "8", restrDays = listOf("lun")))
+        assertFalse(otro.getBoolean("restrOn"))
+        assertEquals("", otro.getString("restrDigit"))
+        assertEquals(0, otro.getJSONArray("restrDays").length())
+        val cl = Welcome.featuresJson(LauncherConfig(country = "CL", restrOn = true, restrDigit = "8", restrDays = listOf("lun")))
+        assertTrue(cl.getBoolean("restrOn"))
+        assertEquals("8", cl.getString("restrDigit"))
+    }
 }

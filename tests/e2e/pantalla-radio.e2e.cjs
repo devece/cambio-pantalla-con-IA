@@ -232,6 +232,26 @@ await check('«Otro» país no avisa nada, aunque la restricción venga encendid
   assert.equal(await picoNoticeAfterEntering('OTRO'), false);
 });
 
+
+await check('en el sitio, elegir «Otro» oculta la restricción y el pico y placa, y elegir un país la vuelve a mostrar', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(base + '/index.html');
+  await page.waitForSelector('[data-choices="features.country"] >> text=Otro');
+  const state = () => page.evaluate(() => ({
+    restr: document.querySelector('fieldset[data-show-not="features.country=OTRO"]').hidden,
+    note: document.querySelector('p[data-show="features.country=OTRO"]').hidden,
+  }));
+  assert.deepEqual(await state(), { restr: false, note: true }, 'con Chile, la restricción se ofrece');
+  await page.click('[data-choices="features.country"] >> text=Otro');
+  assert.deepEqual(await state(), { restr: true, note: false }, 'con «Otro», la restricción desaparece y se explica por qué');
+  await page.click('[data-choices="features.country"] >> text=Colombia');
+  assert.deepEqual(await state(), { restr: false, note: true });
+  assert.deepEqual(errors, []);
+  await page.close();
+});
+
 await browser.close();
 server.close();
 if (failures) { console.log(`\n${failures} prueba(s) fallaron`); process.exit(1); }

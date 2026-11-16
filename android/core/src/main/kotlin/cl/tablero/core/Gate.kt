@@ -69,7 +69,10 @@ object Gate {
         otherMaintenance = if (l.othersMaintenance) c.otherMaintenance else emptyList(),
         docsOn = c.docsOn && l.docsOn,
         fuelOn = c.fuelOn && l.fuelOn,
-        restrOn = c.restrOn && l.restrOn,
+        // «Otro» país: no se aplica ninguna restricción, venga como venga la configuración.
+        restrOn = c.restrOn && l.restrOn && c.country != "OTRO",
+        restrDigit = if (c.country == "OTRO") "" else c.restrDigit,
+        restrDays = if (c.country == "OTRO") emptyList() else c.restrDays,
         voice = c.voice && l.voice,
     )
 

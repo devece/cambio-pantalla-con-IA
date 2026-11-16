@@ -35,3 +35,5 @@ cd proyecto && npx hyperframes@0.9.30 render -q standard --video-frame-format pn
 ffmpeg -y -i ../tablero-presentacion.mp4 -vf scale=1280:720 -c:v libx264 -preset slow -crf 29 -c:a aac -b:a 128k -movflags +faststart ../../public/video/tablero.mp4
 ```
 El clip `assets/movimiento.mp4` es un `<video>` directo en el escenario (HyperFrames no admite un `<video>` dentro de una escena con tiempo); si cambias la escena de la pantalla viva, el video se mueve junto con su marco (`#movM` y `#devM`).
+
+El poster del video en la portada (`public/video/tablero-poster.jpg`, 1280×720) es una imagen armada aparte con HTML y capturas del clip `movimiento.mp4` (inicio con el Haval y carretera) y de la pantalla vertical; si el video cambia mucho, conviene rehacerlo.

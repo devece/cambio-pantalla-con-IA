@@ -204,6 +204,54 @@ await check('un nivel de movimiento inválido cae en «vivo»', async () => {
   await page.close();
 });
 
+
+/* ---------- país «Otro»: no se aplica ninguna restricción ---------- */
+/** Entra a Bogotá con el GPS, con el país y la patente indicados, un lunes a media mañana. Devuelve si apareció el aviso de pico y placa. */
+async function picoNoticeAfterEntering(country) {
+  const page = await browser.newPage({ viewport: { width: 1024, height: 600 } });
+  await page.clock.install({ time: new Date('2026-11-16T10:00:00') }); // lunes
+  await page.addInitScript(() => { window.Android = { apps: () => '[]', mapInfo: () => '{"tiles":0,"bytes":0}', openApp() {}, launchPkg() {}, open() {}, media() {}, radio() {}, done() {}, saveMapArea() {}, clearMaps() {} }; });
+  await page.goto(base + '/launcher.html');
+  await page.waitForFunction(() => window.TBApp && window.TBPico);
+  // Una placa a la que le toque pico y placa en Bogotá ese día.
+  const digit = await page.evaluate(() => { const c = TBPico.cities.find((x) => x.id === 'bogota'); return ['0','1','2','3','4','5','6','7','8','9'].find((d) => TBPico.notice(c, d, new Date())) || null; });
+  assert.ok(digit, 'no hay placa con pico y placa ese lunes: la prueba no puede comparar');
+  await page.evaluate(([c, d]) => {
+    window.TBApp.init(JSON.stringify({ profile: { name: 'Ana', features: { country: c, restrOn: true, restrDigit: d } } }), { welcome: false });
+    window.TBApp.setLocation(4.65, -74.08, 0);
+  }, [country, digit]);
+  await page.waitForTimeout(300);
+  const shown = await page.evaluate(() => { const z = document.querySelector('.zone-alert'); return !!z && !z.hidden; });
+  await page.close();
+  return shown;
+}
+await check('Colombia avisa el pico y placa al entrar a Bogotá', async () => {
+  assert.equal(await picoNoticeAfterEntering('CO'), true);
+});
+await check('«Otro» país no avisa nada, aunque la restricción venga encendida y esté dentro de una ciudad con pico y placa', async () => {
+  assert.equal(await picoNoticeAfterEntering('OTRO'), false);
+});
+
+
+await check('en el sitio, elegir «Otro» oculta la restricción y el pico y placa, y elegir un país la vuelve a mostrar', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(base + '/index.html');
+  await page.waitForSelector('[data-choices="features.country"] >> text=Otro');
+  const state = () => page.evaluate(() => ({
+    restr: document.querySelector('fieldset[data-show-not="features.country=OTRO"]').hidden,
+    note: document.querySelector('p[data-show="features.country=OTRO"]').hidden,
+  }));
+  assert.deepEqual(await state(), { restr: false, note: true }, 'con Chile, la restricción se ofrece');
+  await page.click('[data-choices="features.country"] >> text=Otro');
+  assert.deepEqual(await state(), { restr: true, note: false }, 'con «Otro», la restricción desaparece y se explica por qué');
+  await page.click('[data-choices="features.country"] >> text=Colombia');
+  assert.deepEqual(await state(), { restr: false, note: true });
+  assert.deepEqual(errors, []);
+  await page.close();
+});
+
 await browser.close();
 server.close();
 if (failures) { console.log(`\n${failures} prueba(s) fallaron`); process.exit(1); }

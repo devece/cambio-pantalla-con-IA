@@ -8,6 +8,7 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 ## [Sin publicar]
 
 ### Agregado
+- **País «Otro».** En el sitio, al elegir el país, ahora hay una opción «Otro»: no se aplica ninguna restricción (ni restricción vehicular, ni pico y placa, ni Hoy No Circula). La sección de restricción del configurador se oculta, la radio no avisa nada al entrar a una ciudad y Ajustes muestra la restricción apagada con un aviso. También aplica a quien baja la app con su diseño. Aunque un diseño, un pedido o lo guardado en la radio traiga la restricción encendida, con «Otro» siempre queda apagada. Si te registras con un celular, se acepta un número internacional con su prefijo.
 - **Movimiento en la pantalla de inicio, con una sola opción.** En Ajustes → Apariencia → «Movimiento de la pantalla de inicio» (y en el sitio, en Funciones) eliges entre tres niveles:
   - **Sin movimiento:** la pantalla queda quieta.
   - **Bienvenida y auto vivo** (el de fábrica, liviano): al abrir la app, un velo negro se levanta con un resplandor y un barrido de luz (unos 3 segundos; un toque la corta, y solo corre una vez por arranque, no cada vez que vuelves de Ajustes). Después el auto «respira» apenas, un reflejo de luz le cruza la carrocería y los faros pulsan. Con tu foto recortada, el reflejo sigue la silueta de tu auto.

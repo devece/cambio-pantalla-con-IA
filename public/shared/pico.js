@@ -16,6 +16,8 @@
     { id: 'CO', name: 'Colombia', label: 'pico y placa' },
     { id: 'EC', name: 'Ecuador', label: 'pico y placa' },
     { id: 'MX', name: 'México', label: 'Hoy No Circula' },
+    // Para quien vive en otro país: no se aplica ninguna restricción (ni aviso, ni día que toca).
+    { id: 'OTRO', name: 'Otro', label: 'restricción vehicular', none: true },
   ];
 
   const WEEK = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'];

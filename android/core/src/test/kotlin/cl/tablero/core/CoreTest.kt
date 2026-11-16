@@ -168,4 +168,15 @@ class CoreTest {
         assertEquals(pedido, Gate.apply(pedido, completo))
         assertTrue(Gate.locked(pedido, completo).isEmpty())
     }
+
+    @Test
+    fun `el pais Otro apaga la restriccion aunque la configuracion la traiga encendida`() {
+        val libre = free
+        val otro = Gate.apply(LauncherConfig(country = "OTRO", restrOn = true, restrDigit = "8", restrDays = listOf("lun")), libre)
+        assertEquals(false, otro.restrOn)
+        assertEquals("", otro.restrDigit)
+        assertEquals(emptyList(), otro.restrDays)
+        val chile = Gate.apply(LauncherConfig(country = "CL", restrOn = true, restrDigit = "8", restrDays = listOf("lun")), libre)
+        assertEquals(true, chile.restrOn)
+    }
 }

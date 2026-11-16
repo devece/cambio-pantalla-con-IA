@@ -63,15 +63,17 @@ class DesignStore(context: Context) {
             )
         }
         config.optJSONObject("features")?.let { f ->
+            // «Otro» país: el diseño nunca vuelve a encender una restricción (esto se aplica cada vez que se abre la pantalla de inicio).
+            val otro = out.country == "OTRO" || f.optString("country") == "OTRO"
             out = out.copy(
                 voice = f.optBoolean("voice", out.voice),
                 speedShow = f.optBoolean("speedShow", out.speedShow),
                 speedAlert = f.optString("speedAlert", out.speedAlert),
                 manualLimit = f.optInt("manualLimit", out.manualLimit),
-                restrOn = f.optBoolean("restrOn", false),
+                restrOn = !otro && f.optBoolean("restrOn", false),
                 restrType = f.optString("restrType", out.restrType),
-                restrDigit = f.optString("restrDigit", ""),
-                restrDays = strings(f.optJSONArray("restrDays")),
+                restrDigit = if (otro) "" else f.optString("restrDigit", ""),
+                restrDays = if (otro) emptyList() else strings(f.optJSONArray("restrDays")),
             )
         }
         return out

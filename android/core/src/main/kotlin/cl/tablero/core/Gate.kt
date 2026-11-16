@@ -46,7 +46,7 @@ data class LauncherConfig(
     val obd: ObdLinkConfig = ObdLinkConfig(),
     /** La apariencia que el usuario eligió en Ajustes (vacío = la de siempre). */
     val look: Look = Look(),
-    /** País del cliente (CL, CO, EC o MX): decide qué reglas de restricción o pico y placa avisa la radio. Viene del diseño del sitio. */
+    /** País del cliente (CL, CO, EC, MX u OTRO): decide qué reglas de restricción o pico y placa avisa la radio. «OTRO» no aplica ninguna restricción. Viene del diseño del sitio. */
     val country: String = "CL",
     /** Patente del auto, tal como la escribió el cliente en el sitio (se muestra en algunos diseños). */
     val plate: String = "",
@@ -69,7 +69,10 @@ object Gate {
         otherMaintenance = if (l.othersMaintenance) c.otherMaintenance else emptyList(),
         docsOn = c.docsOn && l.docsOn,
         fuelOn = c.fuelOn && l.fuelOn,
-        restrOn = c.restrOn && l.restrOn,
+        // «Otro» país: no se aplica ninguna restricción, venga como venga la configuración.
+        restrOn = c.restrOn && l.restrOn && c.country != "OTRO",
+        restrDigit = if (c.country == "OTRO") "" else c.restrDigit,
+        restrDays = if (c.country == "OTRO") emptyList() else c.restrDays,
         voice = c.voice && l.voice,
     )
 

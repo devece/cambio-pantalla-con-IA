@@ -399,6 +399,8 @@
   }
 
   function update() {
+    // «Otro» país: no se aplican restricciones.
+    if (state.features.country === 'OTRO') { state.features.restrOn = false; state.features.restrDigit = ''; }
     state.features.restrDays = state.features.country === 'CL' ? O.restrDaysFor(state.features) : [];
     TB.preview.render(state, ui);
     syncChoices();

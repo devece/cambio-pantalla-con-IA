@@ -4,7 +4,7 @@
 //   python3 -m http.server 8765 --directory public &
 //   npm install --no-save playwright@1.63.0 && npx playwright install chromium
 //   node video/capturas/capturar.cjs
-// Necesita ffmpeg.
+// Necesita ffmpeg. Con OUT=/otra/carpeta se escribe en otro lugar (para probar sin pisar los archivos del video).
 'use strict';
 const { chromium } = require('playwright');
 const { execFileSync } = require('node:child_process');
@@ -13,7 +13,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const BASE = process.env.BASE || 'http://localhost:8765/index.html';
-const OUT = path.join(__dirname, '../proyecto/assets');
+const OUT = process.env.OUT || path.join(__dirname, '../proyecto/assets');
 const OCULTAR = '.scr .alert{display:none!important}'; // el aviso «Baja la velocidad» de la demo estorba en el video
 
 const click = (page, sel) => page.evaluate((s) => { const e = document.querySelector(s); if (e) e.click(); return !!e; }, sel);

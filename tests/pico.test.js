@@ -114,3 +114,19 @@ test('normalizeMobile sigue funcionando como antes para Chile', () => {
   assert.equal(normalizeMobile('+57 300 123 4567', 'CO'), '+573001234567');
   assert.equal(normalizeMobile('hola', 'CO'), null);
 });
+
+test('país «Otro»: el pedido no aplica restricciones y un celular inválido no rompe la validación', () => {
+  const base = (phone) => ({
+    radio: { type: 'android' }, car: {}, style: {},
+    features: { country: 'OTRO', restrOn: true, restrDigit: '7', restrType: 'sello' },
+    contact: { kind: 'whatsapp', value: phone },
+  });
+  const ok = validateOrder(base('+1 202 555 0123'));
+  assert.equal(ok.clean.features.country, 'OTRO');
+  assert.deepEqual([ok.clean.features.restrOn, ok.clean.features.restrDigit, ok.clean.features.restrDays], [false, '', []]);
+  assert.equal(ok.clean.contact.value, '+12025550123', 'un número internacional se acepta con su prefijo');
+  assert.equal(ok.errors.some((e) => /dígito|patente/i.test(e)), false, 'sin restricción no se pide el dígito de la patente');
+  const bad = validateOrder(base('abc'));
+  assert.equal(bad.ok, false);
+  assert.ok(bad.errors.some((e) => /celular/.test(e)), 'debe explicar el celular, no fallar');
+});

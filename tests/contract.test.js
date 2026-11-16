@@ -116,3 +116,14 @@ test('cada archivo de la pantalla que usa el motor de perfil viaja a la radio', 
   assert.ok(html.indexOf('shared/catalog.js') < html.indexOf('shared/profile.js'), 'profile.js necesita catalog.js ya cargado');
   assert.ok(html.indexOf('shared/profile.js') < html.indexOf('js/launcher.js'), 'launcher.js necesita profile.js ya cargado');
 });
+
+test('el país «Otro» llega a la radio y apaga cualquier restricción, aunque venga encendida', () => {
+  const state = freshState();
+  Profile.apply(state, { features: { country: 'OTRO', restrOn: true, restrDigit: '8', restrDays: ['lun', 'mie'] } });
+  assert.equal(state.features.country, 'OTRO');
+  assert.deepEqual([state.features.restrOn, state.features.restrDigit, state.features.restrDays], [false, '', []]);
+  // Un país normal conserva su restricción.
+  const co = freshState();
+  Profile.apply(co, { features: { country: 'CO', restrOn: true, restrDigit: '8' } });
+  assert.deepEqual([co.features.country, co.features.restrOn, co.features.restrDigit], ['CO', true, '8']);
+});

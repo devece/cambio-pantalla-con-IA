@@ -80,6 +80,8 @@ object DesignImport {
                 motion = if (f.text("motion") in Motion.OPTIONS) f.text("motion") else c.motion,
             )
         }
+        // «Otro» país: no se aplica ninguna restricción, aunque el diseño la traiga encendida.
+        if (c.country == "OTRO") c = c.copy(restrOn = false, restrDigit = "", restrDays = emptyList())
         return c
     }
 
@@ -102,7 +104,7 @@ object DesignImport {
         raw.length == 1 && raw[0] in '0'..'9' -> raw
         else -> current
     }
-    private val COUNTRIES = setOf("CL", "CO", "EC", "MX")
+    private val COUNTRIES = setOf("CL", "CO", "EC", "MX", "OTRO")
     private val SPEED_ALERTS = setOf("auto", "manual", "off")
     private val RESTR_TYPES = setOf("sello", "sin", "nuevo")
     private val WEEKDAYS = setOf("lun", "mar", "mie", "jue", "vie")

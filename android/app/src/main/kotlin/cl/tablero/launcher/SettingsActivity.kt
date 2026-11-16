@@ -198,7 +198,15 @@ class SettingsActivity : Activity() {
         voice = check("Saludarme por voz al encender", c.voice, limits.voice)
 
         section("Restricción vehicular")
-        restrOn = check("Avisarme al entrar a Santiago si hoy tengo restricción (usa el GPS)", c.restrOn, limits.restrOn)
+        // Con el país «Otro» (se elige en el sitio) no se aplica ninguna restricción: la sección queda apagada.
+        val restrAllowed = limits.restrOn && c.country != "OTRO"
+        if (c.country == "OTRO") {
+            form.addView(TextView(this).apply {
+                text = "Elegiste «Otro» país: no se aplica ninguna restricción vehicular."
+                setTextColor(Ui.SUB)
+            })
+        }
+        restrOn = check("Avisarme al entrar a Santiago si hoy tengo restricción (usa el GPS)", c.restrOn && c.country != "OTRO", restrAllowed)
         restrType = RadioGroup(this).apply {
             orientation = RadioGroup.VERTICAL
             Ui.RESTR_TYPES.forEach { (typeId, label) ->
@@ -206,9 +214,9 @@ class SettingsActivity : Activity() {
                     id = View.generateViewId()
                     tag = typeId
                     text = label
-                    isEnabled = limits.restrOn
+                    isEnabled = restrAllowed
                     isChecked = c.restrType == typeId
-                    setTextColor(if (limits.restrOn) Ui.TEXT else Ui.SUB)
+                    setTextColor(if (restrAllowed) Ui.TEXT else Ui.SUB)
                 })
             }
         }
@@ -216,7 +224,7 @@ class SettingsActivity : Activity() {
         restrDigit = field("Último dígito de tu patente (0 a 9)", c.restrDigit).apply {
             inputType = InputType.TYPE_CLASS_NUMBER
             filters = arrayOf(InputFilter.LengthFilter(1))
-            isEnabled = limits.restrOn
+            isEnabled = restrAllowed
         }
 
         section("Botones del volante")

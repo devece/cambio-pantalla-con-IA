@@ -119,6 +119,8 @@
       state.car.photoCut = ph.cut === true;
       state.car.photoNight = ph.night || null;
     }
+    // Un diseño del sitio llega sin pasar por profile.js: «Otro» país nunca lleva restricciones.
+    if (state.features.country === 'OTRO') { state.features.restrOn = false; state.features.restrDigit = ''; state.features.restrDays = []; }
     ui.screen = 'inicio';
     render();
   }
@@ -173,7 +175,7 @@
   let picoCity = null;
   function checkPico(lat, lon) {
     const f = state.features;
-    if (!window.TBPico || !f.restrOn || f.country === 'CL' || f.restrDigit === '' || f.restrDigit === undefined) return;
+    if (!window.TBPico || !f.restrOn || f.country === 'CL' || f.country === 'OTRO' || f.restrDigit === '' || f.restrDigit === undefined) return;
     const city = window.TBPico.cityAt(lat, lon, f.country);
     if (!city) { picoCity = null; return; }
     if (picoCity === city.id) return; // ya avisamos al entrar

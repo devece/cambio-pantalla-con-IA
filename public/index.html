@@ -211,7 +211,7 @@
           <h2 id="h1">¿Cómo es tu radio?</h2>
           <div class="group">
             <h3>¿En qué país vas a usarla?</h3>
-            <p class="hint">Con tu país activamos el aviso de restricción que te corresponde: restricción vehicular en Chile y pico y placa en Colombia y Ecuador, y Hoy No Circula en México.</p>
+            <p class="hint">Con tu país activamos el aviso de restricción que te corresponde: restricción vehicular en Chile y pico y placa en Colombia y Ecuador, y Hoy No Circula en México. Si tu país no está, elige «Otro»: no se aplica ninguna restricción.</p>
             <div class="choices cols-3 compact" data-choices="features.country" role="radiogroup" aria-label="País"></div>
           </div>
           <p class="lead">Funciona en radios Android de pantalla grande.</p>
@@ -412,7 +412,7 @@
             <label class="check"><input type="checkbox" data-bind="features.voice"><span>Saludarme por voz al encender el auto</span></label>
           </fieldset>
 
-          <fieldset class="feature">
+          <fieldset class="feature" data-show-not="features.country=OTRO">
             <label class="check"><input type="checkbox" data-bind="features.restrOn"><span>Recordar mi <span id="restr-label">restricción vehicular</span></span></label>
             <div class="sub" data-show="features.restrOn">
               <div data-show="features.country=CL">

@@ -183,7 +183,7 @@ class SettingsStore(context: Context) {
 
     private companion object {
         const val CARRY_KEY = "odometerCarryM"
-        val COUNTRIES = setOf("CL", "CO", "EC", "MX")
+        val COUNTRIES = setOf("CL", "CO", "EC", "MX", "OTRO")
         const val MAX_KM = 999_999
     }
 

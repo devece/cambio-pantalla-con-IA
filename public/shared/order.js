@@ -14,8 +14,10 @@
     CO: { re: /^(?:\+?57)?3\d{9}$/, prefix: '+57', tail: 10, example: '+57 300 123 4567', name: 'colombiano' },
     EC: { re: /^(?:\+?593)?0?9\d{8}$/, prefix: '+593', tail: 9, example: '+593 99 123 4567', name: 'ecuatoriano' },
     MX: { re: /^(?:\+?52)?1?\d{10}$/, prefix: '+52', tail: 10, example: '+52 55 1234 5678', name: 'mexicano' },
+    // Otro país: cualquier número internacional (con el prefijo del país), de 8 a 15 dígitos.
+    OTRO: { re: /^\+?\d{8,15}$/, prefix: '+', tail: 15, example: '+1 202 555 0123', name: 'internacional' },
   };
-  const COUNTRIES = ['CL', 'CO', 'EC', 'MX'];
+  const COUNTRIES = ['CL', 'CO', 'EC', 'MX', 'OTRO'];
 
   const str = (v, max) =>
     typeof v === 'string' ? v.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, max) : '';
@@ -89,7 +91,7 @@
     const m = MOBILE[country] || MOBILE.CL;
     const digits = String(raw || '').replace(/[\s().-]/g, '');
     if (!m.re.test(digits)) return null;
-    return m.prefix + digits.slice(-m.tail);
+    return m.prefix + digits.replace(/^\+/, '').slice(-m.tail);
   }
 
   /**
@@ -171,6 +173,8 @@
     };
     // Los días de restricción se calculan en el servidor a partir del dígito: nunca se confía en los del navegador.
     const ft = clean.features;
+    // «Otro» país: no se aplica ninguna restricción, aunque el pedido la traiga encendida.
+    if (ft.country === 'OTRO') { ft.restrOn = false; ft.restrDigit = ''; }
     ft.restrDays = ft.country === 'CL' ? restrDaysFor(ft) : [];
     if (ft.restrOn && ft.restrDigit === '' && (ft.country !== 'CL' || ft.restrType !== 'nuevo')) {
       errors.push(ft.country === 'CL' ? 'Elige el último dígito de tu patente para la restricción vehicular.' : 'Elige el último dígito de tu patente para el pico y placa.');
@@ -183,7 +187,7 @@
     } else {
       const v = normalizeMobile(contact.value, clean.features.country);
       if (v) clean.contact.value = v;
-      else errors.push(`Escribe un celular ${MOBILE[clean.features.country].name} válido, por ejemplo ${MOBILE[clean.features.country].example}.`);
+      else errors.push(`Escribe un celular ${(MOBILE[clean.features.country] || MOBILE.CL).name} válido, por ejemplo ${(MOBILE[clean.features.country] || MOBILE.CL).example}.`);
     }
 
     return { ok: errors.length === 0, errors, clean };

@@ -4,7 +4,7 @@
   "car": ["type", "color", "name", "greeting", "phrase", "plate"],
   "style": ["theme", "layout", "scene", "sceneTime", "season", "accent", "apps"],
   "features": {
-    "country":     { "kind": "enum", "values": ["CL", "CO", "EC", "MX"], "default": "CL", "sample": "CO", "bad": ["ZZ", 5, null] },
+    "country":     { "kind": "enum", "values": ["CL", "CO", "EC", "MX", "OTRO"], "default": "CL", "sample": "CO", "bad": ["ZZ", 5, null] },
     "oilOn":       { "kind": "bool", "default": true, "sample": false, "bad": ["si", 3] },
     "odometer":    { "kind": "int", "min": 0, "max": 999999, "default": 0, "sample": 45000, "bad": ["12abc", -5, null] },
     "lastOil":     { "kind": "int", "min": 0, "max": 999999, "default": 0, "sample": 42000, "bad": ["x", -1] },

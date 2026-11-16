@@ -88,4 +88,15 @@ class DesignImportTest {
         assertEquals("vivo", assertNotNull(DesignImport.apply(LauncherConfig(), """{"v":1,"features":{"motion":"siempre"}}""")).motion, "un valor inválido se ignora")
         assertEquals("off", assertNotNull(DesignImport.apply(LauncherConfig(motion = "off"), """{"v":1,"features":{"oilOn":true}}""")).motion, "sin el dato, no se pisa")
     }
+
+    @Test
+    fun `el pais Otro apaga cualquier restriccion aunque el diseno la traiga encendida`() {
+        val c = assertNotNull(DesignImport.apply(LauncherConfig(), """{"v":1,"features":{"country":"OTRO","restrOn":true,"restrDigit":"8","restrDays":["lun","mie"]}}"""))
+        assertEquals("OTRO", c.country)
+        assertEquals(false, c.restrOn)
+        assertEquals("", c.restrDigit)
+        assertEquals(emptyList(), c.restrDays)
+        val co = assertNotNull(DesignImport.apply(LauncherConfig(), """{"v":1,"features":{"country":"CO","restrOn":true,"restrDigit":"8"}}"""))
+        assertEquals(true, co.restrOn, "otro pais conserva su restriccion")
+    }
 }

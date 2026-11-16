@@ -13,7 +13,7 @@
   else root.TBProfile = factory(root.TBCatalog);
 })(typeof self !== 'undefined' ? self : this, function (C) {
   const HEX = /^#[0-9a-f]{6}$/i;
-  const COUNTRIES = ['CL', 'CO', 'EC', 'MX'];
+  const COUNTRIES = ['CL', 'CO', 'EC', 'MX', 'OTRO'];
   const WEEKDAYS = ['lun', 'mar', 'mie', 'jue', 'vie'];
 
   const text = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -51,6 +51,8 @@
     setBool(f, 'gallons', x.gallons);
     setBool(f, 'clock12', x.clock12);
     setOne(f, 'motion', x.motion, (C && C.motions) || ['off', 'vivo', 'completo']);
+    // «Otro» país: no se aplica ninguna restricción, aunque venga encendida.
+    if (f.country === 'OTRO') { f.restrOn = false; f.restrDigit = ''; f.restrDays = []; }
   }
 
   /**

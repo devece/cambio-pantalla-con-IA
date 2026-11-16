@@ -9,10 +9,13 @@ import java.io.File
 /**
  * La foto del auto que el usuario eligió en Ajustes. Se achica y se guarda dentro de la app (no sale de la radio).
  * Si es un PNG ya sin fondo (esquinas transparentes) se muestra recortada; si no, como foto normal.
+ *
+ * Con `rear = true` es la foto del auto visto desde atrás, que usa la carretera: va en su propia carpeta y solo sirve
+ * recortada (un PNG con las esquinas transparentes), porque se dibuja sobre la ruta.
  */
-class PhotoStore(context: Context) {
+class PhotoStore(context: Context, private val rear: Boolean = false) {
     private val appContext = context.applicationContext
-    private val dir = File(appContext.filesDir, "mycar")
+    private val dir = File(appContext.filesDir, if (rear) "mycar-rear" else "mycar")
 
     private fun file(): File? = listOf("car.png", "car.jpg").map { File(dir, it) }.firstOrNull { it.exists() }
 
@@ -39,6 +42,7 @@ class PhotoStore(context: Context) {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeByteArray(day, 0, day.size, bounds)
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return false
+        if (rear && !cut) return false // la trasera solo sirve recortada
         return try {
             clear()
             dir.mkdirs()
@@ -72,6 +76,7 @@ class PhotoStore(context: Context) {
                 decoded
             }
             val cut = looksCut(bitmap)
+            if (rear && !cut) return "La foto trasera tiene que ser un PNG con el auto ya recortado (sin fondo). En el sitio puedes bajar tu auto sin fondo."
             clear()
             dir.mkdirs()
             val target = File(dir, if (cut) "car.png" else "car.jpg")

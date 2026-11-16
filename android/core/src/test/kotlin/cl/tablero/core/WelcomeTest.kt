@@ -127,4 +127,18 @@ class WelcomeTest {
         assertTrue(cl.getBoolean("restrOn"))
         assertEquals("8", cl.getString("restrDigit"))
     }
+
+    @Test
+    fun `la foto trasera viaja a la pantalla solo si existe`() {
+        val con = JSONObject(Welcome.profileJson(LauncherConfig(), rearPhotoUrl = "file:///x/atras.png"))
+        assertEquals("file:///x/atras.png", con.getJSONObject("photoRear").getString("day"))
+        assertFalse(JSONObject(Welcome.profileJson(LauncherConfig())).has("photoRear"))
+        assertFalse(JSONObject(Welcome.profileJson(LauncherConfig(), rearPhotoUrl = "")).has("photoRear"), "una dirección vacía no cuenta")
+        // También con un diseño bajado del sitio: la foto de la radio se suma sin tocar el resto.
+        val diseno = """{"v":1,"config":{"car":{"name":"Ana"}},"photo":{"day":"file:///x/lado.png","cut":true}}"""
+        val out = JSONObject(Welcome.withFeatures(diseno, LauncherConfig(), "file:///x/atras.png"))
+        assertEquals("file:///x/atras.png", out.getJSONObject("photoRear").getString("day"))
+        assertEquals("file:///x/lado.png", out.getJSONObject("photo").getString("day"))
+        assertFalse(JSONObject(Welcome.withFeatures(diseno, LauncherConfig())).has("photoRear"))
+    }
 }

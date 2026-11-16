@@ -15,7 +15,7 @@
   /* ---------- estado ---------- */
   const defaults = () => ({
     radio: { type: null, model: '', screen: null, analysis: null },
-    car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', phrase: '', plate: '', photo: null, photoCut: false, photoNight: null },
+    car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', phrase: '', plate: '', photo: null, photoCut: false, photoNight: null, photoRear: null },
     style: { theme: 'sobrio', layout: 'consola', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
       oilOn: true, odometer: 45000, lastOil: 42000, oilEvery: 5000,
@@ -47,6 +47,7 @@
     state.car.photo = null;
     state.car.photoCut = false;
     state.car.photoNight = null;
+    state.car.photoRear = null;
     state.style.bg = null;
   }
   function save() {
@@ -54,6 +55,7 @@
       const copy = JSON.parse(JSON.stringify(state));
       copy.car.photo = null; // la foto no se guarda
       copy.car.photoNight = null;
+      copy.car.photoRear = null;
       copy.style.bg = null;
       localStorage.setItem(STORE, JSON.stringify(copy));
     } catch (_) { /* ignorar */ }
@@ -289,7 +291,7 @@
     const apps = state.style.apps.map((id) => (TB.apps.find((a) => a.id === id) || {}).name).filter(Boolean);
     const rows = [
       ['Radio', radio + (state.radio.model ? ` · ${esc(state.radio.model)}` : '')],
-      ['Vehículo', `${veh.name}${state.car.name ? ' de ' + esc(state.car.name) : ''}${state.car.photo ? ' · con tu foto' : ''}`],
+      ['Vehículo', `${veh.name}${state.car.name ? ' de ' + esc(state.car.name) : ''}${state.car.photo ? ' · con tu foto' : ''}${state.car.photoRear ? ' · con tu foto trasera' : ''}`],
       ['Diseño', `${th.name} · ${lay.name}${season.id !== 'ninguna' ? ' · ' + season.name : ''}`],
       ['Fondo', state.style.bg ? { photo: 'Tu foto', logo: 'Tu logo de fondo', badge: 'Tu logo en la barra' }[state.style.bgMode] : `${(TB.scenes.find((s) => s.id === state.style.scene) || {}).name || 'Del diseño'} · ${(TB.sceneTimes.find((s) => s.id === state.style.sceneTime) || {}).name || 'Automática'}`],
       ['Saludo', `${state.features.voice ? 'Por voz' : 'Solo en pantalla'} · “${esc(state.car.greeting)}, ${esc(state.car.name || 'amigo')}”${state.car.phrase ? ' · “' + esc(state.car.phrase) + '”' : ''}`],
@@ -327,14 +329,14 @@
    * la APK sin guardarla. Sin foto, o si algo falla, sigue el enlace normal (APK con el diseño, sin foto).
    */
   async function downloadWithPhoto(e) {
-    if (!state.car.photo || !designParam) return; // sin foto: que el enlace funcione solo
+    if ((!state.car.photo && !state.car.photoRear) || !designParam) return; // sin fotos: que el enlace funcione solo
     const a = $('#apk-design');
     if (a.getAttribute('aria-disabled') === 'true') { e.preventDefault(); return; }
     e.preventDefault();
     const status = $('#apk-status');
     const say = (t) => { status.textContent = t; status.hidden = !t; };
     a.setAttribute('aria-disabled', 'true');
-    say('Armando tu app con tu foto… puede tardar unos segundos.');
+    say('Armando tu app con tus fotos… puede tardar unos segundos.');
     const toData = (url) => fetch(url).then((r) => r.blob()).then((b) => new Promise((ok, fail) => {
       const f = new FileReader();
       f.onload = () => ok(f.result);
@@ -342,12 +344,18 @@
       f.readAsDataURL(b);
     }));
     try {
-      const photo = { day: await toData(state.car.photo), cut: state.car.photoCut === true };
-      if (photo.cut && state.car.photoNight) {
-        const night = await toData(state.car.photoNight);
-        if (photo.day.length + night.length < 2_600_000) photo.night = night; // el servidor tiene un tope: sin la de noche si no cabe
+      const body = { d: designParam };
+      if (state.car.photoRear) body.photoRear = { day: await toData(state.car.photoRear) };
+      const rearLen = body.photoRear ? body.photoRear.day.length : 0;
+      if (state.car.photo) {
+        const photo = { day: await toData(state.car.photo), cut: state.car.photoCut === true };
+        if (photo.cut && state.car.photoNight) {
+          const night = await toData(state.car.photoNight);
+          if (photo.day.length + night.length + rearLen < 2_600_000) photo.night = night; // el servidor tiene un tope: sin la de noche si no cabe
+        }
+        body.photo = photo;
       }
-      const r = await fetch('/api/app', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ d: designParam, photo }) });
+      const r = await fetch('/api/app', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!r.ok || !/android\.package-archive/.test(r.headers.get('content-type') || '')) throw new Error('rechazada');
       const url = URL.createObjectURL(await r.blob());
       const tmp = document.createElement('a');
@@ -357,9 +365,9 @@
       tmp.click();
       tmp.remove();
       setTimeout(() => URL.revokeObjectURL(url), 120000);
-      say('Listo: tu app se está descargando, con tu diseño y tu foto.');
+      say('Listo: tu app se está descargando, con tu diseño y tus fotos.');
     } catch (_) {
-      say('No pudimos incluir tu foto; te bajamos la app con tu diseño. La foto la eliges en la app, en Ajustes → Foto de tu auto.');
+      say('No pudimos incluir tus fotos; te bajamos la app con tu diseño. Las eliges en la app, en Ajustes → Foto de tu auto y Foto trasera.');
       window.location.href = a.href;
     } finally {
       a.removeAttribute('aria-disabled');
@@ -391,6 +399,7 @@
     $('#orient-v').setAttribute('aria-pressed', String(ui.vertical));
     $('#stage-title').textContent = ui.vertical ? 'Así se verá en una radio vertical (768 × 1024)' : 'Así se verá en tu radio (1024 × 600)';
     $('#photo-clear').hidden = !state.car.photo;
+    $('#rear-clear').hidden = !state.car.photoRear;
     // El color es solo del auto de ejemplo: con la foto del cliente no se usa.
     $('#car-color-group').hidden = !!state.car.photo;
     $('#photo-sample').hidden = !!state.car.photo;
@@ -535,6 +544,8 @@
 
     $('#photo').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadPhoto(f); e.target.value = ''; });
     $('#photo-clear').addEventListener('click', clearPhoto);
+    $('#photo-rear').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadRear(f); e.target.value = ''; });
+    $('#rear-clear').addEventListener('click', clearRear);
     $('#apk-design').addEventListener('click', downloadWithPhoto);
     $('#lights-stage').addEventListener('click', (e) => {
       if (!cutCanvas || lightPts.length >= MAX_LIGHTS) return;
@@ -794,6 +805,85 @@
     } else {
       status.textContent = 'No pudimos separar el auto del fondo en esta foto. Usamos la foto tal cual; prueba con otra en que se vea el auto completo.';
     }
+  }
+
+  /* ---------- foto trasera del auto (para la carretera del modo «completo») ---------- */
+  const REAR_MAX_SIDE = 640;
+  const REAR_MAX_BYTES = 450_000; // el servidor tiene un tope para las fotos que van dentro de la APK
+  /** Un PNG ya sin fondo tiene transparentes las cuatro esquinas. */
+  function cornersTransparent(c) {
+    const g = c.getContext('2d');
+    const w = c.width - 1;
+    const h = c.height - 1;
+    return [[0, 0], [w, 0], [0, h], [w, h]].every(([x, y]) => g.getImageData(x, y, 1, 1).data[3] < 16);
+  }
+  /** Recorta los bordes transparentes (el auto ocupa todo el cuadro) y lo achica a un PNG liviano. */
+  async function rearPng(src) {
+    const g = src.getContext('2d');
+    const d = g.getImageData(0, 0, src.width, src.height).data;
+    let x0 = src.width, y0 = src.height, x1 = -1, y1 = -1;
+    for (let y = 0; y < src.height; y++) {
+      for (let x = 0; x < src.width; x++) {
+        if (d[(y * src.width + x) * 4 + 3] > 24) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      }
+    }
+    if (x1 < x0 || y1 < y0) return null;
+    const w = x1 - x0 + 1;
+    const h = y1 - y0 + 1;
+    let side = Math.min(REAR_MAX_SIDE, Math.max(w, h));
+    for (let i = 0; i < 6; i++) {
+      const k = side / Math.max(w, h);
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(w * k));
+      c.height = Math.max(1, Math.round(h * k));
+      c.getContext('2d').drawImage(src, x0, y0, w, h, 0, 0, c.width, c.height);
+      const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+      if (blob && (blob.size <= REAR_MAX_BYTES || side <= 240)) return URL.createObjectURL(blob);
+      side = Math.round(side * 0.8);
+    }
+    return null;
+  }
+  function clearRear() {
+    if (state.car.photoRear) URL.revokeObjectURL(state.car.photoRear);
+    state.car.photoRear = null;
+    $('#rear-status').hidden = true;
+    $('#rear-error').hidden = true;
+    update();
+  }
+  async function loadRear(file) {
+    const err = $('#rear-error');
+    const status = $('#rear-status');
+    err.hidden = true;
+    const fail = (m) => { err.textContent = m; err.hidden = false; status.hidden = true; };
+    if (!file.type.startsWith('image/')) return fail('Elige un archivo de imagen.');
+    if (file.size > 15 * 1024 * 1024) return fail('La foto pesa más de 15 MB. Elige una más liviana.');
+    let c;
+    try {
+      const bmp = await createImageBitmap(file);
+      const k = Math.min(1, 1100 / Math.max(bmp.width, bmp.height));
+      c = document.createElement('canvas');
+      c.width = Math.round(bmp.width * k);
+      c.height = Math.round(bmp.height * k);
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    } catch (_) {
+      return fail('No pudimos leer esa foto. Prueba con otra.');
+    }
+    let cut = cornersTransparent(c) ? c : null; // si ya viene sin fondo, se usa tal cual
+    if (!cut) {
+      status.textContent = 'Quitando el fondo de tu foto… la primera vez puede tardar unos segundos.';
+      status.hidden = false;
+      let res = null;
+      try { res = TB.cutout ? await TB.cutout(c) : null; } catch (_) { res = null; }
+      cut = res ? res.canvas : null;
+    }
+    if (!cut) return fail('No pudimos separar el auto del fondo en esta foto. Prueba con otra en que se vea el auto completo desde atrás, o sube un PNG ya sin fondo.');
+    const url = await rearPng(cut);
+    if (!url) return fail('No pudimos usar esa foto. Prueba con otra.');
+    if (state.car.photoRear) URL.revokeObjectURL(state.car.photoRear);
+    state.car.photoRear = url;
+    status.textContent = 'Listo: tu foto trasera se usará en la carretera (modo «Además, carretera»).';
+    status.hidden = false;
+    update();
   }
 
   /* ---------- imagen de fondo propia (queda en el navegador) ---------- */

@@ -1,7 +1,7 @@
 'use strict';
 /*
  * GET  /api/app?d=<diseño en base64url>
- * POST /api/app   { d, photo: { day, night?, cut } }   (la foto va como data URL: PNG si cut, JPEG si no)
+ * POST /api/app   { d, photo?: { day, night?, cut }, photoRear?: { day } }   (las fotos van como data URL: PNG si cut, JPEG si no; la trasera siempre PNG recortado)
  * Entrega la APK de Tablero con el diseño (y la foto, si viene) que el cliente armó en el sitio ya adentro (en el bloque de firmas, sin tocar la
  * firma: ver lib/apk-inject.js). Al abrirla por primera vez, la app lee su propio archivo y aplica ese diseño: sin códigos.
  *
@@ -12,7 +12,7 @@
  */
 const crypto = require('node:crypto');
 const { rateLimit } = require('../lib/http.js');
-const { DESIGN_ID, PHOTO_DAY_ID, PHOTO_NIGHT_ID, injectPair } = require('../lib/apk-inject.js');
+const { DESIGN_ID, PHOTO_DAY_ID, PHOTO_NIGHT_ID, PHOTO_REAR_ID, injectPair } = require('../lib/apk-inject.js');
 const { validateOrder } = require('../public/shared/order.js');
 const stats = require('../lib/stats.js');
 
@@ -24,7 +24,8 @@ const MAX_APK = 12 * 1024 * 1024;
 const TTL_MS = 5 * 60 * 1000;
 // La respuesta de una función de Vercel no puede pasar de 4,5 MB: la APK pesa ~2,2 MB, así que las fotos tienen un tope.
 const MAX_PHOTO = 1_800_000;
-const MAX_PHOTOS_TOTAL = 2_100_000;
+const MAX_PHOTOS_TOTAL = 2_100_000; // la foto, su versión de noche y la trasera, juntas
+const MAX_REAR = 600_000;
 
 let cache = { at: 0, buf: null };
 
@@ -94,6 +95,14 @@ function photoFromBody(p) {
   return { day, night, cut };
 }
 
+/** La foto del auto visto desde atrás: { day } (PNG recortado) o null si no viene. */
+function rearFromBody(p) {
+  if (!p || typeof p !== 'object' || !p.day) return null;
+  const day = imageFromDataUrl(p.day, true);
+  if (day.length > MAX_REAR) throw Object.assign(new Error('Foto trasera muy grande'), { status: 413 });
+  return { day };
+}
+
 /** Redirige a la APK normal (y cuenta la descarga como «normal»: el cliente la recibe igual, sin diseño). */
 async function fallback(req, res) {
   if (req.method !== 'HEAD') await stats.countDownload(req, false);
@@ -121,20 +130,26 @@ module.exports = async function handler(req, res) {
   if (!design) return method === 'POST' ? res.status(400).json({ ok: false, error: 'Diseño inválido.' }) : fallback(req, res);
 
   let photo = null;
+  let rear = null;
   if (method === 'POST') {
     try {
       photo = photoFromBody(body.photo);
+      rear = rearFromBody(body.photoRear);
+      const total = (photo ? photo.day.length + (photo.night ? photo.night.length : 0) : 0) + (rear ? rear.day.length : 0);
+      if (total > MAX_PHOTOS_TOTAL) throw Object.assign(new Error('Fotos muy grandes'), { status: 413 });
     } catch (e) {
       return res.status(e.status || 422).json({ ok: false, error: e.message });
     }
   }
   try {
     if (photo) design.photo = { cut: photo.cut, night: !!photo.night };
+    if (rear) design.photoRear = true;
     let out = injectPair(await baseApk(), DESIGN_ID, Buffer.from(JSON.stringify(design), 'utf8'));
     if (photo) {
       out = injectPair(out, PHOTO_DAY_ID, photo.day);
       if (photo.night) out = injectPair(out, PHOTO_NIGHT_ID, photo.night);
     }
+    if (rear) out = injectPair(out, PHOTO_REAR_ID, rear.day);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/vnd.android.package-archive');
     res.setHeader('Content-Disposition', 'attachment; filename="tablero.apk"');
@@ -150,5 +165,6 @@ module.exports = async function handler(req, res) {
 
 module.exports.designFromParam = designFromParam;
 module.exports.photoFromBody = photoFromBody;
+module.exports.rearFromBody = rearFromBody;
 /** Solo para las pruebas: olvida la APK guardada en memoria. */
 module.exports._resetCache = () => { cache = { at: 0, buf: null }; };

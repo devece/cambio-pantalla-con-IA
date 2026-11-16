@@ -123,10 +123,12 @@ class MainActivity : Activity() {
             val photo = DesignImport.photoInfo(json)
             val day = if (photo != null) ApkBlock.read(apk, ApkBlock.PHOTO_DAY_ID) else null
             val night = if (photo != null && photo.second) ApkBlock.read(apk, ApkBlock.PHOTO_NIGHT_ID) else null
+            val rear = if (DesignImport.hasRearPhoto(json)) ApkBlock.read(apk, ApkBlock.PHOTO_REAR_ID) else null
             val digest = java.security.MessageDigest.getInstance("SHA-256")
             digest.update(bytes)
             day?.let { digest.update(it) }
             night?.let { digest.update(it) }
+            rear?.let { digest.update(it) }
             val hash = digest.digest().joinToString("") { "%02x".format(it) }
             if (hash == settings.apkDesignHash()) return
             // Se anota primero: si algo falla a medias, no se reintenta en cada arranque.
@@ -136,6 +138,8 @@ class MainActivity : Activity() {
             settings.save(merged)
             // La foto que vino en la APK (si vino): reemplaza a la que hubiera.
             if (photo != null && day != null) PhotoStore(this).saveBytes(day, photo.first, night)
+            // La foto del auto desde atrás (si vino): es siempre un PNG ya recortado.
+            if (rear != null) PhotoStore(this, rear = true).saveBytes(rear, true, null)
         } catch (e: Exception) {
             // Sin diseño o archivo raro: la app sigue como siempre.
         }
@@ -157,7 +161,8 @@ class MainActivity : Activity() {
         }
         // Con o sin código se dibuja con el motor del sitio; sin código, con el diseño base de la edición gratuita
         // y lo que el usuario contó (nombre, auto y color).
-        val launcher = WebLauncher(this, saved?.let { Welcome.withFeatures(it, config) } ?: PhotoStore(this).let { Welcome.profileJson(config, it.url(), it.isCut(), it.nightUrl()) }, playWelcome = !welcomePlayed)
+        val rearUrl = PhotoStore(this, rear = true).url()
+        val launcher = WebLauncher(this, saved?.let { Welcome.withFeatures(it, config, rearUrl) } ?: PhotoStore(this).let { Welcome.profileJson(config, it.url(), it.isCut(), it.nightUrl(), rearUrl) }, playWelcome = !welcomePlayed)
         welcomePlayed = true
         web = launcher
         setContentView(launcher.view)

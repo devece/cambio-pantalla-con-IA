@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { fakeApk } = require('./fake-apk.js');
-const { readPair, DESIGN_ID, PHOTO_DAY_ID, PHOTO_NIGHT_ID } = require('../lib/apk-inject.js');
+const { readPair, DESIGN_ID, PHOTO_DAY_ID, PHOTO_NIGHT_ID, PHOTO_REAR_ID } = require('../lib/apk-inject.js');
 
 const crypto = require('node:crypto');
 const handler = require('../api/app.js');
@@ -199,3 +199,37 @@ test('con la huella correcta (aunque venga en mayúsculas) se usa la APK', async
     handler._resetCache();
   }
 });
+
+test('POST: la foto trasera viaja dentro de la APK, junto a la lateral, y marca el diseño', () => withApk(async (apk) => {
+  const r = await call({}, 'POST', { d: b64(design), photo: { day: png(500), night: png(700), cut: true }, photoRear: { day: png(400) } });
+  assert.equal(r.status, 200);
+  const saved = JSON.parse(readPair(r.body, DESIGN_ID).toString('utf8'));
+  assert.equal(saved.photoRear, true);
+  assert.deepEqual(saved.photo, { cut: true, night: true });
+  assert.equal(readPair(r.body, PHOTO_REAR_ID).length, 404);
+  assert.equal(readPair(r.body, PHOTO_DAY_ID).length, 504, 'la lateral sigue intacta');
+  assert.equal(readPair(apk, PHOTO_REAR_ID), null, 'la APK original no se toca');
+}));
+
+test('POST: la foto trasera sola (sin foto lateral) también viaja', () => withApk(async () => {
+  const r = await call({}, 'POST', { d: b64(design), photoRear: { day: png(300) } });
+  assert.equal(r.status, 200);
+  const saved = JSON.parse(readPair(r.body, DESIGN_ID).toString('utf8'));
+  assert.equal(saved.photoRear, true);
+  assert.equal(saved.photo, undefined);
+  assert.equal(readPair(r.body, PHOTO_REAR_ID).length, 304);
+  assert.equal(readPair(r.body, PHOTO_DAY_ID), null);
+}));
+
+test('POST: sin foto trasera el diseño no lleva la marca', () => withApk(async () => {
+  const r = await call({}, 'POST', { d: b64(design), photo: { day: png(300), cut: true } });
+  assert.equal(JSON.parse(readPair(r.body, DESIGN_ID).toString('utf8')).photoRear, undefined);
+  assert.equal(readPair(r.body, PHOTO_REAR_ID), null);
+}));
+
+test('POST: la foto trasera inválida o muy grande se rechaza, y las tres fotos juntas respetan el tope', () => withApk(async () => {
+  assert.equal((await call({}, 'POST', { d: b64(design), photoRear: { day: jpg() } })).status, 422, 'la trasera siempre es PNG recortado');
+  assert.equal((await call({}, 'POST', { d: b64(design), photoRear: { day: 'data:text/html;base64,PGI+' } })).status, 422);
+  assert.equal((await call({}, 'POST', { d: b64(design), photoRear: { day: png(700_000) } })).status, 413);
+  assert.equal((await call({}, 'POST', { d: b64(design), photo: { day: png(1_200_000), night: png(500_000), cut: true }, photoRear: { day: png(500_000) } })).status, 413, 'entre las tres pasan el tope');
+}));

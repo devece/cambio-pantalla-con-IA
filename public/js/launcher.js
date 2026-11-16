@@ -13,7 +13,7 @@
     style: { theme: 'cristal', layout: 'estelar', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
       oilOn: true, odometer: 0, lastOil: 0, oilEvery: 5000, others: [], maintDone: {}, docsOn: false, rtMonth: 1, fuelOn: false, tankL: 45, kmPerL: 12,
-      speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: false, miles: false, gallons: false, clock12: false,
+      speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: false, miles: false, gallons: false, clock12: false, motion: 'vivo',
     },
   });
   function merge(base, saved) {
@@ -214,7 +214,8 @@
   }
 
   window.TBApp = {
-    init(json) {
+    /** `opts.welcome === false` evita la bienvenida (la app la pide solo al abrirse, no cada vez que vuelves de Ajustes). */
+    init(json, opts) {
       if (!gridOk && !allowOld) { showOldWebview(json); return; }
       let design = null;
       try { design = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { design = null; }
@@ -223,8 +224,9 @@
       if (!mounted) { TB.preview.mount(document.getElementById('host')); mounted = true; }
       document.body.classList.toggle('free', !(design && design.config));
       setDesign(design);
+      if (TB.motion && !(opts && opts.welcome === false)) TB.motion.welcome();
     },
-    setSpeed(kmh) { app.speed = Number(kmh) || 0; },
+    setSpeed(kmh) { app.speed = Number(kmh) || 0; if (TB.motion) TB.motion.setSpeed(app.speed); },
     setLocation(lat, lon, bearing) {
       if (!isFinite(lat) || !isFinite(lon)) return;
       rememberPlace(lat, lon);

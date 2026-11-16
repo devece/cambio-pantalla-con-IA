@@ -25,6 +25,7 @@
     "voice":       { "kind": "bool", "default": false, "sample": true, "bad": ["si"] },
     "miles":       { "kind": "bool", "default": false, "sample": true, "bad": ["si"] },
     "gallons":     { "kind": "bool", "default": false, "sample": true, "bad": ["si"] },
-    "clock12":     { "kind": "bool", "default": false, "sample": true, "bad": ["si"] }
+    "clock12":     { "kind": "bool", "default": false, "sample": true, "bad": ["si"] },
+    "motion":      { "kind": "enum", "values": ["off", "vivo", "completo"], "default": "vivo", "sample": "completo", "bad": ["siempre", 1, null, true] }
   }
 }

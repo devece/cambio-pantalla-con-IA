@@ -165,6 +165,7 @@
         miles: !!f.miles,
         gallons: !!f.gallons,
         clock12: !!f.clock12,
+        motion: pick(f.motion, C.motions, 'vivo'),
       },
       contact: { kind: contact.kind === 'email' ? 'email' : 'whatsapp', value: '' },
     };

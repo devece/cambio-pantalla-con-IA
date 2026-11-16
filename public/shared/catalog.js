@@ -17,6 +17,8 @@
   const apps = ['maps', 'waze', 'spotify', 'ytmusic', 'youtube', 'whatsapp', 'camara', 'usb', 'telefono'];
   const radioTypes = ['android', 'original', 'nose'];
   const speedAlerts = ['auto', 'manual', 'off'];
+  // Movimiento de la pantalla de inicio: ninguno, bienvenida + auto vivo, o además la carretera al manejar (js/motion.js).
+  const motions = ['off', 'vivo', 'completo'];
   const weekdays = ['lun', 'mar', 'mie', 'jue', 'vie'];
 
   // Intervalos referenciales. Cada auto tiene los suyos: el cliente debe revisar el manual.
@@ -75,6 +77,7 @@
     apps,
     radioTypes,
     speedAlerts,
+    motions,
     weekdays,
     restriction,
     maintenance,

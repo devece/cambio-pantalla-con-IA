@@ -426,6 +426,55 @@
 .scr .status .ap { font-size: 13px; color: inherit; margin-left: .2em; }
 .scr[data-clock12='1'] .clk b { font-size: 46px; }
 
+/* ---------- movimiento: auto vivo, bienvenida y carretera (js/motion.js) ---------- */
+/* Solo transform y opacity. `data-vivo` y `data-motion` los pone motion.js según lo que eligió el cliente. */
+.scr[data-vivo='1'] img.car-photo.cut, .scr[data-vivo='1'] .pickup, .scr[data-vivo='1'] .car-svg, .scr .m-sheen.photo { animation: mBob 3.6s ease-in-out infinite alternate; }
+@keyframes mBob { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+/* El auto flotaba solo en el layout estelar: el auto vivo lo reemplaza; sin movimiento, se queda quieto. */
+.scr[data-vivo='1'] .st-car { animation: stCar 1s .15s cubic-bezier(.2,.8,.2,1) both; }
+.scr[data-motion='off'] .st-car { animation: stCar 1s .15s cubic-bezier(.2,.8,.2,1) both; }
+.scr[data-vivo='1'] .pickup-beam { animation: mGlow 4.5s ease-in-out infinite; }
+@keyframes mGlow { 0%, 100% { opacity: .72; } 50% { opacity: 1; } }
+.scr .m-sheen { position: absolute; left: 0; top: 0; width: 100%; bottom: 6px; z-index: 2; overflow: hidden; pointer-events: none;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain; }
+.scr .m-sheen.flip { transform: scaleX(-1); }
+.scr .m-sheen i { position: absolute; top: 0; bottom: 0; left: 0; width: 36%; transform: translateX(-130%); animation: mSheen 7s ease-in-out infinite;
+  background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.6) 50%, rgba(255,255,255,0)); }
+.scr[data-night='1'] .m-sheen i { background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.42) 50%, rgba(255,255,255,0)); }
+@keyframes mSheen { 0%, 14% { transform: translateX(-130%); } 58%, 100% { transform: translateX(330%); } }
+
+/* Bienvenida: un velo negro que se levanta con un resplandor y un barrido de luz. Vive aparte para que el redibujado no la reinicie. */
+.scr .mot-fx { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 9; overflow: hidden; pointer-events: none; display: none; }
+.scr .mot-fx.play { display: block; }
+.scr .mot-veil { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: #000; animation: mVeil 3.4s ease-out both; }
+.scr .mot-bloom { position: absolute; left: 0; top: 0; right: 0; bottom: 0; opacity: 0; background: radial-gradient(ellipse at 50% 62%, rgba(255,236,190,.55), rgba(255,236,190,0) 55%); animation: mBloom 3.4s ease-in-out both; }
+.scr .mot-sweep { position: absolute; top: 0; bottom: 0; width: 28%; left: -40%; transform: skewX(-12deg); background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.2), rgba(255,255,255,0)); animation: mSweep 1.6s 1.1s ease-in-out both; }
+@keyframes mVeil { 0%, 35% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes mBloom { 0%, 10% { opacity: 0; transform: scale(.6); } 45% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.2); } }
+@keyframes mSweep { from { transform: skewX(-12deg) translateX(0); } to { transform: skewX(-12deg) translateX(560%); } }
+
+/* Modo conducción: la carretera tapa el inicio pero deja a la vista la barra de abajo y los avisos. */
+.scr .mot-road { position: absolute; left: 0; right: 0; top: 0; bottom: 92px; z-index: 4; background: #05080c; cursor: pointer; }
+.scr .mot-road[hidden] { display: none; }
+.scr .mot-cv { position: absolute; left: 0; top: 0; display: block; }
+.scr .mot-hud { position: absolute; left: 50%; top: 44px; transform: translateX(-50%); text-align: center; color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.45); }
+.scr .mot-hud b { display: block; font-size: 72px; line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.scr .mot-hud span { font-size: 16px; letter-spacing: .18em; text-transform: uppercase; opacity: .75; }
+.scr .mot-limit { position: absolute; right: 26px; top: 54px; width: 66px; padding: 7px 0 9px; text-align: center; border-radius: 10px; background: #f4f6f8; color: #11161c; box-shadow: 0 0 0 3px #c4352f; }
+.scr .mot-limit[hidden] { display: none; }
+.scr .mot-limit small { display: block; font-size: 9px; font-weight: 700; letter-spacing: .06em; margin-bottom: 3px; }
+.scr .mot-limit b { font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums; }
+.scr .mot-hint { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); padding: 6px 14px; border-radius: 99px; font-size: 14px; color: #fff; background: rgba(0,0,0,.45); animation: mHint 7s ease-out both; }
+@keyframes mHint { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+.scr[data-night='0'] .mot-hud { color: #14181d; text-shadow: none; }
+.scr[data-night='0'] .mot-hint { color: #14181d; background: rgba(255,255,255,.6); }
+.scr[data-drive='1'] main.home, .scr[data-drive='1'] .scene, .scr[data-drive='1'] .tint, .scr[data-drive='1'] .decor, .scr[data-drive='1'] canvas.fx { visibility: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  .scr[data-vivo='1'] img.car-photo.cut, .scr[data-vivo='1'] .pickup, .scr[data-vivo='1'] .car-svg, .scr .m-sheen.photo, .scr[data-vivo='1'] .pickup-beam,
+  .scr .m-sheen i, .scr .mot-veil, .scr .mot-bloom, .scr .mot-sweep, .scr .mot-hint,
+  .scr[data-vivo='1'] .st-car, .scr[data-motion='off'] .st-car { animation: none; }
+}
+
 /* ======================================================================================================
  * Radios verticales (por ejemplo 768 × 1024): lienzo de 720 de ancho y el alto de la radio (ver preview.js).
  * No es la pantalla horizontal girada ni achicada: cada distribución se reordena para ocupar toda la pantalla.
@@ -520,3 +569,4 @@
 .scr[data-orient='v'] .og-row { grid-template-columns: repeat(2, 1fr); }
 .scr[data-orient='v'] .codes { max-height: 260px; }
 .scr[data-orient='v'] .zone-alert { max-width: 90%; }
+

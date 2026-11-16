@@ -43,7 +43,7 @@ import org.json.JSONObject
  * La pantalla de inicio con el diseño del cliente. Usa el mismo motor del sitio (assets/web/), así se ve igual que
  * la vista previa donde eligió. Los datos reales (velocidad, ubicación, avisos) llegan desde la app.
  */
-class WebLauncher(private val activity: Activity, private val designJson: String) {
+class WebLauncher(private val activity: Activity, private val designJson: String, private val playWelcome: Boolean = true) {
     val view: WebView = WebView(activity)
     private var ready = false
     private val pending = ArrayList<String>()
@@ -105,7 +105,8 @@ class WebLauncher(private val activity: Activity, private val designJson: String
 
             override fun onPageFinished(v: WebView, url: String) {
                 ready = true
-                v.evaluateJavascript("TBApp.init(" + JSONObject.quote(designJson) + ")", null)
+                // La bienvenida (movimiento) corre una vez por arranque de la app, no cada vez que se vuelve de Ajustes y se recrea esta vista.
+                v.evaluateJavascript("TBApp.init(" + JSONObject.quote(designJson) + ", {welcome:" + playWelcome + "})", null)
                 v.evaluateJavascript("TBApp.setOrient(" + JSONObject.quote(settings.orient()) + ")", null)
                 progressJson(settings.load())?.let { v.evaluateJavascript("TBApp.setProgress(" + JSONObject.quote(it) + ")", null) }
                 pending.forEach { v.evaluateJavascript(it, null) }

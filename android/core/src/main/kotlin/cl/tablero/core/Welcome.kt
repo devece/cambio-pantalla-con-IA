@@ -46,6 +46,7 @@ object Welcome {
         .put("miles", c.miles)
         .put("gallons", c.gallons)
         .put("clock12", c.clock12)
+        .put("motion", c.motion)
 
     /**
      * Lo que el usuario cambia en Ajustes (cada cuántos km va el aceite, qué mantenciones sigue, combustible, documentos…)

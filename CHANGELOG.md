@@ -8,6 +8,11 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 ## [Sin publicar]
 
 ### Agregado
+- **Movimiento en la pantalla de inicio, con una sola opción.** En Ajustes → Apariencia → «Movimiento de la pantalla de inicio» (y en el sitio, en Funciones) eliges entre tres niveles:
+  - **Sin movimiento:** la pantalla queda quieta.
+  - **Bienvenida y auto vivo** (el de fábrica, liviano): al abrir la app, un velo negro se levanta con un resplandor y un barrido de luz (unos 3 segundos; un toque la corta, y solo corre una vez por arranque, no cada vez que vuelves de Ajustes). Después el auto «respira» apenas, un reflejo de luz le cruza la carrocería y los faros pulsan. Con tu foto recortada, el reflejo sigue la silueta de tu auto.
+  - **Además, carretera:** al ir en marcha (desde 8 km/h, según el GPS), la pantalla muestra tu auto visto desde atrás sobre la ruta, con las líneas del camino corriendo según tu velocidad, la velocidad grande y el límite. La barra de abajo sigue a la vista; un toque en la carretera vuelve al inicio, y vuelve a armarse al detenerte. Los autos son un dibujo según el tipo y el color que elegiste (no es la foto de tu auto), y no hay autos alrededor: la radio no tiene cómo verlos.
+  Si la radio va lenta (menos de 15 cuadros por segundo seguidos), la carretera se apaga sola y queda en «vivo». Con «reducir movimiento» de Android todo queda quieto. Probado en navegador (bienvenida, redibujado, carretera, apagado por lentitud); **falta probarlo en una radio real**, sobre todo la fluidez de la carretera.
 - **Prueba de los datos del auto (CAN bus).** En Ajustes → Diagnóstico de la radio → «Datos del auto (CAN)»: busca las apps de CanBus de la radio (Raise, Hiworld, etc.), muestra qué ofrecen a otras apps, si los puertos serie son accesibles y escucha los avisos que mandan mientras subes las RPM o cambias el clima. Se puede copiar o compartir. Sirve para saber si Tablero podrá mostrar esos datos en tu radio; solo lee, no guarda ni manda nada.
 
 ### Cambiado

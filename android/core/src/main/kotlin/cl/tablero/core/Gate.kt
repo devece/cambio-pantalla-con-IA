@@ -34,6 +34,8 @@ data class LauncherConfig(
     val voice: Boolean = false,
     /** Mostrar la hora en formato de 12 horas (9:05 PM) en vez de 24 horas (21:05). */
     val clock12: Boolean = false,
+    /** Movimiento de la pantalla de inicio: "off", "vivo" (bienvenida + auto vivo) o "completo" (además, la carretera al manejar). Ver [Motion]. */
+    val motion: String = Motion.DEFAULT,
     /** Botones del volante que el usuario asignó (código de tecla -> acción). */
     val wheelKeys: Map<Int, WheelAction> = emptyMap(),
     /** El primer arranque guiado ya se terminó o se omitió. */

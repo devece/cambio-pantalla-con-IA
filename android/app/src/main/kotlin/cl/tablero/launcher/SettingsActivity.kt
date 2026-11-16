@@ -28,6 +28,7 @@ import cl.tablero.core.Limits
 import cl.tablero.core.Look
 import cl.tablero.core.Maintenance
 import cl.tablero.core.MaintenanceItem
+import cl.tablero.core.Motion
 import cl.tablero.core.ObdCheck
 import cl.tablero.core.ObdLinkConfig
 import cl.tablero.core.ObdLinkKind
@@ -59,6 +60,7 @@ class SettingsActivity : Activity() {
     private lateinit var lookSceneTime: Spinner
     private lateinit var lookSeason: Spinner
     private lateinit var orientSpinner: Spinner
+    private lateinit var motionSpinner: Spinner
     private var lookAccent = ""
     private val accentChips = linkedMapOf<String, View>()
     private val lookIds = HashMap<Spinner, List<String>>()
@@ -151,7 +153,7 @@ class SettingsActivity : Activity() {
         paintChips()
 
         buildPhotoSection()
-        buildLookSection(c.look, c.clock12)
+        buildLookSection(c.look, c.clock12, c.motion)
 
         section("Aceite")
         oilOn = check("Aviso de cambio de aceite", c.oilOn, limits.oilOn)
@@ -324,6 +326,7 @@ class SettingsActivity : Activity() {
                 wheelKeys = wheelKeys,
                 look = readLook(),
                 clock12 = clock12.isChecked,
+                motion = Motion.clean(pickedId(motionSpinner)),
             ),
         )
         settings.setOrient(pickedId(orientSpinner))
@@ -399,7 +402,7 @@ class SettingsActivity : Activity() {
      * Tema, distribución, fondo, hora del fondo, decoración y color de acento. La primera opción de cada lista es «Como viene»:
      * lo que trae la pantalla por defecto. Se ve al volver al inicio.
      */
-    private fun buildLookSection(look: Look, clockOn: Boolean) {
+    private fun buildLookSection(look: Look, clockOn: Boolean, motion: String) {
         section("Apariencia")
         // Quien activó un código antes conserva el diseño del sitio, que manda sobre lo de abajo: se puede soltar para elegir aquí.
         if (DesignStore(this).has()) {
@@ -423,6 +426,7 @@ class SettingsActivity : Activity() {
         lookSceneTime = lookSpinner("Hora del fondo", Look.SCENE_TIMES, look.sceneTime)
         lookSeason = lookSpinner("Decoración de temporada", Look.SEASONS, look.season)
         orientSpinner = lookSpinner("Orientación de la pantalla (Como viene = automática)", linkedMapOf("v" to "Vertical", "h" to "Horizontal"), settings.orient())
+        motionSpinner = lookSpinner("Movimiento de la pantalla de inicio", Motion.OPTIONS, motion, blank = null)
         form.addView(TextView(this).apply {
             text = "Color de acento"
             setTextColor(Ui.SUB)
@@ -449,14 +453,15 @@ class SettingsActivity : Activity() {
         clock12 = check("Hora en formato de 12 horas (9:05 PM, en vez de 21:05)", clockOn, true)
     }
 
-    private fun lookSpinner(label: String, options: Map<String, String>, current: String): Spinner {
+    /** `blank` es el texto de la primera opción «sin elegir»; con null no hay (todas las opciones son valores reales). */
+    private fun lookSpinner(label: String, options: Map<String, String>, current: String, blank: String? = "Como viene"): Spinner {
         form.addView(TextView(this).apply {
             text = label
             setTextColor(Ui.SUB)
             setPadding(0, dp(10), 0, 0)
         })
-        val ids = listOf("") + options.keys
-        val names = listOf("Como viene") + options.values
+        val ids = (if (blank != null) listOf("") else emptyList()) + options.keys
+        val names = (if (blank != null) listOf(blank) else emptyList()) + options.values
         val spinner = Spinner(this)
         val adapter = object : ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, names) {
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View =

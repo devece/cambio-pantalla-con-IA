@@ -107,4 +107,13 @@ class WelcomeTest {
         assertEquals(10000, JSONObject(Welcome.withFeatures("{}", LauncherConfig(oilEvery = 10000))).getJSONObject("config").getJSONObject("features").getInt("oilEvery"))
         assertEquals("esto no es json", Welcome.withFeatures("esto no es json", LauncherConfig()))
     }
+
+    @Test
+    fun `el movimiento elegido viaja en las opciones y un valor invalido vuelve al de fabrica`() {
+        assertEquals("completo", Welcome.featuresJson(LauncherConfig(motion = "completo")).getString("motion"))
+        assertEquals("vivo", Welcome.featuresJson(LauncherConfig()).getString("motion"))
+        assertEquals("vivo", Motion.clean("x"))
+        assertEquals("vivo", Motion.clean(null))
+        assertEquals("off", Motion.clean("off"))
+    }
 }

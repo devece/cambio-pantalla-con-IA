@@ -72,7 +72,7 @@ async function clipMovimiento(browser) {
   await page.goto(BASE);
   await page.waitForTimeout(800);
   // La vista previa llena todo el cuadro y se oculta la barra del sitio.
-  await page.addStyleTag({ content: OCULTAR + '#device{position:fixed!important;left:0!important;top:0!important;width:1400px!important;height:822px!important;margin:0!important;border-radius:0!important;z-index:99999!important;background:#000!important}header,nav,.topbar,.strip,.stats,#stats{display:none!important}' });
+  await page.addStyleTag({ content: OCULTAR + '#device{position:fixed!important;left:0!important;top:0!important;width:1400px!important;height:822px!important;margin:0!important;border-radius:0!important;z-index:99999!important;background:#000!important}header.topbar,.topbar,.strip,.stats,#stats{display:none!important}' });
   await click(page, '[data-choices="style.theme"] [data-id="ruta"]');
   await click(page, '[data-choices="style.layout"] [data-id="estelar"]');
   await click(page, '#mode-night');

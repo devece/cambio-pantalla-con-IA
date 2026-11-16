@@ -1,5 +1,5 @@
 // Captura, desde la vista previa real del sitio, lo que usa el video: las pantallas verticales (JPG) y el clip de la
-// pantalla viva (bienvenida, auto vivo y carretera, MP4 de 10 s). Salida en video/proyecto/assets/.
+// pantalla viva (bienvenida, auto vivo y carretera, MP4 de 10 s), con el Haval H2 azul de las fotos de video/capturas/. Salida en video/proyecto/assets/.
 // Uso (desde la raíz del repositorio):
 //   python3 -m http.server 8765 --directory public &
 //   npm install --no-save playwright@1.63.0 && npx playwright install chromium
@@ -44,6 +44,27 @@ async function verticales(browser) {
   }
 }
 
+/**
+ * Pone tu Haval en la vista previa: la foto de lado (ya recortada) y la de atrás. El recorte con IA necesita bajar un modelo de internet,
+ * así que aquí se reemplaza por el recorte que ya está hecho (video/capturas/haval-lateral.png); la foto trasera ya viene recortada.
+ */
+async function ponerFotos(page) {
+  const lateral = fs.readFileSync(path.join(__dirname, 'haval-lateral.png'));
+  const trasera = fs.readFileSync(path.join(__dirname, 'haval-trasera.png'));
+  await page.evaluate(async (b64) => {
+    const blob = await (await fetch('data:image/png;base64,' + b64)).blob();
+    const bmp = await createImageBitmap(blob);
+    const canvas = document.createElement('canvas');
+    canvas.width = bmp.width; canvas.height = bmp.height;
+    canvas.getContext('2d').drawImage(bmp, 0, 0);
+    TB.cutout = async () => ({ canvas, method: 'ia' });
+  }, lateral.toString('base64'));
+  await page.setInputFiles('#photo', { name: 'lado.png', mimeType: 'image/png', buffer: lateral });
+  await page.waitForFunction(() => !document.getElementById('photo-mode').hidden, null, { timeout: 15000 });
+  await page.setInputFiles('#photo-rear', { name: 'atras.png', mimeType: 'image/png', buffer: trasera });
+  await page.waitForFunction(() => !document.getElementById('rear-clear').hidden, null, { timeout: 15000 });
+}
+
 async function clipMovimiento(browser) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mov-'));
   const ctx = await browser.newContext({ viewport: { width: 1400, height: 822 }, deviceScaleFactor: 1, recordVideo: { dir, size: { width: 1400, height: 822 } } });
@@ -56,6 +77,7 @@ async function clipMovimiento(browser) {
   await click(page, '[data-choices="style.layout"] [data-id="estelar"]');
   await click(page, '#mode-night');
   await click(page, '[data-choices="features.motion"] [data-id="vivo"]');
+  await ponerFotos(page);
   await page.waitForTimeout(1500);
   const t0 = Date.now();
   await page.evaluate(() => { TB.motion.welcome(); });                           // 1) bienvenida

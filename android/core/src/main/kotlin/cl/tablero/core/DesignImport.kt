@@ -77,6 +77,7 @@ object DesignImport {
                 restrDays = strings(f.optJSONArray("restrDays")).filter { it in WEEKDAYS },
                 voice = f.optBoolean("voice", c.voice),
                 clock12 = f.optBoolean("clock12", c.clock12),
+                motion = if (f.text("motion") in Motion.OPTIONS) f.text("motion") else c.motion,
             )
         }
         return c

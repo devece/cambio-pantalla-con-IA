@@ -46,7 +46,7 @@ class SettingsStoreTest {
             docsOn = true, rtMonth = 6, fuelOn = true, tankL = 60, kmPerL = 15,
             speedShow = false, speedAlert = "manual", manualLimit = 90,
             restrOn = true, restrType = "sin", restrDigit = "8", restrDays = listOf("lun", "mie"),
-            voice = true, clock12 = true,
+            voice = true, clock12 = true, motion = "completo",
             wheelKeys = mapOf(24 to WheelAction.entries.first()),
             welcomeDone = true, odometerAuto = false,
             obd = ObdLinkConfig(kind = ObdLinkKind.WIFI, address = "192.168.0.10", name = "OBDII", port = 35_000),

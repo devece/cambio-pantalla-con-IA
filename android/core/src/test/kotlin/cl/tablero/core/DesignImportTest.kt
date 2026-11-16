@@ -80,4 +80,12 @@ class DesignImportTest {
         assertEquals(false, assertNotNull(DesignImport.apply(LauncherConfig(), """{"v":1,"features":{"clock12":false}}""")).clock12)
         assertEquals(true, assertNotNull(DesignImport.apply(LauncherConfig(clock12 = true), """{"v":1,"features":{"oilOn":true}}""")).clock12, "sin el dato, no se pisa")
     }
+
+    @Test
+    fun `el movimiento del diseno se aplica solo si es valido y si no viene queda como estaba`() {
+        assertEquals("completo", assertNotNull(DesignImport.apply(LauncherConfig(), """{"v":1,"features":{"motion":"completo"}}""")).motion)
+        assertEquals("off", assertNotNull(DesignImport.apply(LauncherConfig(), """{"v":1,"features":{"motion":"off"}}""")).motion)
+        assertEquals("vivo", assertNotNull(DesignImport.apply(LauncherConfig(), """{"v":1,"features":{"motion":"siempre"}}""")).motion, "un valor inválido se ignora")
+        assertEquals("off", assertNotNull(DesignImport.apply(LauncherConfig(motion = "off"), """{"v":1,"features":{"oilOn":true}}""")).motion, "sin el dato, no se pisa")
+    }
 }

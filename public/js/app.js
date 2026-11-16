@@ -21,7 +21,7 @@
       oilOn: true, odometer: 45000, lastOil: 42000, oilEvery: 5000,
       others: ['neumaticos'], docsOn: true, rtMonth: 6,
       fuelOn: false, tankL: 45, kmPerL: 12,
-      speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: true, miles: false, gallons: false, clock12: false,
+      speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: true, miles: false, gallons: false, clock12: false, motion: 'vivo',
     },
   });
   const ui = { step: 1, screen: 'inicio', night: false, vertical: false };
@@ -89,6 +89,11 @@
       { id: 'auto', name: 'Automático (aún no disponible)' },
       { id: 'manual', name: 'Manual' },
       { id: 'off', name: 'Sin aviso' },
+    ],
+    'features.motion': () => [
+      { id: 'off', name: 'Sin movimiento', desc: 'La pantalla queda quieta' },
+      { id: 'vivo', name: 'Bienvenida y auto vivo', desc: 'Se enciende al abrir y el auto respira' },
+      { id: 'completo', name: 'Además, carretera', desc: 'Al manejar, ves tu auto en la ruta' },
     ],
     'features.restrType': () => C.restriction.types,
     'features.country': () => TB_PICO.countries.map((c) => ({ id: c.id, name: c.name })),
@@ -309,7 +314,7 @@
       features: {
         country: f.country, oilOn: f.oilOn, odometer: f.odometer, lastOil: f.lastOil, oilEvery: f.oilEvery, others: f.others, docsOn: f.docsOn, rtMonth: f.rtMonth,
         fuelOn: f.fuelOn, tankL: f.tankL, kmPerL: f.kmPerL, speedShow: f.speedShow, speedAlert: f.speedAlert, manualLimit: f.manualLimit,
-        restrOn: f.restrOn, restrType: f.restrType, restrDigit: f.restrDigit, voice: f.voice, miles: f.miles, gallons: f.gallons, clock12: f.clock12,
+        restrOn: f.restrOn, restrType: f.restrType, restrDigit: f.restrDigit, voice: f.voice, miles: f.miles, gallons: f.gallons, clock12: f.clock12, motion: f.motion,
       },
     };
     const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(design)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');

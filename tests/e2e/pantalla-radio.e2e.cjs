@@ -77,6 +77,133 @@ await check('un perfil con opciones basura no rompe la pantalla', async () => {
   assert.match(t, /Aceite faltan 2\.000 km/);
 });
 
+
+/* ---------- movimiento: bienvenida, auto vivo y carretera (public/js/motion.js) ---------- */
+/** Abre la pantalla como la app, con un nivel de movimiento, y deja la página lista para probarla. */
+async function motionPage(level, opts) {
+  const o = opts || {};
+  const page = await browser.newPage({ viewport: { width: 1024, height: 600 } });
+  if (o.reduce) await page.emulateMedia({ reducedMotion: 'reduce' });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(() => { window.Android = { apps: () => '[]', mapInfo: () => '{"tiles":0,"bytes":0}', openApp() {}, launchPkg() {}, open() {}, media() {}, radio() {}, done() {}, saveMapArea() {}, clearMaps() {} }; });
+  await page.goto(base + '/launcher.html');
+  await page.waitForFunction(() => window.TBApp && window.TB && window.TB.motion);
+  await page.evaluate(([lv, welcome]) => {
+    // Un auto con imagen (SUV) para que el reflejo tenga dónde dibujarse.
+    window.TBApp.init(JSON.stringify({ profile: { name: 'Ana', type: 'suv', color: '#1f5fd0', features: { motion: lv } } }), { welcome });
+  }, [level, o.welcome !== false]);
+  await page.waitForTimeout(250);
+  page.motionErrors = errors;
+  return page;
+}
+
+await check('movimiento «vivo»: la bienvenida corre una vez y un redibujado no la reinicia', async () => {
+  const page = await motionPage('vivo');
+  assert.equal(await page.evaluate(() => document.querySelector('.mot-fx').className), 'mot-fx play');
+  await page.evaluate(() => { document.querySelector('.mot-fx').dataset.mark = 'mismo'; window.TBApp.setProgress(JSON.stringify({ odometer: 1234 })); });
+  await page.waitForTimeout(150);
+  assert.equal(await page.evaluate(() => document.querySelector('.mot-fx').dataset.mark), 'mismo', 'el redibujado reemplazó la capa de la bienvenida');
+  assert.equal(await page.evaluate(() => document.querySelector('.mot-fx').className), 'mot-fx play');
+  await page.waitForTimeout(3800);
+  assert.equal(await page.evaluate(() => document.querySelector('.mot-fx').className), 'mot-fx', 'la bienvenida debe terminar sola');
+  assert.deepEqual(page.motionErrors, []);
+  await page.close();
+});
+
+await check('movimiento «vivo»: el auto vivo marca la pantalla y no hay carretera', async () => {
+  const page = await motionPage('vivo', { welcome: false });
+  const r = await page.evaluate(() => ({ m: document.querySelector('.scr').dataset.motion, v: document.querySelector('.scr').dataset.vivo, road: document.querySelector('.mot-road').hidden, fx: document.querySelector('.mot-fx').className }));
+  assert.deepEqual(r, { m: 'vivo', v: '1', road: true, fx: 'mot-fx' });
+  await page.evaluate(() => window.TBApp.setSpeed(70));
+  await page.waitForTimeout(300);
+  assert.equal(await page.evaluate(() => document.querySelector('.mot-road').hidden), true, 'en «vivo» la carretera no debe aparecer aunque el auto vaya en marcha');
+  await page.close();
+});
+
+await check('con la bienvenida desactivada por la app, no se muestra (volver de Ajustes no la repite)', async () => {
+  const page = await motionPage('vivo', { welcome: false });
+  assert.equal(await page.evaluate(() => document.querySelector('.mot-fx').className), 'mot-fx');
+  await page.close();
+});
+
+await check('movimiento «sin movimiento»: nada se anima y no hay reflejos', async () => {
+  const page = await motionPage('off');
+  const r = await page.evaluate(() => ({ m: document.querySelector('.scr').dataset.motion, v: document.querySelector('.scr').dataset.vivo, sheens: document.querySelectorAll('.m-sheen').length, fx: document.querySelector('.mot-fx').className }));
+  assert.deepEqual(r, { m: 'off', v: '0', sheens: 0, fx: 'mot-fx' });
+  await page.close();
+});
+
+await check('con «reducir movimiento» del sistema, todo queda quieto aunque el cliente pidiera «completo»', async () => {
+  const page = await motionPage('completo', { reduce: true });
+  await page.evaluate(() => window.TBApp.setSpeed(80));
+  await page.waitForTimeout(400);
+  const r = await page.evaluate(() => ({ m: document.querySelector('.scr').dataset.motion, road: document.querySelector('.mot-road').hidden, fx: document.querySelector('.mot-fx').className }));
+  assert.deepEqual(r, { m: 'off', road: true, fx: 'mot-fx' });
+  await page.close();
+});
+
+await check('movimiento «completo»: la carretera entra al ir en marcha, se descarta con un toque y se vuelve a armar al detenerse', async () => {
+  const page = await motionPage('completo', { welcome: false });
+  assert.equal(await page.evaluate(() => document.querySelector('.mot-road').hidden), true, 'parado no hay carretera');
+  await page.evaluate(() => window.TBApp.setSpeed(60));
+  await page.waitForTimeout(900);
+  assert.equal(await page.evaluate(() => document.querySelector('.mot-road').hidden), false);
+  assert.equal(await page.evaluate(() => document.querySelector('.scr').dataset.drive), '1');
+  const f1 = await page.evaluate(() => TB.motion.stats.frames);
+  await page.waitForTimeout(500);
+  assert.ok((await page.evaluate(() => TB.motion.stats.frames)) > f1, 'la carretera debe animarse');
+  // El dock (barra de abajo) sigue a la vista y tocable: la carretera termina donde empieza.
+  const geo = await page.evaluate(() => { const r = document.querySelector('.mot-road').getBoundingClientRect(); const d = document.querySelector('.dock').getBoundingClientRect(); return [Math.round(r.bottom), Math.round(d.top)]; });
+  assert.ok(geo[0] <= geo[1] + 1, `la carretera tapa la barra de abajo: ${geo}`);
+  // La carretera no es un lienzo en blanco: tiene píxeles de la ruta.
+  const painted = await page.evaluate(() => { const c = document.querySelector('.mot-cv'); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4000) if (d[i] > 0) n++; return n; });
+  assert.ok(painted > 50, 'el lienzo de la carretera está vacío');
+  await page.click('.mot-road');
+  assert.equal(await page.evaluate(() => document.querySelector('.mot-road').hidden), true, 'un toque debe volver al inicio');
+  await page.evaluate(() => window.TBApp.setSpeed(65));
+  await page.waitForTimeout(300);
+  assert.equal(await page.evaluate(() => document.querySelector('.mot-road').hidden), true, 'descartada: no vuelve mientras sigue en marcha');
+  await page.evaluate(() => window.TBApp.setSpeed(0));
+  await page.waitForTimeout(200);
+  await page.evaluate(() => window.TBApp.setSpeed(60));
+  await page.waitForTimeout(400);
+  assert.equal(await page.evaluate(() => document.querySelector('.mot-road').hidden), false, 'al detenerse se vuelve a armar');
+  assert.deepEqual(page.motionErrors, []);
+  await page.close();
+});
+
+await check('la carretera sobrevive a un redibujado (no se reinicia ni parpadea)', async () => {
+  const page = await motionPage('completo', { welcome: false });
+  await page.evaluate(() => window.TBApp.setSpeed(60));
+  await page.waitForTimeout(600);
+  await page.evaluate(() => { document.querySelector('.mot-road').dataset.mark = 'mismo'; window.TBApp.setProgress(JSON.stringify({ odometer: 99 })); });
+  await page.waitForTimeout(200);
+  assert.equal(await page.evaluate(() => document.querySelector('.mot-road').dataset.mark), 'mismo');
+  assert.equal(await page.evaluate(() => document.querySelector('.mot-road').hidden), false);
+  await page.close();
+});
+
+await check('si la radio va muy lenta, la carretera se apaga sola y queda en «vivo»', async () => {
+  const page = await motionPage('completo', { welcome: false });
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 60 });
+  await page.evaluate(() => window.TBApp.setSpeed(60));
+  await page.waitForFunction(() => TB.motion.stats.degraded === true, null, { timeout: 40000 });
+  const r = await page.evaluate(() => ({ road: document.querySelector('.mot-road').hidden, m: document.querySelector('.scr').dataset.motion }));
+  assert.deepEqual(r, { road: true, m: 'vivo' });
+  await page.evaluate(() => window.TBApp.setSpeed(70));
+  await page.waitForTimeout(500);
+  assert.equal(await page.evaluate(() => document.querySelector('.mot-road').hidden), true, 'ya degradada, no debe volver en esta sesión');
+  await page.close();
+});
+
+await check('un nivel de movimiento inválido cae en «vivo»', async () => {
+  const page = await motionPage('siempre', { welcome: false });
+  assert.equal(await page.evaluate(() => document.querySelector('.scr').dataset.motion), 'vivo');
+  await page.close();
+});
+
 await browser.close();
 server.close();
 if (failures) { console.log(`\n${failures} prueba(s) fallaron`); process.exit(1); }

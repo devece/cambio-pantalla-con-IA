@@ -537,7 +537,7 @@
     let customBg = state.style.scene === 'color' || (bg && mode === 'photo') ? '' : orbs + TB.scene(sceneId);
     if (bg && mode === 'photo') customBg = `<image href="${bg}" x="0" y="0" width="1024" height="600" preserveAspectRatio="xMidYMid slice"/><rect width="1024" height="600" fill="rgba(0,0,0,.38)"/>`;
     else if (bg && mode === 'logo') customBg += `<image href="${bg}" x="262" y="110" width="500" height="380" preserveAspectRatio="xMidYMid meet" opacity=".14"/>`;
-    scr.innerHTML =
+    const html =
       // En vertical el fondo no se estira: se recorta al centro, apoyado abajo (donde están los cerros y el suelo).
       `<svg class="scene" viewBox="0 0 1024 600" preserveAspectRatio="${vert ? 'xMidYMax slice' : 'none'}" aria-hidden="true">${customBg}</svg>` +
       `<div class="tint tint-${sceneTime(state)}"></div>` +
@@ -548,7 +548,11 @@
       dock(state, ui) +
       `<div class="alert" hidden></div>` +
       `<div class="zone-alert${live.zoneMsg && live.zoneMsg.warn ? ' warn' : ''}"${live.zoneMsg && Date.now() < live.zoneUntil ? '' : ' hidden'}><b>${live.zoneMsg ? esc(live.zoneMsg.text) : ''}</b></div>`;
+    // El movimiento (bienvenida y carretera) vive en capas que el redibujado no debe borrar: ver motion.js.
+    if (TB.motion) TB.motion.setHtml(scr, html);
+    else scr.innerHTML = html;
     TB.tintCars(scr);
+    if (TB.motion) TB.motion.attach(scr, state, ui);
     if (TB.fx) TB.fx.attach(scr.querySelector('.fx'), season, ui.night);
     tick();
   }
@@ -582,6 +586,7 @@
       scr.querySelectorAll('[data-mtime]').forEach((el) => { el.textContent = fmtT(pos) + ' / ' + fmtT(mm.dur); });
     }
     scr.querySelectorAll('[data-limit]').forEach((el) => (el.textContent = limit == null ? '—' : dist(limit, state)));
+    if (TB.motion) TB.motion.hud({ kmh: v, speedText: String(dist(v, state)), unit: su(state), limitText: limit == null ? '' : String(dist(limit, state)) });
     const time = clockText(new Date(), state);
     scr.querySelectorAll('[data-clock]').forEach((el) => { if (el.innerHTML !== time) el.innerHTML = time; });
 

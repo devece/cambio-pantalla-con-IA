@@ -63,6 +63,7 @@ class MainActivity : Activity() {
     private var tts: TextToSpeech? = null
     private var askedLocation = false
     private var askedWelcome = false
+    private var welcomePlayed = false
     private lateinit var restriction: RestrictionRules
     private var zoneView: TextView? = null
     private var web: WebLauncher? = null
@@ -156,7 +157,8 @@ class MainActivity : Activity() {
         }
         // Con o sin código se dibuja con el motor del sitio; sin código, con el diseño base de la edición gratuita
         // y lo que el usuario contó (nombre, auto y color).
-        val launcher = WebLauncher(this, saved?.let { Welcome.withFeatures(it, config) } ?: PhotoStore(this).let { Welcome.profileJson(config, it.url(), it.isCut(), it.nightUrl()) })
+        val launcher = WebLauncher(this, saved?.let { Welcome.withFeatures(it, config) } ?: PhotoStore(this).let { Welcome.profileJson(config, it.url(), it.isCut(), it.nightUrl()) }, playWelcome = !welcomePlayed)
+        welcomePlayed = true
         web = launcher
         setContentView(launcher.view)
         startSpeed()

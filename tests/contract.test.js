@@ -20,7 +20,7 @@ const freshState = () => ({
   style: { theme: 'cristal', layout: 'estelar', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
   features: {
     oilOn: true, odometer: 0, lastOil: 0, oilEvery: 5000, others: [], maintDone: {}, docsOn: false, rtMonth: 1, fuelOn: false, tankL: 45, kmPerL: 12,
-    speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: false, miles: false, gallons: false, clock12: false,
+    speedShow: true, speedAlert: 'auto', manualLimit: 60, country: 'CL', restrOn: false, restrType: 'sello', restrDigit: '', restrDays: [], voice: false, miles: false, gallons: false, clock12: false, motion: 'vivo',
   },
 });
 

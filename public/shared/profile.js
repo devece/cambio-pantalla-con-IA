@@ -50,6 +50,7 @@
     setBool(f, 'miles', x.miles);
     setBool(f, 'gallons', x.gallons);
     setBool(f, 'clock12', x.clock12);
+    setOne(f, 'motion', x.motion, (C && C.motions) || ['off', 'vivo', 'completo']);
   }
 
   /**

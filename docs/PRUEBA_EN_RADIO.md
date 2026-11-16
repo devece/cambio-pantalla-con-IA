@@ -132,3 +132,18 @@ Marca cada punto con ✅ o ❌ y escríbeme lo que veas. Están en orden de impo
 - Alertas con el motor caliente y registro de viajes (fase 4 del scanner).
 - Leer el CAN bus de la radio: depende del fabricante.
 - El clima y los mapas nuevos necesitan internet (los mapas ya guardados se ven sin conexión).
+
+## Movimiento de la pantalla de inicio (bienvenida, auto vivo y carretera)
+
+Ajustes → Apariencia → «Movimiento de la pantalla de inicio». Probar cada nivel con la app como pantalla de inicio de la radio:
+
+- [ ] **Sin movimiento:** la pantalla queda quieta (sin reflejo ni bienvenida).
+- [ ] **Bienvenida y auto vivo:** al abrir la app aparece un velo negro que se levanta con un resplandor (≈ 3 s); un toque lo corta.
+- [ ] La bienvenida **no se repite** al volver de Ajustes ni al volver desde Waze o Maps; sí al reiniciar la app.
+- [ ] El auto «respira» apenas y un reflejo de luz le cruza la carrocería cada pocos segundos (con foto recortada sigue la silueta del auto).
+- [ ] **Además, carretera:** a más de 8 km/h aparece la carretera con la velocidad grande; las líneas corren más rápido al acelerar y se frenan al detenerte.
+- [ ] La barra de abajo (Inicio, Radio, Maps…) sigue a la vista y se puede tocar con la carretera puesta.
+- [ ] Un toque en la carretera vuelve al inicio; al detenerte y arrancar de nuevo, vuelve a aparecer.
+- [ ] **Fluidez:** anotar los cuadros por segundo de la carretera (si se ve a saltos, es lo que esta prueba busca). Si la radio es lenta, a los pocos segundos debe apagarse sola y quedar en «vivo», sin volver en esa sesión.
+- [ ] Con la radio encendida 30 a 60 minutos en «vivo» y en «completo»: ¿se calienta la radio o se nota más consumo?
+- [ ] Con pantalla vertical y con el límite de velocidad activo, la carretera se ve completa y sin cortes.

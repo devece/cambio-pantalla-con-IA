@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import cl.tablero.core.LauncherConfig
 import cl.tablero.core.Look
+import cl.tablero.core.Motion
 import cl.tablero.core.ObdLinkConfig
 import cl.tablero.core.WheelKeys
 
@@ -43,6 +44,7 @@ class SettingsStore(context: Context) {
             restrDays = list("restrDays", d.restrDays),
             voice = p.getBoolean("voice", d.voice),
             clock12 = p.getBoolean("clock12", d.clock12),
+            motion = Motion.clean(p.getString("motion", d.motion)),
             country = (p.getString("country", d.country) ?: d.country).takeIf { it in COUNTRIES } ?: d.country,
             plate = p.getString("plate", d.plate) ?: d.plate,
             miles = p.getBoolean("miles", d.miles),
@@ -105,6 +107,7 @@ class SettingsStore(context: Context) {
             .putString("restrDays", c.restrDays.joinToString(","))
             .putBoolean("voice", c.voice)
             .putBoolean("clock12", c.clock12)
+            .putString("motion", c.motion)
             .putString("country", c.country)
             .putString("plate", c.plate)
             .putBoolean("miles", c.miles)

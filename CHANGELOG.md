@@ -7,6 +7,10 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 
 ## [Sin publicar]
 
+## [0.3.0] - 2026-11-16
+
+Tu radio, con vida: la pantalla de inicio gana movimiento (bienvenida, auto vivo y carretera con tu propia foto), las radios verticales se resuelven mejor y la app queda lista para cualquier país.
+
 ### Agregado
 - **Poster nuevo del video de la portada.** La imagen que se ve antes de reproducir el video ahora muestra las novedades (pantalla vertical, carretera al manejar y scanner OBD) con el título «Tu radio, con vida.».
 - **Foto de tu auto desde atrás, para la carretera.** Con el movimiento «Además, carretera», la radio ahora puede mostrar **tu auto de verdad** en la ruta, en vez del dibujo. En el sitio (paso «Tu auto») subes una foto trasera: si ya viene sin fondo se usa tal cual, y si no se lo quitamos en tu celular; la app que descargas «con mi diseño» ya la trae. En la app: Ajustes → Foto de tu auto desde atrás (tiene que ser un PNG con el auto ya recortado). Sin foto trasera, o si no carga, sigue el dibujo con tu color. La foto viaja una sola vez al pedir la descarga y no se guarda.
@@ -20,6 +24,7 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 - **Prueba de los datos del auto (CAN bus).** En Ajustes → Diagnóstico de la radio → «Datos del auto (CAN)»: busca las apps de CanBus de la radio (Raise, Hiworld, etc.), muestra qué ofrecen a otras apps, si los puertos serie son accesibles y escucha los avisos que mandan mientras subes las RPM o cambias el clima. Se puede copiar o compartir. Sirve para saber si Tablero podrá mostrar esos datos en tu radio; solo lee, no guarda ni manda nada.
 
 ### Cambiado
+- **La imagen al compartir el enlace del sitio** (WhatsApp, redes) ahora dice «Nueva versión 0.3.0» y muestra la carretera y la pantalla vertical.
 - **Las actualizaciones dentro de la app se verifican antes de instalarse.** Antes de entregar la APK nueva al instalador de Android, la app comprueba que sea exactamente la publicada (huella SHA-256 y tamaño) y, en Android 9 o más nuevo, que esté firmada con la misma clave de Tablero. Si algo no cuadra, no se instala nada y avisa. Ajustes → Actualizaciones muestra además de qué commit salió tu versión.
 - **Una sola numeración de versiones.** Las versiones de la descarga pública y de los releases ahora siguen la misma cuenta (1000 + commits), que solo crece. Con esto las radios con la app instalada pueden actualizar siempre sin importar de dónde bajaron la anterior. Por única vez el número salta a más de 1000.
 

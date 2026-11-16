@@ -286,6 +286,18 @@
             </div>
             <p class="hint" id="photo-sample">Mientras no subas tu foto, mostramos un auto de ejemplo.</p>
           </div>
+          <div class="group" id="rear-group">
+            <h3>Foto desde atrás <span class="tag">opcional</span></h3>
+            <p class="hint">Con el movimiento «Además, carretera», la radio muestra tu auto visto desde atrás sobre la ruta. Con una foto trasera se ve <b>tu auto de verdad</b>; sin ella, se dibuja uno parecido con tu color. Tu foto se queda en tu celular: solo viaja, una vez y sin guardarse, si pides la app con tu diseño.</p>
+            <div class="photo-row">
+              <label class="btn ghost" for="photo-rear">Subir foto desde atrás</label>
+              <input type="file" id="photo-rear" accept="image/*" hidden>
+              <button type="button" class="btn link" id="rear-clear" hidden>Quitar foto trasera</button>
+            </div>
+            <div class="shot-tips"><span>El auto completo, de frente a la cámara</span><span>Desde atrás, a la altura del auto</span><span>De día</span></div>
+            <p class="hint" id="rear-status" role="status" aria-live="polite" hidden></p>
+            <p class="error" id="rear-error" role="alert" hidden></p>
+          </div>
           <div class="group">
             <h3>Tipo de vehículo</h3>
             <p class="hint">Sirve para sugerirte fondos y diseños (por ejemplo, los de camioneta 4x4). Tu foto no cambia.</p>

@@ -99,4 +99,12 @@ class DesignImportTest {
         val co = assertNotNull(DesignImport.apply(LauncherConfig(), """{"v":1,"features":{"country":"CO","restrOn":true,"restrDigit":"8"}}"""))
         assertEquals(true, co.restrOn, "otro pais conserva su restriccion")
     }
+
+    @Test
+    fun `el diseno dice si trae la foto trasera`() {
+        assertEquals(true, DesignImport.hasRearPhoto("""{"v":1,"photoRear":true}"""))
+        assertEquals(false, DesignImport.hasRearPhoto("""{"v":1,"photoRear":false}"""))
+        assertEquals(false, DesignImport.hasRearPhoto("""{"v":1}"""))
+        assertEquals(false, DesignImport.hasRearPhoto("no es json"))
+    }
 }

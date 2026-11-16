@@ -252,6 +252,64 @@ await check('en el sitio, elegir «Otro» oculta la restricción y el pico y pla
   await page.close();
 });
 
+
+/* ---------- foto trasera: la carretera usa la del cliente ---------- */
+/** Un PNG de prueba con las esquinas transparentes (un «auto» recortado), como dirección de datos. */
+const PNG_AUTO = `data:image/png;base64,${(() => {
+  // PNG de 4×2 con las cuatro esquinas transparentes y el centro opaco, armado a mano (sin librerías).
+  const zlib = require('node:zlib');
+  const w = 8, h = 4, raw = [];
+  for (let y = 0; y < h; y++) { raw.push(0); for (let x = 0; x < w; x++) { const esquina = (x === 0 || x === w - 1) && (y === 0 || y === h - 1); raw.push(30, 90, 200, esquina ? 0 : 255); } }
+  const crc = (buf) => { let c, t = []; for (let n = 0; n < 256; n++) { c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } let r = 0xffffffff; for (const b of buf) r = t[(r ^ b) & 255] ^ (r >>> 8); return (r ^ 0xffffffff) >>> 0; };
+  const chunk = (type, data) => { const len = Buffer.alloc(4); len.writeUInt32BE(data.length); const body = Buffer.concat([Buffer.from(type), data]); const c = Buffer.alloc(4); c.writeUInt32BE(crc(body)); return Buffer.concat([len, body, c]); };
+  const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 6;
+  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(Buffer.from(raw))), chunk('IEND', Buffer.alloc(0))]).toString('base64');
+})()}`;
+
+await check('con la foto trasera del cliente, la carretera la usa; sin ella, usa el dibujo', async () => {
+  const con = await motionPage('completo', { welcome: false });
+  await con.evaluate((png) => {
+    window.TBApp.init(JSON.stringify({ profile: { name: 'Ana', type: 'suv', features: { motion: 'completo' } }, photoRear: { day: png } }), { welcome: false });
+    window.TBApp.setSpeed(60);
+  }, PNG_AUTO);
+  await con.waitForFunction(() => TB.motion.stats.driving && TB.motion.stats.frames > 3, null, { timeout: 8000 });
+  assert.equal(await con.evaluate(() => TB.motion.stats.rearPhoto), true, 'la carretera no usó la foto trasera');
+  await con.close();
+  const sin = await motionPage('completo', { welcome: false });
+  await sin.evaluate(() => window.TBApp.setSpeed(60));
+  await sin.waitForFunction(() => TB.motion.stats.driving && TB.motion.stats.frames > 3, null, { timeout: 8000 });
+  assert.equal(await sin.evaluate(() => TB.motion.stats.rearPhoto), false, 'sin foto debe usar el auto dibujado');
+  await sin.close();
+});
+
+await check('una foto trasera que no carga no rompe la carretera: sigue con el dibujo', async () => {
+  const page = await motionPage('completo', { welcome: false });
+  await page.evaluate(() => {
+    window.TBApp.init(JSON.stringify({ profile: { name: 'Ana', features: { motion: 'completo' } }, photoRear: { day: 'file:///no-existe.png' } }), { welcome: false });
+    window.TBApp.setSpeed(60);
+  });
+  await page.waitForFunction(() => TB.motion.stats.driving && TB.motion.stats.frames > 5, null, { timeout: 8000 });
+  assert.equal(await page.evaluate(() => TB.motion.stats.rearPhoto), false);
+  assert.deepEqual(page.motionErrors, []);
+  await page.close();
+});
+
+await check('en el sitio, subir una foto trasera ya recortada la deja puesta; se puede quitar', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(base + '/index.html');
+  await page.waitForSelector('#photo-rear', { state: 'attached' });
+  const png = Buffer.from(PNG_AUTO.split(',')[1], 'base64');
+  await page.setInputFiles('#photo-rear', { name: 'atras.png', mimeType: 'image/png', buffer: png });
+  await page.waitForFunction(() => !document.getElementById('rear-clear').hidden, null, { timeout: 8000 });
+  assert.match(await page.evaluate(() => document.getElementById('rear-status').textContent), /tu foto trasera se usará en la carretera/);
+  await page.evaluate(() => document.getElementById('rear-clear').click());
+  assert.equal(await page.evaluate(() => document.getElementById('rear-clear').hidden), true);
+  assert.deepEqual(errors, []);
+  await page.close();
+});
+
 await browser.close();
 server.close();
 if (failures) { console.log(`\n${failures} prueba(s) fallaron`); process.exit(1); }

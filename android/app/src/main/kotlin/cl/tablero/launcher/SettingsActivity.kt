@@ -53,6 +53,7 @@ class SettingsActivity : Activity() {
     private var selectedColor = Ui.CAR_COLORS.first()
     private val colorChips = linkedMapOf<String, View>()
     private lateinit var photoStatus: TextView
+    private lateinit var rearStatus: TextView
     private lateinit var clock12: CheckBox
     private lateinit var lookTheme: Spinner
     private lateinit var lookLayout: Spinner
@@ -365,6 +366,41 @@ class SettingsActivity : Activity() {
         })
         form.addView(row)
         refreshPhotoStatus()
+
+        // Foto del auto visto desde atrás: la usa la carretera del modo «Además, carretera».
+        form.addView(TextView(this).apply {
+            text = "Foto de tu auto desde atrás (para la carretera)"
+            setTextColor(Ui.TEXT)
+            textSize = 16f
+            setPadding(0, dp(16), 0, 0)
+        })
+        rearStatus = TextView(this).apply {
+            setTextColor(Ui.SUB)
+            textSize = 14f
+        }
+        form.addView(rearStatus)
+        val rearRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        rearRow.addView(Button(this).apply {
+            text = "Elegir foto trasera"
+            setOnClickListener { pickPhoto(REQ_PHOTO_REAR) }
+        })
+        rearRow.addView(Button(this).apply {
+            text = "Quitar foto trasera"
+            setOnClickListener {
+                PhotoStore(this@SettingsActivity, rear = true).clear()
+                refreshRearStatus()
+            }
+        })
+        form.addView(rearRow)
+        refreshRearStatus()
+    }
+
+    private fun refreshRearStatus() {
+        rearStatus.text = if (PhotoStore(this, rear = true).has()) {
+            "Foto trasera elegida. Se ve en la carretera (movimiento «Además, carretera»)."
+        } else {
+            "Sin foto trasera: la carretera dibuja un auto parecido con tu color. Tiene que ser un PNG con el auto ya sin fondo."
+        }
     }
 
     private fun refreshPhotoStatus() {
@@ -377,13 +413,13 @@ class SettingsActivity : Activity() {
     }
 
     /** Abre la galería o el explorador de archivos de la radio. Muchas radios no traen uno: ahí se avisa en vez de no hacer nada. */
-    private fun pickPhoto() {
+    private fun pickPhoto(request: Int = REQ_PHOTO) {
         val intent = android.content.Intent(android.content.Intent.ACTION_GET_CONTENT).apply {
             type = "image/*"
             addCategory(android.content.Intent.CATEGORY_OPENABLE)
         }
         try {
-            startActivityForResult(intent, REQ_PHOTO)
+            startActivityForResult(intent, request)
         } catch (e: android.content.ActivityNotFoundException) {
             Toast.makeText(this, "Esta radio no tiene galería ni explorador de archivos para elegir la foto.", Toast.LENGTH_LONG).show()
         }
@@ -392,13 +428,14 @@ class SettingsActivity : Activity() {
     @Deprecated("Se usa la API clásica de Activity para funcionar en radios con Android antiguo")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode != REQ_PHOTO || resultCode != RESULT_OK) return
+        if ((requestCode != REQ_PHOTO && requestCode != REQ_PHOTO_REAR) || resultCode != RESULT_OK) return
         val uri = data?.data ?: return
-        photoStatus.text = "Guardando la foto…"
+        val rear = requestCode == REQ_PHOTO_REAR
+        (if (rear) rearStatus else photoStatus).text = "Guardando la foto…"
         Thread {
-            val problem = PhotoStore(this).save(uri)
+            val problem = PhotoStore(this, rear = rear).save(uri)
             runOnUiThread {
-                refreshPhotoStatus()
+                if (rear) refreshRearStatus() else refreshPhotoStatus()
                 if (problem != null) Toast.makeText(this, problem, Toast.LENGTH_LONG).show()
             }
         }.start()
@@ -908,6 +945,7 @@ class SettingsActivity : Activity() {
         const val REQ_SCAN = 72
         const val COFFEE_URL = "https://ko-fi.com/daniexpress"
         const val REQ_PHOTO = 41
+        const val REQ_PHOTO_REAR = 42
     }
 
     private fun field(hint: String, value: String): EditText {

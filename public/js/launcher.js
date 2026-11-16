@@ -9,7 +9,7 @@
 
   const defaults = () => ({
     radio: { type: 'android', model: '' },
-    car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', phrase: '', plate: '', photo: null, photoCut: false, photoNight: null },
+    car: { type: 'auto', color: TB.carColors[0], name: '', greeting: 'Hola', phrase: '', plate: '', photo: null, photoCut: false, photoNight: null, photoRear: null },
     style: { theme: 'cristal', layout: 'estelar', scene: 'tema', sceneTime: 'auto', bg: null, bgMode: 'photo', season: 'ninguna', accent: null, apps: ['maps', 'spotify', 'waze'] },
     features: {
       oilOn: true, odometer: 0, lastOil: 0, oilEvery: 5000, others: [], maintDone: {}, docsOn: false, rtMonth: 1, fuelOn: false, tankL: 45, kmPerL: 12,
@@ -119,6 +119,9 @@
       state.car.photoCut = ph.cut === true;
       state.car.photoNight = ph.night || null;
     }
+    // La foto del auto visto desde atrás (siempre recortada): la usa la carretera del modo «completo».
+    const pr = design && design.photoRear;
+    if (pr && typeof pr.day === 'string' && pr.day) state.car.photoRear = pr.day;
     // Un diseño del sitio llega sin pasar por profile.js: «Otro» país nunca lleva restricciones.
     if (state.features.country === 'OTRO') { state.features.restrOn = false; state.features.restrDigit = ''; state.features.restrDays = []; }
     ui.screen = 'inicio';

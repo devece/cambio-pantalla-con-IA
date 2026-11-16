@@ -85,6 +85,13 @@ object DesignImport {
         return c
     }
 
+    /** ¿El diseño trae la foto del auto visto desde atrás? (viaja aparte, en su propio bloque de la APK). */
+    fun hasRearPhoto(json: String): Boolean = try {
+        JSONObject(json).optBoolean("photoRear", false)
+    } catch (e: Exception) {
+        false
+    }
+
     /** Lo que el diseño dice de su foto: (¿viene recortada?, ¿trae versión de noche?), o null si no trae foto. */
     fun photoInfo(json: String): Pair<Boolean, Boolean>? {
         val photo = try {

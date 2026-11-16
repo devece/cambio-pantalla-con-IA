@@ -19,6 +19,8 @@ object ApkBlock {
     const val DESIGN_ID = 0x54424C31
     const val PHOTO_DAY_ID = 0x54424C32
     const val PHOTO_NIGHT_ID = 0x54424C33
+    /** La foto del auto visto desde atrás (PNG ya recortado): la usa la carretera del modo «completo». */
+    const val PHOTO_REAR_ID = 0x54424C34
 
     private const val MAX_BLOCK = 16L * 1024 * 1024
     private const val EOCD_SIGNATURE = 0x06054B50L

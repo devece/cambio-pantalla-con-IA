@@ -40,7 +40,7 @@
     cw: 0, ch: 0, k: 1,
     slowFrames: 0, fpsAvg: 60,
   };
-  const stats = { level: 'vivo', driving: false, fps: 0, degraded: false, welcomed: false, frames: 0 };
+  const stats = { level: 'vivo', driving: false, fps: 0, degraded: false, welcomed: false, frames: 0, rearPhoto: false };
 
   const reduced = () => !!(mq && mq.matches);
   const effective = () => (reduced() ? 0 : Math.min(rank(M.level), M.cap));
@@ -210,7 +210,34 @@
     const type = REAR[st.car && st.car.type] ? st.car.type : 'auto';
     const sway = M.smooth > 1 ? Math.sin(M.t * 1.4) * 0.05 : 0;
     const zEgo = (CAMH * F) / (H * 0.82 - HOR); // a esta distancia, las ruedas quedan al 82 % del alto del cuadro
-    drawRear(g, type, px(3.6 + sway, zEgo), F / zEgo, (st.car && st.car.color) || '#b3261e', P, night);
+    // Con la foto trasera del cliente (recortada) se dibuja ella; sin foto, o mientras carga, el auto dibujado según su tipo y color.
+    const photo = st.car && st.car.photoRear ? rearPhoto(st.car.photoRear) : null;
+    stats.rearPhoto = !!photo;
+    if (photo) drawPhoto(g, photo, type, px(3.6 + sway, zEgo), F / zEgo, night);
+    else drawRear(g, type, px(3.6 + sway, zEgo), F / zEgo, (st.car && st.car.color) || '#b3261e', P, night);
+  }
+
+  // Fotos traseras ya cargadas, por dirección. Una que no carga se recuerda como mala para no reintentar en cada cuadro.
+  const photos = {};
+  function rearPhoto(src) {
+    let im = photos[src];
+    if (!im) {
+      im = new Image();
+      im.onerror = () => { im.bad = true; };
+      im.src = src;
+      photos[src] = im;
+    }
+    return im.complete && im.naturalWidth && !im.bad ? im : null;
+  }
+
+  /** La foto trasera del cliente, parada en (p[0], p[1]) con el mismo ancho que el auto dibujado de su tipo. */
+  function drawPhoto(g, im, type, p, s, night) {
+    const bw = REAR[type][0] * s, bh = bw * im.naturalHeight / im.naturalWidth, x0 = p[0] - bw / 2, yb = p[1];
+    g.fillStyle = 'rgba(0,0,0,.5)'; g.beginPath(); g.ellipse(p[0], yb - bh * 0.01, bw * 0.56, bh * 0.07, 0, 0, 6.283); g.fill();
+    g.drawImage(im, x0, yb - bh, bw, bh);
+    const gl = g.createRadialGradient(p[0], yb - bh * 0.62, 2, p[0], yb - bh * 0.62, bw * 0.95);
+    gl.addColorStop(0, night ? 'rgba(255,50,70,.24)' : 'rgba(255,50,70,.08)'); gl.addColorStop(1, 'rgba(255,50,70,0)');
+    g.fillStyle = gl; g.fillRect(p[0] - bw, yb - bh * 0.62 - bw, bw * 2, bw * 2);
   }
 
   function rr(g, x, y, w, h, r, fill) {

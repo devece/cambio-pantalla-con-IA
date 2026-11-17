@@ -35,7 +35,11 @@
     if (/[?&]oldwebview=1/.test(location.search)) return false;
     try { const d = document.createElement('div'); d.style.display = 'grid'; return d.style.display === 'grid'; } catch (e) { return false; }
   })();
+  // Quien elige «Ver igual» no vuelve a ver el aviso en cada arranque. Si más tarde actualiza el WebView, gridOk pasa a ser true y esto deja de importar.
+  const OLD_OK_KEY = 'tb-old-ok';
   let allowOld = false;
+  try { allowOld = localStorage.getItem(OLD_OK_KEY) === '1'; } catch (e) { /* sin almacenamiento: se avisa en cada arranque */ }
+  const chromeVersion = () => { const m = /Chrome\/(\d+)/.exec(navigator.userAgent || ''); return m ? Number(m[1]) : 0; };
 
   const bridge = (fn, arg) => { try { if (window.Android && typeof window.Android[fn] === 'function') window.Android[fn](arg); } catch (e) { /* sin puente: probando en un navegador */ } };
   const hourNight = () => { const h = new Date().getHours(); return h >= 19 || h < 7; };
@@ -207,15 +211,23 @@
   function showOldWebview(json) {
     const host = document.getElementById('host');
     const btn = 'border:0;border-radius:28px;padding:14px 28px;font-size:19px;font-weight:600;margin:6px;';
+    const v = chromeVersion();
+    const ver = v ? ' (hoy trae la versión ' + v + '; hace falta la 57 o más)' : '';
     host.innerHTML =
       '<div style="position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;font-family:sans-serif;padding:0 8%;background:#101418">' +
-      '<div style="max-width:720px"><div style="font-size:32px;font-weight:700;margin-bottom:14px">Falta actualizar un componente de tu radio</div>' +
-      '<div style="font-size:20px;line-height:1.5;opacity:.85;margin-bottom:26px">Esta radio trae una versión muy antigua de <b>Android System WebView</b> y no puede dibujar tu pantalla como la elegiste. ' +
-      'Actualízalo (es gratis y toma un minuto) y vuelve a abrir Tablero.</div>' +
-      '<button id="upd-webview" style="' + btn + 'background:#f5c400;color:#101418">Actualizar ahora</button>' +
-      '<button id="upd-anyway" style="' + btn + 'background:rgba(255,255,255,.16);color:#fff">Ver igual</button></div></div>';
+      '<div style="max-width:760px"><div style="font-size:32px;font-weight:700;margin-bottom:14px">Tu radio trae un componente antiguo</div>' +
+      '<div style="font-size:20px;line-height:1.5;opacity:.88;margin-bottom:14px">El «Android System WebView» de esta radio es muy viejo' + ver + ', y algunas partes de tu pantalla pueden verse descuadradas. ' +
+      'Funciona igual: toca <b>Ver igual</b> para seguir.</div>' +
+      '<div style="font-size:17px;line-height:1.5;opacity:.7;margin-bottom:26px">¿Quieres que se vea perfecta? Prueba «Actualizar». Si Play Store no ofrece actualización (en muchas radios solo aparece «Desinstalar»), ' +
+      'actualiza <b>Chrome</b> o instala un WebView más nuevo, o pide el firmware nuevo al fabricante de tu radio.</div>' +
+      '<button id="upd-anyway" style="' + btn + 'background:#f5c400;color:#101418">Ver igual</button>' +
+      '<button id="upd-webview" style="' + btn + 'background:rgba(255,255,255,.16);color:#fff">Actualizar</button></div></div>';
     document.getElementById('upd-webview').addEventListener('click', () => bridge('open', 'webview'));
-    document.getElementById('upd-anyway').addEventListener('click', () => { allowOld = true; host.innerHTML = ''; mounted = false; window.TBApp.init(json); });
+    document.getElementById('upd-anyway').addEventListener('click', () => {
+      allowOld = true;
+      try { localStorage.setItem(OLD_OK_KEY, '1'); } catch (e) { /* sin almacenamiento */ }
+      host.innerHTML = ''; mounted = false; window.TBApp.init(json);
+    });
   }
 
   window.TBApp = {

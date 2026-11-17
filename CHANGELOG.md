@@ -7,6 +7,9 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 
 ## [Sin publicar]
 
+### Cambiado
+- **Aviso de «componente antiguo» más claro.** Cuando la radio trae un WebView muy viejo, el aviso ahora dice qué versión tiene, deja **«Ver igual»** como botón principal (la pantalla suele verse bien o casi bien) y explica qué hacer si Play Store no ofrece actualización. Si eliges «Ver igual», no vuelve a aparecer en cada arranque.
+
 ## [0.3.0] - 2026-11-16
 
 Tu radio, con vida: la pantalla de inicio gana movimiento (bienvenida, auto vivo y carretera con tu propia foto), las radios verticales se resuelven mejor y la app queda lista para cualquier país.

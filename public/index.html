@@ -354,6 +354,21 @@
             <p class="error" id="bg-error" role="alert" hidden></p>
             <div class="choices cols-3 compact" id="bg-mode" data-choices="style.bgMode" role="radiogroup" aria-label="Cómo usar la imagen" hidden></div>
           </div>
+          <div class="group" id="mosaic-group">
+            <h3>O arma un mosaico de tu auto</h3>
+            <p class="hint">Sube varias tomas de tu auto (de frente, de lado, de atrás, el interior…) y las juntamos en un solo fondo. Si quieres, súmale el logo y el nombre de la marca. Todo se arma en tu celular.</p>
+            <div class="photo-row">
+              <label class="btn ghost" for="mosaic-files">Subir tomas (hasta 6)</label>
+              <input type="file" id="mosaic-files" accept="image/*" multiple hidden>
+              <label class="btn ghost" for="mosaic-logo">Subir logo de la marca</label>
+              <input type="file" id="mosaic-logo" accept="image/*" hidden>
+              <button type="button" class="btn link" id="mosaic-clear" hidden>Quitar mosaico</button>
+            </div>
+            <label class="field"><span>Nombre de la marca (opcional)</span><input type="text" id="mosaic-brand" maxlength="24" placeholder="Por ejemplo: Toyota Hilux" autocomplete="off"></label>
+            <label class="check"><input type="checkbox" id="mosaic-usecar" checked> Incluir la foto que subí en «Tu auto»</label>
+            <p class="hint" id="mosaic-status" role="status" aria-live="polite" hidden></p>
+            <p class="error" id="mosaic-error" role="alert" hidden></p>
+          </div>
           <div class="group">
             <h3>Color de acento</h3>
             <div class="accent-row">
@@ -584,6 +599,7 @@
   <script src="js/preview.js"></script>
   <script src="js/cutout.js"></script>
   <script src="js/lights.js"></script>
+  <script src="js/mosaic.js"></script>
   <script src="js/app.js"></script>
   <script src="js/landing.js"></script>
   <script src="js/stats.js"></script>

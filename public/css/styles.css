@@ -439,3 +439,4 @@ h1 em, h2 em { font-style: normal; background: linear-gradient(90deg, #ff3a1a, #
 .tests { list-style: none; padding-left: 0; }
 .tests label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-weight: 400; color: var(--ink2); }
 .tests input { width: 20px; height: 20px; margin-top: 3px; accent-color: var(--verde); flex: none; }
+#mosaic-group .check { margin-top: 14px; }

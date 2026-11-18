@@ -7,6 +7,9 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 
 ## [Sin publicar]
 
+### Agregado
+- **Fondo en mosaico de tu auto.** En el paso «Diseño» del sitio, junto a «O usa tu propia imagen», ahora puedes armar un mosaico: subes hasta 6 tomas de tu auto (de frente, de lado, de atrás, el interior…) y se juntan en un solo fondo, con la foto que subiste en «Tu auto» si quieres. Además puedes sumarle el logo de la marca y su nombre (por ejemplo «Toyota Hilux»), que ocupan un recuadro del mosaico. Todo se arma en tu celular y las fotos no se suben. El fondo propio de siempre (una foto o un logo) sigue disponible. Por ahora el fondo se ve en la vista previa del sitio; todavía no viaja dentro de la app que descargas.
+
 ## [0.3.0] - 2026-11-16
 
 Tu radio, con vida: la pantalla de inicio gana movimiento (bienvenida, auto vivo y carretera con tu propia foto), las radios verticales se resuelven mejor y la app queda lista para cualquier país.

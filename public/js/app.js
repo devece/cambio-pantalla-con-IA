@@ -293,7 +293,7 @@
       ['Radio', radio + (state.radio.model ? ` · ${esc(state.radio.model)}` : '')],
       ['Vehículo', `${veh.name}${state.car.name ? ' de ' + esc(state.car.name) : ''}${state.car.photo ? ' · con tu foto' : ''}${state.car.photoRear ? ' · con tu foto trasera' : ''}`],
       ['Diseño', `${th.name} · ${lay.name}${season.id !== 'ninguna' ? ' · ' + season.name : ''}`],
-      ['Fondo', state.style.bg ? { photo: 'Tu foto', logo: 'Tu logo de fondo', badge: 'Tu logo en la barra' }[state.style.bgMode] : `${(TB.scenes.find((s) => s.id === state.style.scene) || {}).name || 'Del diseño'} · ${(TB.sceneTimes.find((s) => s.id === state.style.sceneTime) || {}).name || 'Automática'}`],
+      ['Fondo', state.style.bg && mosaic.on ? 'Mosaico de tu auto' + (mosaic.logo || mosaic.brand ? ' con logo y marca' : '') : state.style.bg ? { photo: 'Tu foto', logo: 'Tu logo de fondo', badge: 'Tu logo en la barra' }[state.style.bgMode] : `${(TB.scenes.find((s) => s.id === state.style.scene) || {}).name || 'Del diseño'} · ${(TB.sceneTimes.find((s) => s.id === state.style.sceneTime) || {}).name || 'Automática'}`],
       ['Saludo', `${state.features.voice ? 'Por voz' : 'Solo en pantalla'} · “${esc(state.car.greeting)}, ${esc(state.car.name || 'amigo')}”${state.car.phrase ? ' · “' + esc(state.car.phrase) + '”' : ''}`],
       ['Apps', apps.length ? esc(apps.join(', ')) : 'Sin apps en la barra'],
       ['Funciones', feats.length ? feats.join(', ') : 'Ninguna activada'],
@@ -404,7 +404,8 @@
     $('#car-color-group').hidden = !!state.car.photo;
     $('#photo-sample').hidden = !!state.car.photo;
     $('#bg-clear').hidden = !state.style.bg;
-    $('#bg-mode').hidden = !state.style.bg;
+    $('#bg-mode').hidden = !state.style.bg || mosaic.on; // el mosaico siempre llena la pantalla
+    $('#mosaic-clear').hidden = !mosaic.on;
   }
 
   function update() {
@@ -561,7 +562,12 @@
     $('#lights-clear').addEventListener('click', () => { lightPts = []; $('#lights-status').textContent = 'Luces borradas.'; drawLights(); });
     $('#lights-auto').addEventListener('click', detectLights);
     $('#bg-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadBg(f); e.target.value = ''; });
-    $('#bg-clear').addEventListener('click', () => { if (state.style.bg) URL.revokeObjectURL(state.style.bg); state.style.bg = null; update(); });
+    $('#bg-clear').addEventListener('click', () => { if (state.style.bg) URL.revokeObjectURL(state.style.bg); state.style.bg = null; mosaic.on = false; update(); });
+    $('#mosaic-files').addEventListener('change', (e) => { addMosaicShots(Array.from(e.target.files || [])); e.target.value = ''; });
+    $('#mosaic-logo').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) setMosaicLogo(f); e.target.value = ''; });
+    $('#mosaic-brand').addEventListener('input', (e) => { mosaic.brand = e.target.value; rebuildMosaic(); });
+    $('#mosaic-usecar').addEventListener('change', rebuildMosaic);
+    $('#mosaic-clear').addEventListener('click', clearMosaic);
     $('#photo-mode').addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) showPhoto(b.dataset.mode); });
     $('#nose-test').addEventListener('click', (e) => { const b = e.target.closest('[data-test]'); if (!b) return; state.radio.type = b.dataset.test; update(); });
     $('#shot-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadShot(f); e.target.value = ''; });
@@ -763,6 +769,7 @@
     setCut(null);
     updateDownload();
     update();
+    if (mosaic.on) rebuildMosaic(true);
   }
   async function loadPhoto(file) {
     const err = $('#photo-error');
@@ -787,6 +794,7 @@
     photoUrls.orig = await toUrl(c, 'image/jpeg', 0.85);
     updateDownload();
     showPhoto('orig');
+    if (mosaic.on) rebuildMosaic(true); // el mosaico incluye la foto de «Tu auto»
     status.textContent = 'Quitando el fondo de tu foto… la primera vez puede tardar unos segundos.';
     status.hidden = false;
     $('#photo-mode').hidden = true;
@@ -907,11 +915,87 @@
       const blob = await new Promise((r) => c.toBlob(r, alpha ? 'image/png' : 'image/jpeg', 0.85));
       if (state.style.bg) URL.revokeObjectURL(state.style.bg);
       state.style.bg = URL.createObjectURL(blob);
+      mosaic.on = false;
       if (alpha && state.style.bgMode === 'photo') state.style.bgMode = 'logo';
       update();
     } catch (_) {
       fail('No pudimos leer esa imagen. Prueba con otra.');
     }
+  }
+
+  /* ---------- fondo en mosaico: varias tomas del auto + logo y marca (queda en el navegador) ---------- */
+  const mosaic = { on: false, shots: [], logo: null, brand: '' };
+  const bitmapOf = async (src) => createImageBitmap(src instanceof Blob ? src : await (await fetch(src)).blob());
+  const mosaicMsg = (text, isError) => {
+    const st = $('#mosaic-status');
+    const er = $('#mosaic-error');
+    st.hidden = isError || !text;
+    er.hidden = !isError || !text;
+    (isError ? er : st).textContent = text || '';
+  };
+  async function addMosaicShots(files) {
+    mosaicMsg('');
+    const max = TB.mosaic.MAX;
+    const imgs = files.filter((f) => f.type.startsWith('image/') && f.size <= 15 * 1024 * 1024);
+    if (!imgs.length) return mosaicMsg('Elige archivos de imagen de hasta 15 MB.', true);
+    const room = max - mosaic.shots.length;
+    if (room <= 0) return mosaicMsg(`El mosaico admite hasta ${max} tomas. Quita el mosaico para empezar de nuevo.`, true);
+    let added = 0;
+    for (const f of imgs.slice(0, room)) {
+      try { mosaic.shots.push(await bitmapOf(f)); added++; } catch (_) { /* esa imagen no se pudo leer: seguimos con las demás */ }
+    }
+    if (!added) return mosaicMsg('No pudimos leer esas imágenes. Prueba con otras.', true);
+    if (imgs.length > room) mosaicMsg(`Se usaron las primeras ${room}: el mosaico admite hasta ${max} tomas.`);
+    await rebuildMosaic(imgs.length > room);
+  }
+  async function setMosaicLogo(file) {
+    mosaicMsg('');
+    if (!file.type.startsWith('image/') || file.size > 15 * 1024 * 1024) return mosaicMsg('Elige una imagen de hasta 15 MB para el logo.', true);
+    try {
+      const bmp = await bitmapOf(file);
+      if (mosaic.logo) mosaic.logo.close();
+      mosaic.logo = bmp;
+    } catch (_) {
+      return mosaicMsg('No pudimos leer ese logo. Prueba con otro.', true);
+    }
+    await rebuildMosaic();
+  }
+  async function rebuildMosaic(keepMsg) {
+    const shots = mosaic.shots.slice();
+    if ($('#mosaic-usecar').checked && photoUrls.orig) {
+      try { shots.unshift(await bitmapOf(photoUrls.orig)); } catch (_) { /* sin la foto de Tu auto */ }
+    }
+    if (!shots.length) { // sin tomas no hay mosaico; el logo y la marca esperan a que lleguen
+      if (mosaic.on) clearMosaicBg();
+      return update();
+    }
+    const hasBrand = !!(mosaic.logo || mosaic.brand.trim());
+    const used = Math.min(shots.length, TB.mosaic.room(hasBrand));
+    const canvas = TB.mosaic.compose({ shots, logo: mosaic.logo, brand: mosaic.brand });
+    const blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', 0.85));
+    if (!blob) return mosaicMsg('No pudimos armar el mosaico. Prueba con otras fotos.', true);
+    if (state.style.bg) URL.revokeObjectURL(state.style.bg);
+    state.style.bg = URL.createObjectURL(blob);
+    state.style.bgMode = 'photo';
+    mosaic.on = true;
+    if (!keepMsg) mosaicMsg(`Mosaico listo con ${used} ${used > 1 ? 'tomas' : 'toma'}${hasBrand ? ', logo y marca' : ''}. Mira cómo queda en la pantalla.`);
+    update();
+  }
+  function clearMosaicBg() {
+    if (state.style.bg) URL.revokeObjectURL(state.style.bg);
+    state.style.bg = null;
+    mosaic.on = false;
+  }
+  function clearMosaic() {
+    mosaic.shots.forEach((b) => b.close());
+    if (mosaic.logo) mosaic.logo.close();
+    mosaic.shots = [];
+    mosaic.logo = null;
+    mosaic.brand = '';
+    $('#mosaic-brand').value = '';
+    mosaicMsg('');
+    clearMosaicBg();
+    update();
   }
 
   /* ---------- arranque ---------- */

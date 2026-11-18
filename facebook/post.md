@@ -1,8 +1,10 @@
-# Post de Facebook — novedad: fondo en mosaico
+# Post de Facebook — Tablero versión 0.4.0: fondo en mosaico
 
 ## Texto (para copiar y pegar)
 
-🚗✨ NOVEDAD en Tablero: ¡tu auto de fondo, en mosaico!
+🚀 TABLERO · VERSIÓN 0.4.0
+
+🚗✨ NOVEDAD: ¡tu auto de fondo, en mosaico!
 
 Ahora, además de poner la foto de tu auto, puedes elegir el fondo de la pantalla de tu radio:
 🖼️ Un mosaico con varias tomas de tu auto (de frente, de lado, de atrás, el interior…)
@@ -19,6 +21,9 @@ Y si todavía no conoces lo que hemos sumado últimamente:
 📍 Restricción vehicular y pico y placa por GPS: Chile, Colombia, Ecuador y México. Y si tu país no tiene, eliges “Otro”.
 🔔 Avisos de mantención, revisión técnica, permiso de circulación y seguro.
 
+☕ ¿Quieres algo a tu medida? Hago modificaciones personalizadas (tu radio, tu auto, tu diseño) y siempre es con el aporte voluntario de un café. Tablero es gratis; el café es opcional y es lo que me permite seguir mejorándolo:
+https://ko-fi.com/daniexpress
+
 👉 Diséñala desde tu celular y mira cómo queda antes de instalar:
 https://tablero-pearl.vercel.app
 
@@ -26,7 +31,7 @@ https://tablero-pearl.vercel.app
 
 ¿Qué fondo te gustaría ver? Cuéntanos en los comentarios 👇
 
-#Tablero #RadioAndroid #AutoChile #PantallaAndroid #Tuning #Android #RadioDeAuto #Novedad
+#Tablero #Tablero040 #RadioAndroid #AutoChile #PantallaAndroid #Tuning #Android #RadioDeAuto #Novedad
 
 ---
 
@@ -38,6 +43,8 @@ https://tablero-pearl.vercel.app
 Las tres miden 1080 × 1350 (formato 4:5, el que mejor se ve en el feed de Facebook).
 
 ## Notas
+- «Versión 0.4.0» es mi suposición: la última publicada es la 0.3.0 y esto suma funciones nuevas, así que correspondería la 0.4.0. Si usarás otro número, cámbialo en el título, en la primera línea del texto y en el hashtag `#Tablero040`.
+- El enlace del café es el que ya usa el sitio (Ko-fi).
 - Las capturas usan el Haval H2 de las fotos del video, con los datos de ejemplo de la vista previa del sitio (música, clima, “21:09”).
 - Antes de publicar, confirma que quieres mostrar el nombre “Haval H2” en la imagen 1; si no, se puede regenerar con otro texto.
 - El pop up del sitio sale una vez por navegador; para verlo de nuevo: https://tablero-pearl.vercel.app/?novedad=1

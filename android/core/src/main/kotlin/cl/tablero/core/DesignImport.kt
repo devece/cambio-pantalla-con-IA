@@ -92,6 +92,20 @@ object DesignImport {
         false
     }
 
+    /** Cómo usar el fondo propio que viaja en la APK («photo», «logo» o «badge»), o null si el diseño no trae fondo. */
+    fun bgMode(json: String): String? {
+        val bg: JSONObject? = try {
+            JSONObject(json).optJSONObject("bg")
+        } catch (e: Exception) {
+            null
+        }
+        if (bg == null) return null
+        val mode = bg.optString("mode", "photo")
+        return if (mode in BG_MODES) mode else "photo"
+    }
+
+    private val BG_MODES = setOf("photo", "logo", "badge")
+
     /** Lo que el diseño dice de su foto: (¿viene recortada?, ¿trae versión de noche?), o null si no trae foto. */
     fun photoInfo(json: String): Pair<Boolean, Boolean>? {
         val photo = try {

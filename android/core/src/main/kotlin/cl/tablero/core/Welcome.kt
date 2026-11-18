@@ -55,7 +55,7 @@ object Welcome {
      * de inicio los usaba en vez de los de Ajustes: por eso «cambio cada 10.000» no se notaba. Esto pone los de Ajustes
      * encima de los del diseño. Si el diseño no se entiende, lo devuelve igual.
      */
-    fun withFeatures(designJson: String, c: LauncherConfig, rearPhotoUrl: String? = null): String = try {
+    fun withFeatures(designJson: String, c: LauncherConfig, rearPhotoUrl: String? = null, bgUrl: String? = null, bgMode: String = "photo"): String = try {
         val root = JSONObject(designJson)
         val config = root.optJSONObject("config") ?: JSONObject().also { root.put("config", it) }
         val features = config.optJSONObject("features") ?: JSONObject().also { config.put("features", it) }
@@ -63,12 +63,14 @@ object Welcome {
         mine.keys().forEach { features.put(it, mine.get(it)) }
         // La foto trasera que el usuario puso en la radio (o que vino en la APK) la usa la carretera.
         if (!rearPhotoUrl.isNullOrEmpty()) root.put("photoRear", JSONObject().put("day", rearPhotoUrl))
+        // El fondo propio que el usuario puso en la radio (o que vino en la APK).
+        if (!bgUrl.isNullOrEmpty()) root.put("bg", JSONObject().put("day", bgUrl).put("mode", bgMode))
         root.toString()
     } catch (e: Exception) {
         designJson
     }
 
-    fun profileJson(c: LauncherConfig, photoUrl: String? = null, photoCut: Boolean = false, photoNightUrl: String? = null, rearPhotoUrl: String? = null): String {
+    fun profileJson(c: LauncherConfig, photoUrl: String? = null, photoCut: Boolean = false, photoNightUrl: String? = null, rearPhotoUrl: String? = null, bgUrl: String? = null, bgMode: String = "photo"): String {
         val profile = JSONObject()
             .put("name", c.name)
             .put("greeting", c.greeting)
@@ -99,6 +101,8 @@ object Welcome {
         }
         // La foto del auto visto desde atrás, para la carretera.
         if (!rearPhotoUrl.isNullOrEmpty()) out.put("photoRear", JSONObject().put("day", rearPhotoUrl))
+        // El fondo propio (mosaico, foto o logo).
+        if (!bgUrl.isNullOrEmpty()) out.put("bg", JSONObject().put("day", bgUrl).put("mode", bgMode))
         return out.toString()
     }
 }

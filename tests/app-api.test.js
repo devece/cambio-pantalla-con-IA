@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { fakeApk } = require('./fake-apk.js');
-const { readPair, DESIGN_ID, PHOTO_DAY_ID, PHOTO_NIGHT_ID, PHOTO_REAR_ID } = require('../lib/apk-inject.js');
+const { readPair, DESIGN_ID, PHOTO_DAY_ID, PHOTO_NIGHT_ID, PHOTO_REAR_ID, BG_ID } = require('../lib/apk-inject.js');
 
 const crypto = require('node:crypto');
 const handler = require('../api/app.js');
@@ -232,4 +232,27 @@ test('POST: la foto trasera inválida o muy grande se rechaza, y las tres fotos 
   assert.equal((await call({}, 'POST', { d: b64(design), photoRear: { day: 'data:text/html;base64,PGI+' } })).status, 422);
   assert.equal((await call({}, 'POST', { d: b64(design), photoRear: { day: png(700_000) } })).status, 413);
   assert.equal((await call({}, 'POST', { d: b64(design), photo: { day: png(1_200_000), night: png(500_000), cut: true }, photoRear: { day: png(500_000) } })).status, 413, 'entre las tres pasan el tope');
+}));
+
+test('POST: el fondo propio (mosaico, foto o logo) viaja dentro de la APK y marca el diseño con su modo', () => withApk(async (apk) => {
+  const r = await call({}, 'POST', { d: b64(design), photo: { day: png(500), cut: true }, bg: { day: jpg(350), mode: 'photo' } });
+  assert.equal(r.status, 200);
+  const saved = JSON.parse(readPair(r.body, DESIGN_ID).toString('utf8'));
+  assert.deepEqual(saved.bg, { mode: 'photo' });
+  assert.equal(readPair(r.body, BG_ID).length, 353);
+  assert.equal(readPair(r.body, PHOTO_DAY_ID).length, 504, 'la foto del auto sigue intacta');
+  assert.equal(readPair(apk, BG_ID), null, 'la APK original no se toca');
+  const logo = await call({}, 'POST', { d: b64(design), bg: { day: png(300), mode: 'logo' } });
+  assert.deepEqual(JSON.parse(readPair(logo.body, DESIGN_ID).toString('utf8')).bg, { mode: 'logo' }, 'un logo con transparencia viaja como PNG');
+  const raro = await call({}, 'POST', { d: b64(design), bg: { day: jpg(300), mode: 'otro' } });
+  assert.deepEqual(JSON.parse(readPair(raro.body, DESIGN_ID).toString('utf8')).bg, { mode: 'photo' }, 'un modo desconocido cae en «photo»');
+}));
+
+test('POST: sin fondo el diseño no lleva la marca; un fondo inválido o muy grande se rechaza', () => withApk(async () => {
+  const sin = await call({}, 'POST', { d: b64(design), photo: { day: png(300), cut: true } });
+  assert.equal(JSON.parse(readPair(sin.body, DESIGN_ID).toString('utf8')).bg, undefined);
+  assert.equal(readPair(sin.body, BG_ID), null);
+  assert.equal((await call({}, 'POST', { d: b64(design), bg: { day: 'data:text/html;base64,PGI+', mode: 'photo' } })).status, 422);
+  assert.equal((await call({}, 'POST', { d: b64(design), bg: { day: jpg(600_000), mode: 'photo' } })).status, 413);
+  assert.equal((await call({}, 'POST', { d: b64(design), photo: { day: png(1_200_000), cut: true }, photoRear: { day: png(500_000) }, bg: { day: jpg(450_000), mode: 'photo' } })).status, 413, 'entre todas pasan el tope');
 }));

@@ -107,4 +107,14 @@ class DesignImportTest {
         assertEquals(false, DesignImport.hasRearPhoto("""{"v":1}"""))
         assertEquals(false, DesignImport.hasRearPhoto("no es json"))
     }
+
+    @Test
+    fun `el diseno dice si trae fondo y como usarlo`() {
+        assertEquals("photo", DesignImport.bgMode("""{"v":1,"bg":{"mode":"photo"}}"""))
+        assertEquals("logo", DesignImport.bgMode("""{"v":1,"bg":{"mode":"logo"}}"""))
+        assertEquals("badge", DesignImport.bgMode("""{"v":1,"bg":{"mode":"badge"}}"""))
+        assertEquals("photo", DesignImport.bgMode("""{"v":1,"bg":{"mode":"raro"}}"""), "un modo desconocido cae en photo")
+        assertEquals(null, DesignImport.bgMode("""{"v":1}"""))
+        assertEquals(null, DesignImport.bgMode("no es json"))
+    }
 }

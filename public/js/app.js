@@ -325,18 +325,47 @@
   }
 
   /**
+   * El fondo propio como data URL lista para el servidor (tope ~500 KB). Un JPEG se recomprime y se achica hasta que quepa; un PNG con
+   * transparencia (un logo) solo se achica. Devuelve null si no se logra o falla.
+   */
+  async function shrinkBg(url) {
+    const LIMIT = 500_000 * 1.33 - 100; // el servidor mide los bytes; la data URL pesa un tercio más
+    try {
+      const bmp = await createImageBitmap(await (await fetch(url)).blob());
+      const asData = (blob) => new Promise((ok, fail) => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = fail; f.readAsDataURL(blob); });
+      const probe = document.createElement('canvas');
+      probe.width = Math.min(64, bmp.width); probe.height = Math.min(64, bmp.height);
+      probe.getContext('2d').drawImage(bmp, 0, 0, probe.width, probe.height);
+      const px = probe.getContext('2d').getImageData(0, 0, probe.width, probe.height).data;
+      let alpha = false;
+      for (let i = 3; i < px.length; i += 4) if (px[i] < 250) { alpha = true; break; }
+      for (const [side, q] of alpha ? [[1024, 1], [800, 1], [600, 1], [440, 1], [320, 1]] : [[1024, 0.85], [1024, 0.7], [800, 0.7], [640, 0.65], [480, 0.6]]) {
+        const k = Math.min(1, side / Math.max(bmp.width, bmp.height));
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(bmp.width * k)); c.height = Math.max(1, Math.round(bmp.height * k));
+        c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+        const blob = await new Promise((r) => c.toBlob(r, alpha ? 'image/png' : 'image/jpeg', q));
+        if (!blob) continue;
+        const data = await asData(blob);
+        if (data.length <= LIMIT) return data;
+      }
+    } catch (_) { /* sin fondo: el servidor entrega la app igual */ }
+    return null;
+  }
+
+  /**
    * Con foto, la descarga va por POST (la foto no cabe en una dirección): se manda una sola vez y el servidor la pone dentro de
    * la APK sin guardarla. Sin foto, o si algo falla, sigue el enlace normal (APK con el diseño, sin foto).
    */
   async function downloadWithPhoto(e) {
-    if ((!state.car.photo && !state.car.photoRear) || !designParam) return; // sin fotos: que el enlace funcione solo
+    if ((!state.car.photo && !state.car.photoRear && !state.style.bg) || !designParam) return; // sin fotos ni fondo: que el enlace funcione solo
     const a = $('#apk-design');
     if (a.getAttribute('aria-disabled') === 'true') { e.preventDefault(); return; }
     e.preventDefault();
     const status = $('#apk-status');
     const say = (t) => { status.textContent = t; status.hidden = !t; };
     a.setAttribute('aria-disabled', 'true');
-    say('Armando tu app con tus fotos… puede tardar unos segundos.');
+    say('Armando tu app con tus fotos y tu fondo… puede tardar unos segundos.');
     const toData = (url) => fetch(url).then((r) => r.blob()).then((b) => new Promise((ok, fail) => {
       const f = new FileReader();
       f.onload = () => ok(f.result);
@@ -347,13 +376,21 @@
       const body = { d: designParam };
       if (state.car.photoRear) body.photoRear = { day: await toData(state.car.photoRear) };
       const rearLen = body.photoRear ? body.photoRear.day.length : 0;
+      // El fondo propio (mosaico, foto o logo) va aparte y con tope: se achica si hace falta; si aun así no cabe, la app lo pide en Ajustes.
+      let bgLen = 0;
+      let bgSkipped = false;
+      if (state.style.bg) {
+        const bg = await shrinkBg(state.style.bg);
+        if (bg) { body.bg = { day: bg, mode: state.style.bgMode }; bgLen = bg.length; } else bgSkipped = true;
+      }
       if (state.car.photo) {
         const photo = { day: await toData(state.car.photo), cut: state.car.photoCut === true };
         if (photo.cut && state.car.photoNight) {
           const night = await toData(state.car.photoNight);
-          if (photo.day.length + night.length + rearLen < 2_600_000) photo.night = night; // el servidor tiene un tope: sin la de noche si no cabe
+          if (photo.day.length + night.length + rearLen + bgLen < 2_600_000) photo.night = night; // el servidor tiene un tope: sin la de noche si no cabe
         }
         body.photo = photo;
+        if (body.bg && photo.day.length + rearLen + bgLen >= 2_800_000) { delete body.bg; bgSkipped = true; } // entre todas pasan el tope del servidor
       }
       const r = await fetch('/api/app', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!r.ok || !/android\.package-archive/.test(r.headers.get('content-type') || '')) throw new Error('rechazada');
@@ -365,9 +402,9 @@
       tmp.click();
       tmp.remove();
       setTimeout(() => URL.revokeObjectURL(url), 120000);
-      say('Listo: tu app se está descargando, con tu diseño y tus fotos.');
+      say(bgSkipped ? 'Listo: tu app se está descargando con tu diseño y tus fotos. Tu fondo no cupo: elígelo después en la app, en Ajustes → Fondo de pantalla.' : 'Listo: tu app se está descargando, con tu diseño, tus fotos y tu fondo.');
     } catch (_) {
-      say('No pudimos incluir tus fotos; te bajamos la app con tu diseño. Las eliges en la app, en Ajustes → Foto de tu auto y Foto trasera.');
+      say('No pudimos incluir tus fotos ni tu fondo; te bajamos la app con tu diseño. Los eliges en la app, en Ajustes → Foto de tu auto, Foto trasera y Fondo de pantalla.');
       window.location.href = a.href;
     } finally {
       a.removeAttribute('aria-disabled');

@@ -21,6 +21,8 @@ object ApkBlock {
     const val PHOTO_NIGHT_ID = 0x54424C33
     /** La foto del auto visto desde atrás (PNG ya recortado): la usa la carretera del modo «completo». */
     const val PHOTO_REAR_ID = 0x54424C34
+    /** El fondo de pantalla propio (JPEG o PNG): un mosaico, una foto o un logo. */
+    const val BG_ID = 0x54424C35
 
     private const val MAX_BLOCK = 16L * 1024 * 1024
     private const val EOCD_SIGNATURE = 0x06054B50L

@@ -122,6 +122,12 @@
     // La foto del auto visto desde atrás (siempre recortada): la usa la carretera del modo «completo».
     const pr = design && design.photoRear;
     if (pr && typeof pr.day === 'string' && pr.day) state.car.photoRear = pr.day;
+    // El fondo propio (mosaico, foto o logo) que la app tiene guardado: llega como archivo local y se usa como en la vista previa del sitio.
+    const bg = design && design.bg;
+    if (bg && typeof bg.day === 'string' && bg.day) {
+      state.style.bg = bg.day;
+      state.style.bgMode = ['photo', 'logo', 'badge'].includes(bg.mode) ? bg.mode : 'photo';
+    }
     // Un diseño del sitio llega sin pasar por profile.js: «Otro» país nunca lleva restricciones.
     if (state.features.country === 'OTRO') { state.features.restrOn = false; state.features.restrDigit = ''; state.features.restrDays = []; }
     ui.screen = 'inicio';

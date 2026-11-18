@@ -141,4 +141,17 @@ class WelcomeTest {
         assertEquals("file:///x/lado.png", out.getJSONObject("photo").getString("day"))
         assertFalse(JSONObject(Welcome.withFeatures(diseno, LauncherConfig())).has("photoRear"))
     }
+
+    @Test
+    fun `el fondo propio viaja a la pantalla solo si existe`() {
+        val con = JSONObject(Welcome.profileJson(LauncherConfig(), bgUrl = "file:///x/fondo.jpg", bgMode = "photo"))
+        assertEquals("file:///x/fondo.jpg", con.getJSONObject("bg").getString("day"))
+        assertEquals("photo", con.getJSONObject("bg").getString("mode"))
+        assertFalse(JSONObject(Welcome.profileJson(LauncherConfig())).has("bg"))
+        assertFalse(JSONObject(Welcome.profileJson(LauncherConfig(), bgUrl = "")).has("bg"), "una dirección vacía no cuenta")
+        val diseno = """{"v":1,"config":{"car":{"name":"Ana"}}}"""
+        val out = JSONObject(Welcome.withFeatures(diseno, LauncherConfig(), bgUrl = "file:///x/logo.png", bgMode = "logo"))
+        assertEquals("logo", out.getJSONObject("bg").getString("mode"))
+        assertFalse(JSONObject(Welcome.withFeatures(diseno, LauncherConfig())).has("bg"))
+    }
 }

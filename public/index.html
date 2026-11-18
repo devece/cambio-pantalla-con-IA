@@ -345,7 +345,7 @@
           </div>
           <div class="group">
             <h3>O usa tu propia imagen</h3>
-            <p class="hint">Una carretera, tu ciudad o tu familia, o el logo de tu negocio. Se queda en tu celular.</p>
+            <p class="hint">Una carretera, tu ciudad o tu familia, o el logo de tu negocio. Se queda en tu celular; solo viaja, una vez y sin guardarse, si descargas la app con tu diseño.</p>
             <div class="photo-row">
               <label class="btn ghost" for="bg-file">Subir foto o logo</label>
               <input type="file" id="bg-file" accept="image/*" hidden>
@@ -353,6 +353,21 @@
             </div>
             <p class="error" id="bg-error" role="alert" hidden></p>
             <div class="choices cols-3 compact" id="bg-mode" data-choices="style.bgMode" role="radiogroup" aria-label="Cómo usar la imagen" hidden></div>
+          </div>
+          <div class="group" id="mosaic-group">
+            <h3>O arma un mosaico de tu auto</h3>
+            <p class="hint">Sube varias tomas de tu auto (de frente, de lado, de atrás, el interior…) y las juntamos en un solo fondo. Si quieres, súmale el logo y el nombre de la marca. Todo se arma en tu celular y, si descargas la app con tu diseño, el fondo viene dentro (pasa una vez por nuestro servidor y no se guarda).</p>
+            <div class="photo-row">
+              <label class="btn ghost" for="mosaic-files">Subir tomas (hasta 6)</label>
+              <input type="file" id="mosaic-files" accept="image/*" multiple hidden>
+              <label class="btn ghost" for="mosaic-logo">Subir logo de la marca</label>
+              <input type="file" id="mosaic-logo" accept="image/*" hidden>
+              <button type="button" class="btn link" id="mosaic-clear" hidden>Quitar mosaico</button>
+            </div>
+            <label class="field"><span>Nombre de la marca (opcional)</span><input type="text" id="mosaic-brand" maxlength="24" placeholder="Por ejemplo: Toyota Hilux" autocomplete="off"></label>
+            <label class="check"><input type="checkbox" id="mosaic-usecar" checked> Incluir la foto que subí en «Tu auto»</label>
+            <p class="hint" id="mosaic-status" role="status" aria-live="polite" hidden></p>
+            <p class="error" id="mosaic-error" role="alert" hidden></p>
           </div>
           <div class="group">
             <h3>Color de acento</h3>
@@ -464,7 +479,7 @@
               <li><b>Con tu diseño (recomendado)</b><span>Descarga la app desde aquí: viene con tu tema, tu fondo, tu nombre y tus avisos. La instalas, la abres y ya está como la diseñaste.</span></li>
               <li><b>Sin diseño</b><span>Descarga la app normal, instálala y elige todo en la radio, en Ajustes → Apariencia. Sirve si prefieres hacerlo allí.</span></li>
             </ol>
-            <p class="hint">Si subiste la foto de tu auto, también viene dentro de la app (pasa una vez por nuestro servidor para ponerla ahí y no se guarda). Si prefieres no enviarla, quítala en el paso 2 y elígela después en la app, en Ajustes → Foto de tu auto.</p>
+            <p class="hint">Si subiste la foto de tu auto o un fondo propio (o un mosaico), también vienen dentro de la app (pasan una vez por nuestro servidor para ponerlos ahí y no se guardan). Si prefieres no enviarla, quítala en el paso 2 y elígela después en la app, en Ajustes → Foto de tu auto.</p>
           </div>
           <a class="btn cta big" id="apk-design" href="/app">Descargar la app con mi diseño</a>
           <p class="hint" id="apk-status" role="status" aria-live="polite" hidden></p>
@@ -584,6 +599,7 @@
   <script src="js/preview.js"></script>
   <script src="js/cutout.js"></script>
   <script src="js/lights.js"></script>
+  <script src="js/mosaic.js"></script>
   <script src="js/app.js"></script>
   <script src="js/landing.js"></script>
   <script src="js/stats.js"></script>

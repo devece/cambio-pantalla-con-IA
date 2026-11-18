@@ -293,7 +293,7 @@
       ['Radio', radio + (state.radio.model ? ` · ${esc(state.radio.model)}` : '')],
       ['Vehículo', `${veh.name}${state.car.name ? ' de ' + esc(state.car.name) : ''}${state.car.photo ? ' · con tu foto' : ''}${state.car.photoRear ? ' · con tu foto trasera' : ''}`],
       ['Diseño', `${th.name} · ${lay.name}${season.id !== 'ninguna' ? ' · ' + season.name : ''}`],
-      ['Fondo', state.style.bg ? { photo: 'Tu foto', logo: 'Tu logo de fondo', badge: 'Tu logo en la barra' }[state.style.bgMode] : `${(TB.scenes.find((s) => s.id === state.style.scene) || {}).name || 'Del diseño'} · ${(TB.sceneTimes.find((s) => s.id === state.style.sceneTime) || {}).name || 'Automática'}`],
+      ['Fondo', state.style.bg && mosaic.on ? 'Mosaico de tu auto' + (mosaic.logo || mosaic.brand ? ' con logo y marca' : '') : state.style.bg ? { photo: 'Tu foto', logo: 'Tu logo de fondo', badge: 'Tu logo en la barra' }[state.style.bgMode] : `${(TB.scenes.find((s) => s.id === state.style.scene) || {}).name || 'Del diseño'} · ${(TB.sceneTimes.find((s) => s.id === state.style.sceneTime) || {}).name || 'Automática'}`],
       ['Saludo', `${state.features.voice ? 'Por voz' : 'Solo en pantalla'} · “${esc(state.car.greeting)}, ${esc(state.car.name || 'amigo')}”${state.car.phrase ? ' · “' + esc(state.car.phrase) + '”' : ''}`],
       ['Apps', apps.length ? esc(apps.join(', ')) : 'Sin apps en la barra'],
       ['Funciones', feats.length ? feats.join(', ') : 'Ninguna activada'],
@@ -325,18 +325,47 @@
   }
 
   /**
+   * El fondo propio como data URL lista para el servidor (tope ~500 KB). Un JPEG se recomprime y se achica hasta que quepa; un PNG con
+   * transparencia (un logo) solo se achica. Devuelve null si no se logra o falla.
+   */
+  async function shrinkBg(url) {
+    const LIMIT = 500_000 * 1.33 - 100; // el servidor mide los bytes; la data URL pesa un tercio más
+    try {
+      const bmp = await createImageBitmap(await (await fetch(url)).blob());
+      const asData = (blob) => new Promise((ok, fail) => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = fail; f.readAsDataURL(blob); });
+      const probe = document.createElement('canvas');
+      probe.width = Math.min(64, bmp.width); probe.height = Math.min(64, bmp.height);
+      probe.getContext('2d').drawImage(bmp, 0, 0, probe.width, probe.height);
+      const px = probe.getContext('2d').getImageData(0, 0, probe.width, probe.height).data;
+      let alpha = false;
+      for (let i = 3; i < px.length; i += 4) if (px[i] < 250) { alpha = true; break; }
+      for (const [side, q] of alpha ? [[1024, 1], [800, 1], [600, 1], [440, 1], [320, 1]] : [[1024, 0.85], [1024, 0.7], [800, 0.7], [640, 0.65], [480, 0.6]]) {
+        const k = Math.min(1, side / Math.max(bmp.width, bmp.height));
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(bmp.width * k)); c.height = Math.max(1, Math.round(bmp.height * k));
+        c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+        const blob = await new Promise((r) => c.toBlob(r, alpha ? 'image/png' : 'image/jpeg', q));
+        if (!blob) continue;
+        const data = await asData(blob);
+        if (data.length <= LIMIT) return data;
+      }
+    } catch (_) { /* sin fondo: el servidor entrega la app igual */ }
+    return null;
+  }
+
+  /**
    * Con foto, la descarga va por POST (la foto no cabe en una dirección): se manda una sola vez y el servidor la pone dentro de
    * la APK sin guardarla. Sin foto, o si algo falla, sigue el enlace normal (APK con el diseño, sin foto).
    */
   async function downloadWithPhoto(e) {
-    if ((!state.car.photo && !state.car.photoRear) || !designParam) return; // sin fotos: que el enlace funcione solo
+    if ((!state.car.photo && !state.car.photoRear && !state.style.bg) || !designParam) return; // sin fotos ni fondo: que el enlace funcione solo
     const a = $('#apk-design');
     if (a.getAttribute('aria-disabled') === 'true') { e.preventDefault(); return; }
     e.preventDefault();
     const status = $('#apk-status');
     const say = (t) => { status.textContent = t; status.hidden = !t; };
     a.setAttribute('aria-disabled', 'true');
-    say('Armando tu app con tus fotos… puede tardar unos segundos.');
+    say('Armando tu app con tus fotos y tu fondo… puede tardar unos segundos.');
     const toData = (url) => fetch(url).then((r) => r.blob()).then((b) => new Promise((ok, fail) => {
       const f = new FileReader();
       f.onload = () => ok(f.result);
@@ -347,13 +376,21 @@
       const body = { d: designParam };
       if (state.car.photoRear) body.photoRear = { day: await toData(state.car.photoRear) };
       const rearLen = body.photoRear ? body.photoRear.day.length : 0;
+      // El fondo propio (mosaico, foto o logo) va aparte y con tope: se achica si hace falta; si aun así no cabe, la app lo pide en Ajustes.
+      let bgLen = 0;
+      let bgSkipped = false;
+      if (state.style.bg) {
+        const bg = await shrinkBg(state.style.bg);
+        if (bg) { body.bg = { day: bg, mode: state.style.bgMode }; bgLen = bg.length; } else bgSkipped = true;
+      }
       if (state.car.photo) {
         const photo = { day: await toData(state.car.photo), cut: state.car.photoCut === true };
         if (photo.cut && state.car.photoNight) {
           const night = await toData(state.car.photoNight);
-          if (photo.day.length + night.length + rearLen < 2_600_000) photo.night = night; // el servidor tiene un tope: sin la de noche si no cabe
+          if (photo.day.length + night.length + rearLen + bgLen < 2_600_000) photo.night = night; // el servidor tiene un tope: sin la de noche si no cabe
         }
         body.photo = photo;
+        if (body.bg && photo.day.length + rearLen + bgLen >= 2_800_000) { delete body.bg; bgSkipped = true; } // entre todas pasan el tope del servidor
       }
       const r = await fetch('/api/app', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!r.ok || !/android\.package-archive/.test(r.headers.get('content-type') || '')) throw new Error('rechazada');
@@ -365,9 +402,9 @@
       tmp.click();
       tmp.remove();
       setTimeout(() => URL.revokeObjectURL(url), 120000);
-      say('Listo: tu app se está descargando, con tu diseño y tus fotos.');
+      say(bgSkipped ? 'Listo: tu app se está descargando con tu diseño y tus fotos. Tu fondo no cupo: elígelo después en la app, en Ajustes → Fondo de pantalla.' : 'Listo: tu app se está descargando, con tu diseño, tus fotos y tu fondo.');
     } catch (_) {
-      say('No pudimos incluir tus fotos; te bajamos la app con tu diseño. Las eliges en la app, en Ajustes → Foto de tu auto y Foto trasera.');
+      say('No pudimos incluir tus fotos ni tu fondo; te bajamos la app con tu diseño. Los eliges en la app, en Ajustes → Foto de tu auto, Foto trasera y Fondo de pantalla.');
       window.location.href = a.href;
     } finally {
       a.removeAttribute('aria-disabled');
@@ -404,7 +441,8 @@
     $('#car-color-group').hidden = !!state.car.photo;
     $('#photo-sample').hidden = !!state.car.photo;
     $('#bg-clear').hidden = !state.style.bg;
-    $('#bg-mode').hidden = !state.style.bg;
+    $('#bg-mode').hidden = !state.style.bg || mosaic.on; // el mosaico siempre llena la pantalla
+    $('#mosaic-clear').hidden = !mosaic.on;
   }
 
   function update() {
@@ -561,7 +599,12 @@
     $('#lights-clear').addEventListener('click', () => { lightPts = []; $('#lights-status').textContent = 'Luces borradas.'; drawLights(); });
     $('#lights-auto').addEventListener('click', detectLights);
     $('#bg-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadBg(f); e.target.value = ''; });
-    $('#bg-clear').addEventListener('click', () => { if (state.style.bg) URL.revokeObjectURL(state.style.bg); state.style.bg = null; update(); });
+    $('#bg-clear').addEventListener('click', () => { if (state.style.bg) URL.revokeObjectURL(state.style.bg); state.style.bg = null; mosaic.on = false; update(); });
+    $('#mosaic-files').addEventListener('change', (e) => { addMosaicShots(Array.from(e.target.files || [])); e.target.value = ''; });
+    $('#mosaic-logo').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) setMosaicLogo(f); e.target.value = ''; });
+    $('#mosaic-brand').addEventListener('input', (e) => { mosaic.brand = e.target.value; rebuildMosaic(); });
+    $('#mosaic-usecar').addEventListener('change', rebuildMosaic);
+    $('#mosaic-clear').addEventListener('click', clearMosaic);
     $('#photo-mode').addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) showPhoto(b.dataset.mode); });
     $('#nose-test').addEventListener('click', (e) => { const b = e.target.closest('[data-test]'); if (!b) return; state.radio.type = b.dataset.test; update(); });
     $('#shot-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadShot(f); e.target.value = ''; });
@@ -763,6 +806,7 @@
     setCut(null);
     updateDownload();
     update();
+    if (mosaic.on) rebuildMosaic(true);
   }
   async function loadPhoto(file) {
     const err = $('#photo-error');
@@ -787,6 +831,7 @@
     photoUrls.orig = await toUrl(c, 'image/jpeg', 0.85);
     updateDownload();
     showPhoto('orig');
+    if (mosaic.on) rebuildMosaic(true); // el mosaico incluye la foto de «Tu auto»
     status.textContent = 'Quitando el fondo de tu foto… la primera vez puede tardar unos segundos.';
     status.hidden = false;
     $('#photo-mode').hidden = true;
@@ -907,11 +952,87 @@
       const blob = await new Promise((r) => c.toBlob(r, alpha ? 'image/png' : 'image/jpeg', 0.85));
       if (state.style.bg) URL.revokeObjectURL(state.style.bg);
       state.style.bg = URL.createObjectURL(blob);
+      mosaic.on = false;
       if (alpha && state.style.bgMode === 'photo') state.style.bgMode = 'logo';
       update();
     } catch (_) {
       fail('No pudimos leer esa imagen. Prueba con otra.');
     }
+  }
+
+  /* ---------- fondo en mosaico: varias tomas del auto + logo y marca (queda en el navegador) ---------- */
+  const mosaic = { on: false, shots: [], logo: null, brand: '' };
+  const bitmapOf = async (src) => createImageBitmap(src instanceof Blob ? src : await (await fetch(src)).blob());
+  const mosaicMsg = (text, isError) => {
+    const st = $('#mosaic-status');
+    const er = $('#mosaic-error');
+    st.hidden = isError || !text;
+    er.hidden = !isError || !text;
+    (isError ? er : st).textContent = text || '';
+  };
+  async function addMosaicShots(files) {
+    mosaicMsg('');
+    const max = TB.mosaic.MAX;
+    const imgs = files.filter((f) => f.type.startsWith('image/') && f.size <= 15 * 1024 * 1024);
+    if (!imgs.length) return mosaicMsg('Elige archivos de imagen de hasta 15 MB.', true);
+    const room = max - mosaic.shots.length;
+    if (room <= 0) return mosaicMsg(`El mosaico admite hasta ${max} tomas. Quita el mosaico para empezar de nuevo.`, true);
+    let added = 0;
+    for (const f of imgs.slice(0, room)) {
+      try { mosaic.shots.push(await bitmapOf(f)); added++; } catch (_) { /* esa imagen no se pudo leer: seguimos con las demás */ }
+    }
+    if (!added) return mosaicMsg('No pudimos leer esas imágenes. Prueba con otras.', true);
+    if (imgs.length > room) mosaicMsg(`Se usaron las primeras ${room}: el mosaico admite hasta ${max} tomas.`);
+    await rebuildMosaic(imgs.length > room);
+  }
+  async function setMosaicLogo(file) {
+    mosaicMsg('');
+    if (!file.type.startsWith('image/') || file.size > 15 * 1024 * 1024) return mosaicMsg('Elige una imagen de hasta 15 MB para el logo.', true);
+    try {
+      const bmp = await bitmapOf(file);
+      if (mosaic.logo) mosaic.logo.close();
+      mosaic.logo = bmp;
+    } catch (_) {
+      return mosaicMsg('No pudimos leer ese logo. Prueba con otro.', true);
+    }
+    await rebuildMosaic();
+  }
+  async function rebuildMosaic(keepMsg) {
+    const shots = mosaic.shots.slice();
+    if ($('#mosaic-usecar').checked && photoUrls.orig) {
+      try { shots.unshift(await bitmapOf(photoUrls.orig)); } catch (_) { /* sin la foto de Tu auto */ }
+    }
+    if (!shots.length) { // sin tomas no hay mosaico; el logo y la marca esperan a que lleguen
+      if (mosaic.on) clearMosaicBg();
+      return update();
+    }
+    const hasBrand = !!(mosaic.logo || mosaic.brand.trim());
+    const used = Math.min(shots.length, TB.mosaic.room(hasBrand));
+    const canvas = TB.mosaic.compose({ shots, logo: mosaic.logo, brand: mosaic.brand });
+    const blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', 0.85));
+    if (!blob) return mosaicMsg('No pudimos armar el mosaico. Prueba con otras fotos.', true);
+    if (state.style.bg) URL.revokeObjectURL(state.style.bg);
+    state.style.bg = URL.createObjectURL(blob);
+    state.style.bgMode = 'photo';
+    mosaic.on = true;
+    if (!keepMsg) mosaicMsg(`Mosaico listo con ${used} ${used > 1 ? 'tomas' : 'toma'}${hasBrand ? ', logo y marca' : ''}. Mira cómo queda en la pantalla.`);
+    update();
+  }
+  function clearMosaicBg() {
+    if (state.style.bg) URL.revokeObjectURL(state.style.bg);
+    state.style.bg = null;
+    mosaic.on = false;
+  }
+  function clearMosaic() {
+    mosaic.shots.forEach((b) => b.close());
+    if (mosaic.logo) mosaic.logo.close();
+    mosaic.shots = [];
+    mosaic.logo = null;
+    mosaic.brand = '';
+    $('#mosaic-brand').value = '';
+    mosaicMsg('');
+    clearMosaicBg();
+    update();
   }
 
   /* ---------- arranque ---------- */

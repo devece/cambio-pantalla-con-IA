@@ -54,6 +54,7 @@ class SettingsActivity : Activity() {
     private val colorChips = linkedMapOf<String, View>()
     private lateinit var photoStatus: TextView
     private lateinit var rearStatus: TextView
+    private lateinit var bgStatus: TextView
     private lateinit var clock12: CheckBox
     private lateinit var lookTheme: Spinner
     private lateinit var lookLayout: Spinner
@@ -393,6 +394,43 @@ class SettingsActivity : Activity() {
         })
         form.addView(rearRow)
         refreshRearStatus()
+
+        // Fondo de pantalla propio: un mosaico de tu auto, una foto o un logo (el sitio lo manda dentro de la app).
+        form.addView(TextView(this).apply {
+            text = "Fondo de pantalla"
+            setTextColor(Ui.TEXT)
+            textSize = 16f
+            setPadding(0, dp(16), 0, 0)
+        })
+        bgStatus = TextView(this).apply {
+            setTextColor(Ui.SUB)
+            textSize = 14f
+        }
+        form.addView(bgStatus)
+        val bgRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        bgRow.addView(Button(this).apply {
+            text = "Elegir fondo"
+            setOnClickListener { pickPhoto(REQ_BG) }
+        })
+        bgRow.addView(Button(this).apply {
+            text = "Quitar fondo"
+            setOnClickListener {
+                BgStore(this@SettingsActivity).clear()
+                refreshBgStatus()
+            }
+        })
+        form.addView(bgRow)
+        refreshBgStatus()
+    }
+
+    private fun refreshBgStatus() {
+        val bg = BgStore(this)
+        bgStatus.text = when {
+            !bg.has() -> "Sin fondo propio: se usa el fondo del tema. Puedes elegir una foto, un logo o el mosaico que armaste en el sitio."
+            bg.mode() == "logo" -> "Fondo elegido (un logo, centrado y suave). Se ve al volver al inicio."
+            bg.mode() == "badge" -> "Fondo elegido (un logo chico en la barra de arriba). Se ve al volver al inicio."
+            else -> "Fondo elegido. Se ve al volver al inicio."
+        }
     }
 
     private fun refreshRearStatus() {
@@ -428,8 +466,19 @@ class SettingsActivity : Activity() {
     @Deprecated("Se usa la API clásica de Activity para funcionar en radios con Android antiguo")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if ((requestCode != REQ_PHOTO && requestCode != REQ_PHOTO_REAR) || resultCode != RESULT_OK) return
+        if ((requestCode != REQ_PHOTO && requestCode != REQ_PHOTO_REAR && requestCode != REQ_BG) || resultCode != RESULT_OK) return
         val uri = data?.data ?: return
+        if (requestCode == REQ_BG) {
+            bgStatus.text = "Guardando el fondo…"
+            Thread {
+                val problem = BgStore(this).save(uri)
+                runOnUiThread {
+                    refreshBgStatus()
+                    if (problem != null) Toast.makeText(this, problem, Toast.LENGTH_LONG).show()
+                }
+            }.start()
+            return
+        }
         val rear = requestCode == REQ_PHOTO_REAR
         (if (rear) rearStatus else photoStatus).text = "Guardando la foto…"
         Thread {
@@ -946,6 +995,7 @@ class SettingsActivity : Activity() {
         const val COFFEE_URL = "https://ko-fi.com/daniexpress"
         const val REQ_PHOTO = 41
         const val REQ_PHOTO_REAR = 42
+        const val REQ_BG = 43
     }
 
     private fun field(hint: String, value: String): EditText {

@@ -124,11 +124,14 @@ class MainActivity : Activity() {
             val day = if (photo != null) ApkBlock.read(apk, ApkBlock.PHOTO_DAY_ID) else null
             val night = if (photo != null && photo.second) ApkBlock.read(apk, ApkBlock.PHOTO_NIGHT_ID) else null
             val rear = if (DesignImport.hasRearPhoto(json)) ApkBlock.read(apk, ApkBlock.PHOTO_REAR_ID) else null
+            val bgMode = DesignImport.bgMode(json)
+            val bg = if (bgMode != null) ApkBlock.read(apk, ApkBlock.BG_ID) else null
             val digest = java.security.MessageDigest.getInstance("SHA-256")
             digest.update(bytes)
             day?.let { digest.update(it) }
             night?.let { digest.update(it) }
             rear?.let { digest.update(it) }
+            bg?.let { digest.update(it) }
             val hash = digest.digest().joinToString("") { "%02x".format(it) }
             if (hash == settings.apkDesignHash()) return
             // Se anota primero: si algo falla a medias, no se reintenta en cada arranque.
@@ -140,6 +143,8 @@ class MainActivity : Activity() {
             if (photo != null && day != null) PhotoStore(this).saveBytes(day, photo.first, night)
             // La foto del auto desde atrás (si vino): es siempre un PNG ya recortado.
             if (rear != null) PhotoStore(this, rear = true).saveBytes(rear, true, null)
+            // El fondo propio (mosaico, foto o logo), si vino: reemplaza al que hubiera.
+            if (bg != null && bgMode != null) BgStore(this).saveBytes(bg, bgMode)
         } catch (e: Exception) {
             // Sin diseño o archivo raro: la app sigue como siempre.
         }
@@ -162,7 +167,10 @@ class MainActivity : Activity() {
         // Con o sin código se dibuja con el motor del sitio; sin código, con el diseño base de la edición gratuita
         // y lo que el usuario contó (nombre, auto y color).
         val rearUrl = PhotoStore(this, rear = true).url()
-        val launcher = WebLauncher(this, saved?.let { Welcome.withFeatures(it, config, rearUrl) } ?: PhotoStore(this).let { Welcome.profileJson(config, it.url(), it.isCut(), it.nightUrl(), rearUrl) }, playWelcome = !welcomePlayed)
+        val bgs = BgStore(this)
+        val bgUrl = bgs.url()
+        val bgMode = bgs.mode()
+        val launcher = WebLauncher(this, saved?.let { Welcome.withFeatures(it, config, rearUrl, bgUrl, bgMode) } ?: PhotoStore(this).let { Welcome.profileJson(config, it.url(), it.isCut(), it.nightUrl(), rearUrl, bgUrl, bgMode) }, playWelcome = !welcomePlayed)
         welcomePlayed = true
         web = launcher
         setContentView(launcher.view)

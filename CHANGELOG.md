@@ -8,6 +8,7 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 ## [Sin publicar]
 
 ### Agregado
+- **Pop up de novedades en el sitio.** Al entrar, una tarjeta destaca la novedad (el fondo en mosaico de tu auto y que el fondo viaja dentro de la app), con el botón «Probarlo ahora» que lleva al configurador. Sale una sola vez por navegador y se cierra con «Ahora no», con la X, con Escape o tocando fuera.
 - **Fondo en mosaico de tu auto.** En el paso «Diseño» del sitio, junto a «O usa tu propia imagen», ahora puedes armar un mosaico: subes hasta 6 tomas de tu auto (de frente, de lado, de atrás, el interior…) y se juntan en un solo fondo, con la foto que subiste en «Tu auto» si quieres. Además puedes sumarle el logo de la marca y su nombre (por ejemplo «Toyota Hilux»), que ocupan un recuadro del mosaico. Todo se arma en tu celular. El fondo propio de siempre (una foto o un logo) sigue disponible. 
 - **El fondo propio viaja dentro de la app que descargas.** El mosaico, o la foto o el logo que subiste como fondo, ahora vienen dentro de la app con «Descargar la app con mi diseño» (pasan una vez por nuestro servidor y no se guardan; se achican solos para caber, hasta unos 500 KB). La app los aplica al abrirse por primera vez, y en Ajustes → **Fondo de pantalla** puedes elegir otra imagen (una foto o un logo) o quitarlo. Si el fondo no cupo, la app se baja igual y lo eliges en Ajustes. Probado en el navegador; **falta probarlo en una radio real** (que la radio dibuje la imagen guardada en la app) y compilar la app Android.
 

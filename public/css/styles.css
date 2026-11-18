@@ -440,3 +440,20 @@ h1 em, h2 em { font-style: normal; background: linear-gradient(90deg, #ff3a1a, #
 .tests label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-weight: 400; color: var(--ink2); }
 .tests input { width: 20px; height: 20px; margin-top: 3px; accent-color: var(--verde); flex: none; }
 #mosaic-group .check { margin-top: 14px; }
+
+/* Pop up de novedades */
+.novedad { border: 0; padding: 0; background: transparent; color: var(--ink); max-width: min(520px, calc(100vw - 32px)); width: 100%; overflow: visible; }
+.novedad::backdrop { background: rgba(5, 10, 24, .72); }
+.novedad:not([open]) { display: none; }
+.nov-box { position: relative; margin: 0; background: var(--paper); border: 1px solid var(--borde); border-radius: 16px; overflow: hidden; box-shadow: 0 24px 70px rgba(0, 0, 0, .55); animation: nov-in .28s ease-out; }
+.nov-box img { display: block; width: 100%; height: auto; }
+.nov-txt { padding: 20px 22px 22px; }
+.nov-txt h2 { margin: 10px 0 8px; font: 700 24px/1.2 var(--display); }
+.nov-txt p { margin: 0 0 18px; color: var(--ink2); line-height: 1.5; }
+.nov-txt p b { color: var(--ink); }
+.nov-act { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.nov-x { position: absolute; top: 10px; right: 10px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--borde); background: rgba(10, 18, 40, .72); color: #fff; font-size: 26px; line-height: 1; cursor: pointer; }
+.nov-x:hover { border-color: #fff; }
+@keyframes nov-in { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .nov-box { animation: none; } }
+.nov-txt .tag { margin-left: 0; }

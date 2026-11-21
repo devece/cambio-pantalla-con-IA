@@ -8,7 +8,7 @@ Un launcher para radios Android de auto, pensado para Chile (restricción vehicu
 
 ## Qué incluye
 
-- **Sitio** estático (HTML/CSS/JS sin build) en `public/`: vista previa de la radio (1024×600) con 9 temas visuales (día y noche), 9 distribuciones, 5 pantallas, fondos, autos en 3D y decoración de temporada (Fiestas Patrias, Halloween, Navidad, Año Nuevo).
+- **Sitio** estático (HTML/CSS/JS sin build) en `public/`: vista previa de la radio (1024×600) con 12 temas visuales (día y noche), 9 distribuciones, 5 pantallas, fondos, autos en 3D y decoración de temporada (Fiestas Patrias, Halloween, Navidad, Año Nuevo).
 - **App Android** en `android/` (el launcher de la radio): `core` (reglas en Kotlin puro, con pruebas) y `app` (pantallas, GPS, ajustes, scanner OBD opcional).
 - **Funciones de API** (Vercel) en `api/`: `app` (entrega la APK con el diseño y la foto del cliente ya adentro), `analyze-radio` (analiza la captura de la radio) y `detect-lights` (ubica los faros en la foto del auto). Las dos últimas usan IA y son opcionales. **No hay cuentas ni datos de usuarios**: lo único que se guarda son dos totales, los contadores públicos de visitas y descargas (`api/stats.js`, `lib/stats.js`).
 

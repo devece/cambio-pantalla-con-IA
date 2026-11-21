@@ -31,6 +31,7 @@ data class Look(
         val THEMES: Map<String, String> = linkedMapOf(
             "sobrio" to "Sobrio", "ruta" to "Ruta", "papel" to "Papel", "cristal" to "Cristal", "alumbrado" to "Alumbrado",
             "cordillera" to "Cordillera", "costa" to "Costa", "atacama" to "Atacama", "patagonia" to "Patagonia",
+            "arco" to "Arco", "azulnoche" to "Azul noche", "carbon" to "Carbón",
         )
         val LAYOUTS: Map<String, String> = linkedMapOf(
             "consola" to "Consola", "estelar" to "Estelar", "tarjetas" to "Tarjetas", "centro" to "Auto al centro", "manejo" to "Modo manejo",

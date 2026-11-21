@@ -1,5 +1,6 @@
 package cl.tablero.core
 
+import org.json.JSONArray
 import org.json.JSONObject
 
 /** Lo que se guarda en una copia de seguridad: los ajustes tal como están en la radio y los archivos propios (foto del auto, fondo). */
@@ -50,30 +51,40 @@ object SettingsBackup {
         return parts.size == 2 && parts[0] in FILE_DIRS && Regex("[A-Za-z0-9._-]{1,64}").matches(parts[1]) && ".." !in parts[1]
     }
 
+    // Nombres de tipo dentro del archivo. Cada valor lleva su tipo porque SharedPreferences distingue Int de Long, etc.
+    private const val T_TEXTO = "texto"
+    private const val T_ENTERO = "entero"
+    private const val T_LARGO = "largo"
+    private const val T_DECIMAL = "decimal"
+    private const val T_LOGICO = "logico"
+
+    /** Arma el texto de la copia: una lista de ajustes `{clave, tipo, valor}` y una lista de archivos adjuntos `{ruta, base64}`. */
     fun write(data: BackupData): String {
-        val s = JSONObject()
-        data.settings.filterKeys { it !in SKIP }.toSortedMap().forEach { (key, value) ->
-            val (t, v) = when (value) {
-                is Boolean -> "b" to value
-                is Int -> "i" to value
-                is Long -> "l" to value
-                is Float -> "f" to value.toDouble()
-                is String -> "s" to value
-                else -> return@forEach // un tipo que Tablero no usa: no se copia
+        val valores = JSONArray()
+        for ((clave, valor) in data.settings.toSortedMap()) {
+            if (clave in SKIP) continue
+            val item = JSONObject().put("clave", clave)
+            when (valor) {
+                is String -> item.put("tipo", T_TEXTO).put("valor", valor)
+                is Int -> item.put("tipo", T_ENTERO).put("valor", valor)
+                is Long -> item.put("tipo", T_LARGO).put("valor", valor)
+                is Float -> item.put("tipo", T_DECIMAL).put("valor", valor.toDouble())
+                is Boolean -> item.put("tipo", T_LOGICO).put("valor", valor)
+                else -> continue // un tipo que Tablero no usa: no se copia
             }
-            s.put(key, JSONObject().put("t", t).put("v", v))
+            valores.put(item)
         }
-        val f = JSONObject()
-        data.files.filterKeys { isSafePath(it) }.toSortedMap().forEach { (path, bytes) ->
-            f.put(path, B64.encode(bytes))
+        val adjuntos = JSONArray()
+        for ((ruta, bytes) in data.files.toSortedMap()) {
+            if (isSafePath(ruta)) adjuntos.put(JSONObject().put("ruta", ruta).put("base64", B64.encode(bytes)))
         }
         return JSONObject()
-            .put("app", APP)
-            .put("formato", FORMAT)
+            .put("programa", APP)
+            .put("esquema", FORMAT)
             .put("version", data.appVersion)
-            .put("fecha", data.createdAtMillis)
-            .put("ajustes", s)
-            .put("archivos", f)
+            .put("creada", data.createdAtMillis)
+            .put("valores", valores)
+            .put("adjuntos", adjuntos)
             .toString(1)
     }
 
@@ -83,42 +94,49 @@ object SettingsBackup {
         } catch (e: Exception) {
             return BackupResult.Fail("El archivo no es una copia de Tablero.")
         }
-        if (root.optString("app") != APP) return BackupResult.Fail("El archivo no es una copia de Tablero.")
-        val format = root.optInt("formato", 0)
-        if (format < 1) return BackupResult.Fail("La copia está dañada.")
-        if (format > FORMAT) return BackupResult.Fail("La copia viene de una versión más nueva de Tablero. Actualiza la app e inténtalo otra vez.")
+        if (root.optString("programa") != APP) return BackupResult.Fail("El archivo no es una copia de Tablero.")
+        val esquema = root.optInt("esquema", 0)
+        if (esquema < 1) return BackupResult.Fail("La copia está dañada.")
+        if (esquema > FORMAT) return BackupResult.Fail("La copia viene de una versión más nueva de Tablero. Actualiza la app e inténtalo otra vez.")
+        val valores = root.optJSONArray("valores") ?: return BackupResult.Fail("La copia está dañada.")
 
         val settings = LinkedHashMap<String, Any>()
-        val s = root.optJSONObject("ajustes") ?: return BackupResult.Fail("La copia está dañada.")
-        for (key in s.keys()) {
-            if (key in SKIP || key.isBlank() || key.length > 64) continue
-            val o = s.optJSONObject(key) ?: continue
-            val value: Any? = when (o.optString("t")) {
-                "b" -> if (o.has("v")) o.getBoolean("v") else null
-                "i" -> if (o.has("v")) o.getInt("v") else null
-                "l" -> if (o.has("v")) o.getLong("v") else null
-                "f" -> if (o.has("v")) o.getDouble("v").toFloat() else null
-                "s" -> if (o.has("v")) o.getString("v") else null
-                else -> null
+        for (i in 0 until valores.length()) {
+            val item = valores.optJSONObject(i) ?: continue
+            val clave = item.optString("clave")
+            if (clave.isBlank() || clave.length > 64 || clave in SKIP || !item.has("valor")) continue
+            val valor: Any = try {
+                when (item.optString("tipo")) {
+                    T_TEXTO -> item.getString("valor")
+                    T_ENTERO -> item.getInt("valor")
+                    T_LARGO -> item.getLong("valor")
+                    T_DECIMAL -> item.getDouble("valor").toFloat()
+                    T_LOGICO -> item.getBoolean("valor")
+                    else -> continue
+                }
+            } catch (e: Exception) {
+                continue // un valor mal escrito no tumba el resto
             }
-            if (value != null) settings[key] = value
+            settings[clave] = valor
         }
 
         val files = LinkedHashMap<String, ByteArray>()
         var total = 0
-        val f = root.optJSONObject("archivos")
-        if (f != null) for (path in f.keys()) {
-            if (!isSafePath(path)) continue
+        val adjuntos = root.optJSONArray("adjuntos")
+        if (adjuntos != null) for (i in 0 until adjuntos.length()) {
+            val item = adjuntos.optJSONObject(i) ?: continue
+            val ruta = item.optString("ruta")
+            if (!isSafePath(ruta)) continue
             val bytes = try {
-                B64.decode(f.getString(path))
+                B64.decode(item.getString("base64"))
             } catch (e: Exception) {
                 continue
             }
             total += bytes.size
             if (total > MAX_FILES_BYTES) return BackupResult.Fail("La copia trae archivos demasiado grandes.")
-            files[path] = bytes
+            files[ruta] = bytes
         }
-        return BackupResult.Ok(BackupData(settings, files, root.optString("version"), root.optLong("fecha", 0)))
+        return BackupResult.Ok(BackupData(settings, files, root.optString("version"), root.optLong("creada", 0)))
     }
 }
 

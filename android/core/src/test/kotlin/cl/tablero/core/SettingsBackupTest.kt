@@ -49,9 +49,9 @@ class SettingsBackupTest {
     @Test
     fun `un archivo que no es una copia se rechaza con un motivo`() {
         assertEquals("El archivo no es una copia de Tablero.", (SettingsBackup.read("hola") as BackupResult.Fail).reason)
-        assertEquals("El archivo no es una copia de Tablero.", (SettingsBackup.read("""{"app":"otra"}""") as BackupResult.Fail).reason)
-        assertTrue((SettingsBackup.read("""{"app":"tablero","formato":99,"ajustes":{}}""") as BackupResult.Fail).reason.contains("más nueva"))
-        assertTrue((SettingsBackup.read("""{"app":"tablero","formato":1}""") as BackupResult.Fail).reason.contains("dañada"))
+        assertEquals("El archivo no es una copia de Tablero.", (SettingsBackup.read("""{"programa":"otra"}""") as BackupResult.Fail).reason)
+        assertTrue((SettingsBackup.read("""{"programa":"tablero","esquema":99,"valores":[]}""") as BackupResult.Fail).reason.contains("más nueva"))
+        assertTrue((SettingsBackup.read("""{"programa":"tablero","esquema":1}""") as BackupResult.Fail).reason.contains("dañada"))
     }
 
     @Test
@@ -60,13 +60,13 @@ class SettingsBackupTest {
         bad.forEach { assertFalse(SettingsBackup.isSafePath(it), it) }
         assertTrue(SettingsBackup.isSafePath("mycar/car.png"))
         assertTrue(SettingsBackup.isSafePath("mycar-rear/night.png"))
-        val text = """{"app":"tablero","formato":1,"ajustes":{},"archivos":{"../x":"AAAA","mycar/car.png":"AAAA"}}"""
+        val text = """{"programa":"tablero","esquema":1,"valores":[],"adjuntos":[{"ruta":"../x","base64":"AAAA"},{"ruta":"mycar/car.png","base64":"AAAA"}]}"""
         assertEquals(setOf("mycar/car.png"), ok(text).files.keys)
     }
 
     @Test
     fun `entradas dañadas se saltan sin tumbar el resto`() {
-        val text = """{"app":"tablero","formato":1,"ajustes":{"a":{"t":"i","v":3},"b":{"t":"x","v":1},"c":"suelto","d":{"t":"i"}},"archivos":{"mycar/car.png":"@@@"}}"""
+        val text = """{"programa":"tablero","esquema":1,"valores":[{"clave":"a","tipo":"entero","valor":3},{"clave":"b","tipo":"raro","valor":1},"suelto",{"clave":"d","tipo":"entero"},{"clave":"e","tipo":"entero","valor":"no-es-numero"}],"adjuntos":[{"ruta":"mycar/car.png","base64":"@@@"}]}"""
         val r = ok(text)
         assertEquals(mapOf<String, Any>("a" to 3), r.settings)
         assertTrue(r.files.isEmpty())

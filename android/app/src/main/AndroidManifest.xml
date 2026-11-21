@@ -73,19 +73,19 @@
             </intent-filter>
         </receiver>
 
-        <!-- Inicio «falso» desactivado: se activa un instante para que Android vuelva a preguntar cuál inicio usar (ver HomeRole.kt). -->
-        <activity
-            android:name=".InicioTemporal"
+        <!-- Segundo punto de entrada de inicio, desactivado: se activa un instante para que Android olvide cuál inicio había fijado y vuelva
+             a preguntar (ver HomeRole.kt). Es un alias de MainActivity, así que no hay otra pantalla que mantener. -->
+        <activity-alias
+            android:name=".InicioAlterno"
+            android:targetActivity=".MainActivity"
             android:enabled="false"
-            android:exported="true"
-            android:excludeFromRecents="true"
-            android:theme="@android:style/Theme.NoDisplay">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-        </activity>
+        </activity-alias>
 
         <!-- Recibe la respuesta del instalador de Android durante una actualización. -->
         <receiver

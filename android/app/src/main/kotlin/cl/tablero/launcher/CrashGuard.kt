@@ -3,8 +3,11 @@ package cl.tablero.launcher
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import cl.tablero.core.CrashLog
 import java.io.File
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * Registro de fallos: anota los cierres inesperados y los bloqueos de la pantalla (el hilo principal sin responder) en un archivo
@@ -13,13 +16,15 @@ import java.io.File
  */
 object CrashGuard {
     private const val FILE = "registro-de-fallos.log"
-    private const val FREEZE_MS = 8_000L
-    private const val TICK_MS = 2_000L
+    private const val FREEZE_MS = 10_000L
+    private const val CHECK_MS = 3_000L
+    private const val BEAT_MS = 1_000L
 
     private var app: Context? = null
     private val lock = Any()
 
-    @Volatile private var pong = 0L
+    /** Último latido del hilo principal (reloj que no cuenta el sueño del equipo). */
+    @Volatile private var beat = 0L
     @Volatile private var started = false
 
     fun install(context: Context) {
@@ -57,38 +62,40 @@ object CrashGuard {
     }
 
     /**
-     * Cada 2 s le pide al hilo principal que conteste. Si pasan 8 s sin respuesta, anota en qué estaba (una sola vez por bloqueo).
-     * Es un hilo aparte y liviano; si la radio se queda sin memoria o se apaga la pantalla, no molesta.
+     * Detecta una pantalla pegada con el diseño inverso: el propio hilo principal marca su «latido» cada segundo y un vigía aparte,
+     * cada 3 s, mira cuánto hace del último. Si pasan más de 10 s, anota en qué estaba trabado (una sola vez por bloqueo).
+     * El vigía es un hilo liviano y de baja prioridad; no molesta aunque la radio esté justa de memoria.
      */
     private fun startWatchdog() {
         if (started) return
         started = true
         val main = Handler(Looper.getMainLooper())
-        pong = System.currentTimeMillis()
-        val reply = Runnable { pong = System.currentTimeMillis() }
-        val thread = Thread({
-            var reported = false
-            while (true) {
-                try {
-                    Thread.sleep(TICK_MS)
-                } catch (e: InterruptedException) {
-                    return@Thread
-                }
-                main.post(reply)
-                val silent = System.currentTimeMillis() - pong
-                if (silent >= FREEZE_MS) {
-                    if (!reported) {
-                        reported = true
-                        runCatching {
-                            record("Pantalla bloqueada (${silent / 1000} s sin responder)", "main", CrashLog.stackOf(Looper.getMainLooper().thread.stackTrace))
-                        }
-                    }
-                } else {
-                    reported = false
-                }
+        beat = SystemClock.uptimeMillis()
+        main.post(object : Runnable {
+            override fun run() {
+                beat = SystemClock.uptimeMillis()
+                main.postDelayed(this, BEAT_MS)
             }
-        }, "tablero-watchdog")
-        thread.isDaemon = true
-        thread.start()
+        })
+        var reported = false
+        val pool = Executors.newSingleThreadScheduledExecutor { r ->
+            Thread(r, "tablero-vigia").apply {
+                isDaemon = true
+                priority = Thread.MIN_PRIORITY
+            }
+        }
+        pool.scheduleWithFixedDelay({
+            val silent = SystemClock.uptimeMillis() - beat
+            if (silent > FREEZE_MS) {
+                if (!reported) {
+                    reported = true
+                    runCatching {
+                        record("Pantalla bloqueada (${silent / 1000} s sin responder)", "main", CrashLog.stackOf(Looper.getMainLooper().thread.stackTrace))
+                    }
+                }
+            } else {
+                reported = false
+            }
+        }, CHECK_MS, CHECK_MS, TimeUnit.MILLISECONDS)
     }
 }

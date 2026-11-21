@@ -500,7 +500,7 @@ class SettingsActivity : Activity() {
     override fun onResume() {
         super.onResume()
         // Por si «Elegir Tablero como inicio» activó el inicio falso: nunca debe quedar activo.
-        liberarInicioTemporal(this)
+        releaseAlternateHome(this)
     }
 
     /* ---------- inicio de la radio ---------- */

@@ -7,7 +7,7 @@
   else root.TBCatalog = factory();
 })(typeof self !== 'undefined' ? self : this, function () {
   // Los diseños visuales disponibles (todos son gratis).
-  const themes = ['sobrio', 'ruta', 'papel', 'cristal', 'alumbrado', 'cordillera', 'costa', 'atacama', 'patagonia'];
+  const themes = ['sobrio', 'ruta', 'papel', 'cristal', 'alumbrado', 'cordillera', 'costa', 'atacama', 'patagonia', 'arco', 'azulnoche', 'carbon'];
 
   const seasons = ['ninguna', 'auto', 'patrias', 'halloween', 'navidad', 'anonuevo'];
   const layouts = ['consola', 'estelar', 'tarjetas', 'centro', 'manejo', 'minimal', 'tablero', 'lateral', 'todoterreno'];

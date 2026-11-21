@@ -7,6 +7,13 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 
 ## [Sin publicar]
 
+## [0.5.0] - 2026-11-21
+
+Tres temas nuevos para la pantalla de tu radio: Arco, Azul noche y Carbón.
+
+### Agregado
+- **Tres temas nuevos: Arco, Azul noche y Carbón.** Arco es un arco de color difuminado sobre vidrio (violeta y rosa de noche, pastel de día); Azul noche, un azul profundo con vidrio azulado; Carbón, un fondo sobrio con un acento cálido como la luz de los faros. Cada uno viene en versión de día y de noche, y se elige en el sitio (paso «Diseño») y en Ajustes → Apariencia. Ahora son 12 temas. Probado en el navegador en cuatro distribuciones; **falta verlos en una radio real**.
+
 ## [0.4.0] - 2026-11-21
 
 Más ayuda cuando algo falla: un registro de fallos, copia de seguridad de tu configuración, abrir Tablero al encender y códigos de falla del scanner con gravedad y consejo. También llega el fondo en mosaico de tu auto.

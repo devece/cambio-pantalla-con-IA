@@ -7,6 +7,10 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 
 ## [Sin publicar]
 
+## [0.4.0] - 2026-11-21
+
+Más ayuda cuando algo falla: un registro de fallos, copia de seguridad de tu configuración, abrir Tablero al encender y códigos de falla del scanner con gravedad y consejo. También llega el fondo en mosaico de tu auto.
+
 ### Agregado
 - **Registro de fallos.** Si Tablero se cierra solo o la pantalla se queda pegada unos 10 segundos o más, la app lo anota (versión, hora y en qué estaba) en un archivo dentro de la radio. Se ve en Ajustes → Diagnóstico de la radio → «Fallos recientes de Tablero», y se copia o comparte junto con el resto del diagnóstico; «Borrar fallos» lo limpia. No manda nada a ningún lado. Sirve para saber qué le pasa a una radio que no tenemos a mano.
 - **Abrir Tablero al encender.** En Ajustes → «Inicio de la radio»: una casilla para las radios que siempre arrancan en su menú de fábrica, y el botón «Elegir Tablero como inicio», que vuelve a mostrar la lista de «¿Qué app usar?» (en Android 10 o más nuevo, el diálogo oficial). Viene apagado. En Android 10 o más nuevo el sistema puede no dejar abrir una pantalla al encender; ahí sirve el botón. **Falta probarlo en una radio real.**

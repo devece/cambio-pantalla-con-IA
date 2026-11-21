@@ -75,4 +75,11 @@ class DiagnosticTest {
         listOf("nombre", "patente", "latitud", "longitud").forEach { assertFalse(it in r.lowercase(), it) }
         assertTrue("Asignados en Ajustes: 3" in r)
     }
+
+    @Test
+    fun `los fallos recientes aparecen solo si se leyeron`() {
+        assertTrue("Fallos recientes" !in Diagnostic.report(base))
+        val r = Diagnostic.report(base.copy(crashes = "Ninguno registrado."))
+        assertTrue("Fallos recientes de Tablero" in r && "Ninguno registrado." in r)
+    }
 }

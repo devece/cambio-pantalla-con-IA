@@ -21,6 +21,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import cl.tablero.core.CrashLog
 import cl.tablero.core.Diagnostic
 import cl.tablero.core.DiagnosticInfo
 import cl.tablero.core.MediaSessionInfo
@@ -68,6 +69,7 @@ class DiagnosticActivity : Activity() {
         button("Actualizar") { refresh() }
         button("Copiar") { copy() }
         button("Compartir") { share() }
+        button("Borrar fallos") { clearCrashes() }
         button("Notificaciones de Android") { openNotificationAccess() }
         button("Datos del auto (CAN)") { startActivity(Intent(this, CanProbeActivity::class.java)) }
         button("Volver") { finish() }
@@ -110,6 +112,7 @@ class DiagnosticActivity : Activity() {
             sessions = if (access) mediaSessions() else emptyList(),
             assignedWheelKeys = SettingsStore(this).load().wheelKeys.size,
             keysSeen = keysSeen.toList(),
+            crashes = CrashLog.summary(CrashGuard.read(this)),
         )
     }
 
@@ -126,6 +129,12 @@ class DiagnosticActivity : Activity() {
         }
     } catch (e: Exception) {
         emptyList()
+    }
+
+    private fun clearCrashes() {
+        CrashGuard.clear(this)
+        refresh()
+        Toast.makeText(this, "Registro de fallos borrado.", Toast.LENGTH_SHORT).show()
     }
 
     private fun copy() {

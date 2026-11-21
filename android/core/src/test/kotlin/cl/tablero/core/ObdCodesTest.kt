@@ -50,6 +50,7 @@ class ObdCodesTest {
         val systems = setOf(
             "Aire y admisión", "Combustible", "Encendido", "Escape y emisiones", "Refrigeración", "Sensores del motor",
             "Transmisión", "Electricidad", "Computador", "Comunicación", "Frenos y estabilidad",
+            "Distribución del motor", "Turbo", "Lubricación", "Diésel y precalentamiento", "Híbrido",
         )
         val pattern = Regex("^[PCBU][0-3][0-9A-F]{3}$")
         val keys = org.json.JSONObject(json).getJSONObject("codigos").keys().asSequence().toList()
@@ -79,5 +80,43 @@ class ObdCodesTest {
         assertEquals("U0100", Dtc.decode(0xC1, 0x00))
         assertTrue(codes.describe(Dtc.decode(0x01, 0x33)).known)
         assertTrue(codes.describe(Dtc.decode(0xC1, 0x00)).known)
+    }
+}
+
+class ObdCodesGravedadTest {
+    private val json = File(System.getProperty("obd.codes.path")).readText()
+    private val codes = ObdCodes.parse(json)
+    private val raw = org.json.JSONObject(json).getJSONObject("codigos")
+
+    @Test
+    fun `todo codigo del catalogo trae gravedad de 1 a 3 y una accion`() {
+        for (key in raw.keys()) {
+            val i = codes.describe(key)
+            assertTrue(i.known, key)
+            assertTrue(i.severity in 1..3, "$key sin gravedad")
+            assertTrue(i.action.length > 20, "$key sin accion")
+        }
+    }
+
+    @Test
+    fun `los codigos que dejan al auto sin aceite o recalentado son de gravedad 3`() {
+        assertEquals(3, codes.describe("P0217").severity)
+        assertEquals(3, codes.describe("P0524").severity)
+        assertEquals(1, codes.describe("P0420").severity)
+    }
+
+    @Test
+    fun `un codigo desconocido no trae gravedad ni accion`() {
+        val i = codes.describe("P0999")
+        assertEquals(0, i.severity)
+        assertEquals("", i.action)
+    }
+
+    @Test
+    fun `un catalogo viejo sin gravedad sigue leyendose`() {
+        val old = """{"genericos":{"P0":"x"},"codigos":{"P0133":{"sistema":"S","texto":"T"}}}"""
+        val i = ObdCodes.parse(old).describe("P0133")
+        assertTrue(i.known)
+        assertEquals(0, i.severity)
     }
 }

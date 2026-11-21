@@ -413,16 +413,15 @@
 .scr .oh.ok > b::before { content: '✓ '; color: #3ddc84; }
 .scr .oh.warn { border-color: var(--accent); }
 .scr .oh.warn > b::before { content: '● '; color: #ffb020; }
-.scr .codes { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; max-height: 190px; overflow-y: auto; align-content: start; }
+.scr .codes { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; max-height: 190px; overflow: hidden; }
 .scr .codes li { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: baseline; }
 .scr .codes li b { font-size: 22px; font-variant-numeric: tabular-nums; }
 .scr .codes li small { color: var(--ink2); font-size: 15px; }
 .scr .codes li.sev3 b { color: #ff8a7a; }
 .scr .codes li.sev2 b { color: #f5c400; }
 .scr .codes li p.act { color: var(--ink); font-weight: 500; font-size: 16px; }
-/* Solo el código más urgente (el primero) lleva su explicación y consejo completos; los demás, una línea. */
-.scr .codes li:not(:first-child) p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.scr .codes li:not(:first-child) p.act { display: none; }
+/* Solo se muestra el código más urgente; los demás se resumen en «+N más». */
+.scr .oh-more { color: var(--ink); font-size: 16px; font-weight: 700; }
 .scr .codes li p { grid-column: 1 / -1; margin: 2px 0 0; color: var(--ink2); font-size: 17px; line-height: 1.3; }
 .scr .oh-note { color: var(--ink2); font-size: 14px; }
 

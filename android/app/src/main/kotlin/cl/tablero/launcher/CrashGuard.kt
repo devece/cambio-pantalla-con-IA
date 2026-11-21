@@ -15,9 +15,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 object CrashGuard {
     private const val ARCHIVO = "registro-fallos.txt"
     /** Tiempo sin respuesta del hilo principal que se considera bloqueo. */
-    private const val UMBRAL_MS = 8_000L
+    private const val UMBRAL_MS = 10_000L
     /** Cada cuánto despierta el vigilante: casi sin costo. */
-    private const val PERIODO_MS = 2_000L
+    private const val PERIODO_MS = 3_000L
 
     private val instalado = AtomicBoolean(false)
     private val cerrojo = Any()

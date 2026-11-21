@@ -65,7 +65,7 @@
 
         <!-- Solo actúa si el usuario activó «Abrir Tablero al encender» en Ajustes. -->
         <receiver
-            android:name=".BootReceiver"
+            android:name=".ArranqueReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -75,7 +75,7 @@
 
         <!-- Inicio «falso» desactivado: se activa un instante para que Android vuelva a preguntar cuál inicio usar (ver HomeRole.kt). -->
         <activity
-            android:name=".FakeHome"
+            android:name=".InicioTemporal"
             android:enabled="false"
             android:exported="true"
             android:excludeFromRecents="true"

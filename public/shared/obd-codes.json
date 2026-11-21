@@ -37,15 +37,15 @@
   },
   "P0011": {
    "sistema": "Distribución del motor",
-   "texto": "El árbol de levas de admisión está más adelantado de lo esperado (variador de distribución).",
+   "texto": "La distribución variable de la admisión se adelanta más de lo que ordena el computador.",
    "gravedad": 2,
-   "accion": "Revisa el nivel y el estado del aceite: el variador funciona con presión de aceite. Si está bien, haz revisar la válvula de control del variador (OCV)."
+   "accion": "Mira cuándo fue el último cambio de aceite y su nivel: un aceite escaso o muy gastado es la causa más común. Si está bien, un taller debe probar la válvula que regula la distribución variable."
   },
   "P0012": {
    "sistema": "Distribución del motor",
-   "texto": "El árbol de levas de admisión está más atrasado de lo esperado (variador de distribución).",
+   "texto": "La distribución variable de la admisión se atrasa más de lo que ordena el computador.",
    "gravedad": 2,
-   "accion": "Revisa el nivel y el estado del aceite: el variador funciona con presión de aceite. Si está bien, haz revisar la válvula de control del variador (OCV). Si el motor suena raro, no lo exijas."
+   "accion": "Parte por el aceite (nivel y antigüedad). Si el código vuelve, que un taller revise la válvula de la distribución variable y la cadena. Si el motor suena raro, no lo exijas."
   },
   "P0013": {
    "sistema": "Distribución del motor",
@@ -55,9 +55,9 @@
   },
   "P0014": {
    "sistema": "Distribución del motor",
-   "texto": "El árbol de levas de escape está más adelantado de lo esperado (variador de distribución).",
+   "texto": "La distribución variable del escape se adelanta más de lo que ordena el computador.",
    "gravedad": 2,
-   "accion": "Revisa el nivel y el estado del aceite: el variador funciona con presión de aceite. Si está bien, haz revisar la válvula de control del variador (OCV)."
+   "accion": "Revisa primero el aceite: poco o muy usado afecta este sistema. Si no cambia nada, haz probar la válvula de la distribución variable del lado del escape."
   },
   "P0016": {
    "sistema": "Sensores del motor",
@@ -99,7 +99,7 @@
    "sistema": "Aire y admisión",
    "texto": "El medidor de aire (MAF) da lecturas que no cuadran. Puede estar sucio o haber una entrada de aire que no pasa por él.",
    "gravedad": 2,
-   "accion": "Revisa que el filtro de aire esté limpio y que ninguna manguera de admisión esté suelta o rota. Después limpia el medidor MAF con un limpiador especial."
+   "accion": "Mira si el filtro de aire está sucio y si alguna manguera entre el filtro y el motor quedó suelta o rajada. Luego limpia el medidor MAF con su producto especial."
   },
   "P0102": {
    "sistema": "Aire y admisión",
@@ -151,13 +151,13 @@
   },
   "P0112": {
    "sistema": "Aire y admisión",
-   "texto": "El sensor de temperatura del aire de admisión manda una señal demasiado baja.",
+   "texto": "La señal del sensor de temperatura del aire de admisión llega más baja de lo normal.",
    "gravedad": 1,
    "accion": "El auto puede seguir andando. Revisa el conector del sensor en el próximo servicio."
   },
   "P0113": {
    "sistema": "Aire y admisión",
-   "texto": "El sensor de temperatura del aire de admisión manda una señal demasiado alta.",
+   "texto": "La señal del sensor de temperatura del aire de admisión llega más alta de lo normal.",
    "gravedad": 1,
    "accion": "El auto puede seguir andando. Revisa el conector del sensor en el próximo servicio."
   },
@@ -193,7 +193,7 @@
   },
   "P0121": {
    "sistema": "Sensores del motor",
-   "texto": "El sensor del acelerador da lecturas que no cuadran.",
+   "texto": "El sensor del acelerador entrega valores que no coinciden con lo esperado.",
    "gravedad": 2,
    "accion": "Revisa el conector y limpia el cuerpo de aceleración. Si el auto se tironea o queda sin fuerza, llévalo al taller."
   },
@@ -481,7 +481,7 @@
   },
   "P0341": {
    "sistema": "Sensores del motor",
-   "texto": "El sensor del árbol de levas da lecturas que no cuadran.",
+   "texto": "El sensor del árbol de levas manda una señal que no calza con la del cigüeñal.",
    "gravedad": 2,
    "accion": "Haz revisar el sensor del árbol de levas y su conector pronto. Puede costar encender o el motor perder fuerza."
   },
@@ -607,7 +607,7 @@
   },
   "P0456": {
    "sistema": "Escape y emisiones",
-   "texto": "Hay una fuga muy pequeña en el sistema de vapores de bencina (EVAP).",
+   "texto": "El sistema de vapores de bencina (EVAP) pierde un poquito de aire: la fuga es mínima.",
    "gravedad": 1,
    "accion": "Primero revisa que la tapa del estanque esté bien cerrada y en buen estado; borra el código y mira si vuelve. Si vuelve, hay que buscar la fuga."
   },
@@ -655,15 +655,15 @@
   },
   "P0506": {
    "sistema": "Sensores del motor",
-   "texto": "El ralentí está más bajo de lo esperado.",
+   "texto": "El motor gira más lento de lo normal cuando está detenido (ralentí bajo).",
    "gravedad": 1,
-   "accion": "Limpia el cuerpo de aceleración y revisa que no entre aire por mangueras sueltas. Si el motor se apaga al detenerte, ve al taller."
+   "accion": "Un cuerpo de aceleración sucio o una manguera floja que deja entrar aire de más suelen ser la causa. Si el motor se apaga al detenerte, ve al taller."
   },
   "P0507": {
    "sistema": "Sensores del motor",
-   "texto": "El ralentí está más alto de lo esperado.",
+   "texto": "El motor gira más rápido de lo normal cuando está detenido (ralentí alto).",
    "gravedad": 1,
-   "accion": "Limpia el cuerpo de aceleración y revisa que no entre aire por mangueras sueltas. Si el motor se apaga al detenerte, ve al taller."
+   "accion": "Un cuerpo de aceleración sucio o una manguera floja que deja entrar aire de más suelen ser la causa. Si el motor se apaga al detenerte, ve al taller."
   },
   "P0508": {
    "sistema": "Sensores del motor",
@@ -799,13 +799,13 @@
   },
   "P0715": {
    "sistema": "Transmisión",
-   "texto": "El sensor de velocidad de entrada de la caja automática tiene un problema.",
+   "texto": "El sensor que mide el giro de entrada de la caja automática no funciona bien.",
    "gravedad": 2,
    "accion": "Haz revisar el sensor y el aceite de la caja. Si los cambios se sienten bruscos o patina, ve al taller pronto."
   },
   "P0720": {
    "sistema": "Transmisión",
-   "texto": "El sensor de velocidad de salida de la caja automática tiene un problema.",
+   "texto": "El sensor que mide el giro de salida de la caja automática no funciona bien.",
    "gravedad": 2,
    "accion": "Haz revisar el sensor y el aceite de la caja. Si los cambios se sienten bruscos o patina, ve al taller pronto."
   },
@@ -853,7 +853,7 @@
   },
   "P0741": {
    "sistema": "Transmisión",
-   "texto": "El embrague del convertidor de torque de la caja automática no engancha como debe.",
+   "texto": "El embrague interno del convertidor de la caja automática no se acopla cuando debería.",
    "gravedad": 2,
    "accion": "Haz revisar el aceite de la caja y el convertidor pronto. Si tiembla a velocidad constante o patina, ve al taller."
   },

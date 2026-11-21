@@ -12,7 +12,7 @@ import java.io.File
  * No manda nada a ningún lado.
  */
 object CrashGuard {
-    private const val FILE = "fallos.txt"
+    private const val FILE = "registro-de-fallos.log"
     private const val FREEZE_MS = 8_000L
     private const val TICK_MS = 2_000L
 

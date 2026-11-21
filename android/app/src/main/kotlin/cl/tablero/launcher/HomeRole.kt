@@ -18,7 +18,7 @@ fun isHomeApp(context: Context): Boolean {
 
 /**
  * Pide de nuevo elegir Tablero como pantalla de inicio. Android 10 o más nuevo: el diálogo oficial del rol de inicio. Antes: se activa
- * un instante [FakeHome] (otro inicio) para que el sistema olvide el que estaba fijado y vuelva a preguntar. Devuelve false si no se pudo.
+ * un instante [InicioTemporal] (otro inicio) para que el sistema olvide el que estaba fijado y vuelva a preguntar. Devuelve false si no se pudo.
  */
 fun requestHome(activity: android.app.Activity): Boolean {
     if (Build.VERSION.SDK_INT >= 29) {
@@ -31,21 +31,21 @@ fun requestHome(activity: android.app.Activity): Boolean {
         }
     }
     return try {
-        val fake = android.content.ComponentName(activity, FakeHome::class.java)
+        val fake = android.content.ComponentName(activity, InicioTemporal::class.java)
         activity.packageManager.setComponentEnabledSetting(fake, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
         activity.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         true
     } catch (e: Exception) {
-        releaseFakeHome(activity)
+        liberarInicioTemporal(activity)
         false
     }
 }
 
-/** Vuelve a desactivar [FakeHome]. Se llama al volver a Ajustes, para que nunca quede un segundo inicio activo. */
-fun releaseFakeHome(context: Context) {
+/** Vuelve a desactivar [InicioTemporal]. Se llama al volver a Ajustes, para que nunca quede un segundo inicio activo. */
+fun liberarInicioTemporal(context: Context) {
     runCatching {
         context.packageManager.setComponentEnabledSetting(
-            android.content.ComponentName(context, FakeHome::class.java),
+            android.content.ComponentName(context, InicioTemporal::class.java),
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
             PackageManager.DONT_KILL_APP,
         )

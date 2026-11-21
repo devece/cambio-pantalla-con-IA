@@ -14,7 +14,7 @@ import java.util.TimeZone
  */
 object CrashLog {
     /** Tope del archivo: al pasarlo se descartan las entradas más viejas. */
-    const val MAX_CHARS = 64 * 1024
+    const val MAX_CHARS = 48 * 1024
 
     /** Separa una entrada de la siguiente (siempre al comienzo de línea). */
     const val MARK = "=== "

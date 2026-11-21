@@ -8,7 +8,7 @@ import android.content.Intent
  * «Abrir Tablero al encender»: para radios que siempre arrancan en su menú de fábrica aunque Tablero sea el inicio. Solo actúa si el
  * usuario lo activó en Ajustes. En Android 10 o más nuevo el sistema puede impedir abrir una pantalla desde el fondo; ahí no hace nada.
  */
-class BootReceiver : BroadcastReceiver() {
+class ArranqueReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action ?: return
         if (action != Intent.ACTION_BOOT_COMPLETED && action != "android.intent.action.QUICKBOOT_POWERON") return

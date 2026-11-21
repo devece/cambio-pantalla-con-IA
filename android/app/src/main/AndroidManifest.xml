@@ -73,8 +73,8 @@
             </intent-filter>
         </receiver>
 
-        <!-- Segundo punto de entrada de inicio, desactivado: se activa un instante para que Android olvide cuál inicio había fijado y vuelva
-             a preguntar (ver HomeRole.kt). Es un alias de MainActivity, así que no hay otra pantalla que mantener. -->
+        <!-- Alias DESACTIVADO de MainActivity que además atiende HOME. Mientras está activo, el sistema ve dos candidatos de inicio en la
+             misma app y vuelve a mostrar la lista «¿qué app usar?». HomeAlterno.kt lo activa y lo desactiva. -->
         <activity-alias
             android:name=".InicioAlterno"
             android:targetActivity=".MainActivity"

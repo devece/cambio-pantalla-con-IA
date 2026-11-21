@@ -1,66 +1,138 @@
 package cl.tablero.core
 
-import java.io.PrintWriter
-import java.io.StringWriter
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
+/** Fecha y hora UTC sin java.time (que en Android solo existe desde la API 26) ni SimpleDateFormat (no es seguro entre hilos). */
+internal object FechaUtc {
+    private fun pad(n: Int, ancho: Int = 2): String = n.toString().padStart(ancho, '0')
 
-/**
- * Registro de fallos de la app: cierres inesperados y pantalla bloqueada. Sirve para saber qué le pasó a una radio que no
- * tenemos a mano: el usuario lo ve en Diagnóstico y lo comparte. No lleva nada personal (solo versión, hilo y pila de llamadas).
- * Sin Android, para poder probarlo en cualquier PC.
- */
+    /** Devuelve (año, mes, día) del calendario gregoriano para los días transcurridos desde 1970-01-01. */
+    private fun civil(dias: Long): Triple<Int, Int, Int> {
+        val z = dias + 719468
+        val era = Math.floorDiv(z, 146097L)
+        val doe = z - era * 146097
+        val yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365
+        val doy = doe - (365 * yoe + yoe / 4 - yoe / 100)
+        val mp = (5 * doy + 2) / 153
+        val dia = (doy - (153 * mp + 2) / 5 + 1).toInt()
+        val mes = (if (mp < 10) mp + 3 else mp - 9).toInt()
+        val anio = (yoe + era * 400 + (if (mes <= 2) 1 else 0)).toInt()
+        return Triple(anio, mes, dia)
+    }
+
+    fun fecha(ms: Long): String {
+        val (a, m, d) = civil(Math.floorDiv(ms, 86_400_000L))
+        return "${pad(a, 4)}-${pad(m)}-${pad(d)}"
+    }
+
+    fun fechaHora(ms: Long): String {
+        val resto = Math.floorMod(ms, 86_400_000L)
+        val h = (resto / 3_600_000L).toInt()
+        val mi = (resto / 60_000L % 60).toInt()
+        val s = (resto / 1000L % 60).toInt()
+        return "${fecha(ms)} ${pad(h)}:${pad(mi)}:${pad(s)} UTC"
+    }
+}
+
+/** Registro de texto de fallos. Cada registro empieza con una línea que comienza con [MARCA]. */
 object CrashLog {
-    /** Tope del archivo: al pasarlo se descartan las entradas más viejas. */
-    const val MAX_CHARS = 48 * 1024
+    const val MAX_CHARS: Int = 40_000
 
-    /** Separa una entrada de la siguiente (siempre al comienzo de línea). */
-    const val MARK = "=== "
+    private const val MARCA = "##### "
+    private const val SIN_PILA = "(sin pila disponible)"
+    private const val MAX_CAUSAS = 8
 
-    /** Una entrada del registro. [kind] dice qué pasó (por ejemplo «Cierre inesperado» o «Pantalla bloqueada»). */
     fun entry(kind: String, atMillis: Long, version: String, thread: String, stack: String): String {
-        val fmt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).apply { timeZone = TimeZone.getTimeZone("UTC") }
-        return buildString {
-            append(MARK).append(fmt.format(Date(atMillis))).append(" UTC · ").append(kind).append('\n')
-            append("Versión: ").append(version).append('\n')
-            append("Hilo: ").append(thread).append('\n')
-            append(stack.trimEnd()).append('\n')
+        val sb = StringBuilder()
+        sb.append(MARCA).append(FechaUtc.fechaHora(atMillis)).append(" | ").append(linea(kind)).append('\n')
+        sb.append("Versión: ").append(linea(version)).append('\n')
+        sb.append("Hilo: ").append(linea(thread)).append('\n')
+        val cuerpo = stack.trimEnd('\n', '\r').ifEmpty { SIN_PILA }
+        for (l in cuerpo.split('\n')) {
+            val limpia = l.trimEnd('\r')
+            // Una línea de la pila nunca debe parecer una marca de registro.
+            if (limpia.startsWith(MARCA.trimEnd())) sb.append(' ')
+            sb.append(limpia).append('\n')
         }
+        return sb.toString()
     }
 
-    /** Agrega [entry] al final de [existing] y, si se pasa de [max], descarta las entradas más viejas (nunca parte una a medias). */
+    private fun linea(s: String): String = s.replace('\r', ' ').replace('\n', ' ')
+
     fun append(existing: String, entry: String, max: Int = MAX_CHARS): String {
-        val all = existing + entry
-        if (all.length <= max) return all
-        // Se corta al comienzo de una entrada. Si la última sola ya no cabe, se recorta su cola.
-        val cut = all.length - max
-        val next = all.indexOf("\n$MARK", cut - 1)
-        return if (next >= 0 && next + 1 < all.length) all.substring(next + 1)
-        else entry.take(max)
+        if (max <= 0) return ""
+        var nuevo = entry
+        if (nuevo.isNotEmpty() && !nuevo.endsWith("\n")) nuevo += "\n"
+        if (nuevo.length > max) {
+            // El último solo no cabe: se recorta ese, conservando el principio y el salto final.
+            var corte = max - 1
+            if (corte > 0 && Character.isHighSurrogate(nuevo[corte - 1])) corte--
+            return nuevo.substring(0, corte) + "\n"
+        }
+        val inicios = inicios(existing)
+        if (inicios.isEmpty()) return nuevo
+        var base = existing.substring(inicios[0])
+        if (!base.endsWith("\n")) base += "\n"
+        if (base.length + nuevo.length <= max) return base + nuevo
+        // Descartar registros viejos enteros hasta que quepa.
+        for (i in 1 until inicios.size) {
+            val resto = existing.length - inicios[i] + (if (existing.endsWith("\n")) 0 else 1)
+            if (resto + nuevo.length <= max) {
+                val cola = existing.substring(inicios[i])
+                return (if (cola.endsWith("\n")) cola else cola + "\n") + nuevo
+            }
+        }
+        return nuevo
     }
 
-    /** La pila de llamadas de un error como texto, con sus causas. */
+    /** Posiciones donde empieza un registro (marca al comienzo de línea). */
+    private fun inicios(log: String): List<Int> {
+        val res = ArrayList<Int>()
+        var i = 0
+        while (i <= log.length - MARCA.length) {
+            val enLinea = i == 0 || log[i - 1] == '\n'
+            if (enLinea && log.startsWith(MARCA, i)) {
+                res.add(i)
+                i += MARCA.length
+            } else {
+                val sig = log.indexOf('\n', i)
+                if (sig < 0) break
+                i = sig + 1
+            }
+        }
+        return res
+    }
+
     fun stackOf(t: Throwable): String {
-        val sw = StringWriter()
-        t.printStackTrace(PrintWriter(sw))
-        return sw.toString()
+        val sb = StringBuilder()
+        val vistos = java.util.Collections.newSetFromMap(java.util.IdentityHashMap<Throwable, Boolean>())
+        var actual: Throwable? = t
+        var n = 0
+        while (actual != null && vistos.add(actual) && n <= MAX_CAUSAS) {
+            if (n > 0) sb.append("Caused by: ")
+            sb.append(try { actual.toString() } catch (e: Throwable) { actual.javaClass.name }).append('\n')
+            val frames = try { actual.stackTrace } catch (e: Throwable) { emptyArray() }
+            for (f in frames) sb.append("\tat ").append(f).append('\n')
+            actual = actual.cause
+            n++
+        }
+        return sb.toString()
     }
 
-    /** La pila de un hilo ya vivo (por ejemplo el principal bloqueado), una llamada por línea. */
-    fun stackOf(frames: Array<StackTraceElement>): String =
-        frames.joinToString("\n") { "    at $it" }.ifEmpty { "(sin pila)" }
+    fun stackOf(frames: Array<StackTraceElement>): String {
+        if (frames.isEmpty()) return SIN_PILA + "\n"
+        val sb = StringBuilder()
+        for (f in frames) sb.append("\tat ").append(f).append('\n')
+        return sb.toString()
+    }
 
-    /** Cuántas entradas tiene el registro. */
-    fun count(log: String): Int = log.lineSequence().count { it.startsWith(MARK) }
+    fun count(log: String): Int = inicios(log).size
 
-    /** Lo que se muestra en el diagnóstico: las últimas [maxEntries] entradas, o un aviso si no hay. */
     fun summary(log: String, maxEntries: Int = 3): String {
         if (log.isBlank()) return "Ninguno registrado."
-        val parts = log.split("\n$MARK").mapIndexed { i, s -> if (i == 0) s else MARK + s }.filter { it.isNotBlank() }
-        val shown = parts.takeLast(maxEntries)
-        val head = if (parts.size > shown.size) "Mostrando los últimos ${shown.size} de ${parts.size}.\n" else ""
-        return head + shown.joinToString("\n") { it.trimEnd() }
+        val inicios = inicios(log)
+        if (inicios.isEmpty()) return log.trimEnd() + "\n"
+        val mostrar = maxEntries.coerceAtLeast(1).coerceAtMost(inicios.size)
+        val desde = inicios[inicios.size - mostrar]
+        val cola = log.substring(desde)
+        return if (inicios.size > mostrar) "Mostrando los últimos $mostrar de ${inicios.size}.\n$cola" else cola
     }
 }

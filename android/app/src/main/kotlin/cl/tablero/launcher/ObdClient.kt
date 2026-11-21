@@ -118,7 +118,9 @@ class ObdClient(
                             .put("code", code)
                             .put("system", info?.system ?: "")
                             .put("text", info?.text ?: "")
-                            .put("known", info?.known ?: false),
+                            .put("known", info?.known ?: false)
+                            .put("severity", info?.severity ?: 0)
+                            .put("action", info?.action ?: ""),
                     )
                 }
                 json.put("health", JSONObject().put("milOn", h.milOn).put("count", h.dtcCount).put("codes", list))

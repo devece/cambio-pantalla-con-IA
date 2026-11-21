@@ -21,6 +21,9 @@
     <!-- Aviso de actualización: instalar la versión nueva de la propia app (Android pide la confirmación al usuario). -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <!-- «Abrir Tablero al encender» (opcional, apagado de fábrica): saber cuándo terminó de arrancar la radio. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <!-- Ver todas las apps instaladas (el APK no se publica en Play Store): así las reconoce aunque la radio use otro tipo de icono. -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
@@ -39,6 +42,7 @@
         android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
+        android:name=".TableroApp"
         android:theme="@style/Theme.Tablero">
 
         <!-- HOME: es lo que permite elegir Tablero como pantalla de inicio de la radio. -->
@@ -58,6 +62,30 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
+
+        <!-- Solo actúa si el usuario activó «Abrir Tablero al encender» en Ajustes. -->
+        <receiver
+            android:name=".ArranqueReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Alias DESACTIVADO de MainActivity que además atiende HOME. Mientras está activo, el sistema ve dos candidatos de inicio en la
+             misma app y vuelve a mostrar la lista «¿qué app usar?». HomeAlterno.kt lo activa y lo desactiva. -->
+        <activity-alias
+            android:name=".InicioAlterno"
+            android:targetActivity=".MainActivity"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity-alias>
 
         <!-- Recibe la respuesta del instalador de Android durante una actualización. -->
         <receiver

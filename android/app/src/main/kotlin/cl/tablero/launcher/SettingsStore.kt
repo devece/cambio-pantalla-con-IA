@@ -76,6 +76,13 @@ class SettingsStore(context: Context) {
         p.edit().putString("orient", if (mode == "v" || mode == "h") mode else "").apply()
     }
 
+    /** ¿Abrir Tablero al encender la radio? Es para radios que arrancan siempre en su menú de fábrica. Ver [ArranqueReceiver]. */
+    fun bootOpen(): Boolean = p.getBoolean("bootOpen", false)
+
+    fun setBootOpen(on: Boolean) {
+        p.edit().putBoolean("bootOpen", on).apply()
+    }
+
     fun save(c: LauncherConfig) {
         // Si el usuario corrigió el kilometraje a mano, los metros sueltos que el GPS había juntado ya no valen.
         val corrected = p.contains("odometer") && p.getInt("odometer", 0) != c.odometer

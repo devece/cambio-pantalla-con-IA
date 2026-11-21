@@ -248,6 +248,9 @@ class SettingsActivity : Activity() {
 
         buildObdSection(c)
 
+        buildSystemSection()
+        buildBackupSection()
+
         section("Apoyar")
         form.addView(Button(this).apply {
             text = "Invítame un café ☕"
@@ -466,6 +469,10 @@ class SettingsActivity : Activity() {
     @Deprecated("Se usa la API clásica de Activity para funcionar en radios con Android antiguo")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQ_BACKUP_PICK) {
+            if (resultCode == RESULT_OK) data?.data?.let { uri -> confirmRestore { readUri(uri) } }
+            return
+        }
         if ((requestCode != REQ_PHOTO && requestCode != REQ_PHOTO_REAR && requestCode != REQ_BG) || resultCode != RESULT_OK) return
         val uri = data?.data ?: return
         if (requestCode == REQ_BG) {
@@ -486,6 +493,134 @@ class SettingsActivity : Activity() {
             runOnUiThread {
                 if (rear) refreshRearStatus() else refreshPhotoStatus()
                 if (problem != null) Toast.makeText(this, problem, Toast.LENGTH_LONG).show()
+            }
+        }.start()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Por si «Elegir Tablero como inicio» activó el inicio falso: nunca debe quedar activo.
+        releaseAlternateHome(this)
+    }
+
+    /* ---------- inicio de la radio ---------- */
+
+    private fun buildSystemSection() {
+        section("Inicio de la radio")
+        form.addView(CheckBox(this).apply {
+            text = "Abrir Tablero al encender la radio"
+            isChecked = settings.bootOpen()
+            setTextColor(Ui.TEXT)
+            // Se guarda al tocar: no depende del botón Guardar.
+            setOnCheckedChangeListener { _, on -> settings.setBootOpen(on) }
+        })
+        form.addView(TextView(this).apply {
+            text = "Para radios que siempre arrancan en su menú de fábrica. En Android 10 o más nuevo el sistema puede no permitirlo; ahí, elige Tablero como inicio con el botón de abajo."
+            setTextColor(Ui.SUB)
+        })
+        form.addView(Button(this).apply {
+            text = "Elegir Tablero como inicio"
+            setOnClickListener {
+                if (!requestHome(this@SettingsActivity)) {
+                    Toast.makeText(this@SettingsActivity, "No se pudo abrir la lista. En Ajustes de Android → Apps → Inicio, elige Tablero.", Toast.LENGTH_LONG).show()
+                }
+            }
+        })
+    }
+
+    /* ---------- copia de seguridad ---------- */
+
+    private fun buildBackupSection() {
+        section("Copia de seguridad")
+        form.addView(TextView(this).apply {
+            text = "Guarda tus ajustes, kilometraje, mantenciones y foto en un archivo, por si hay que restablecer la radio de fábrica o pasarlos a otra. No sale de la radio: tú lo copias a una USB."
+            setTextColor(Ui.SUB)
+        })
+        val row = LinearLayout(this)
+        row.addView(Button(this).apply {
+            text = "Guardar copia"
+            setOnClickListener { saveBackup() }
+        })
+        row.addView(Button(this).apply {
+            text = "Restaurar copia"
+            setOnClickListener { chooseBackup() }
+        })
+        form.addView(row)
+    }
+
+    private fun saveBackup() {
+        Toast.makeText(this, "Guardando la copia…", Toast.LENGTH_SHORT).show()
+        Thread {
+            val saved = runCatching { BackupStore(this).save() }.getOrNull()
+            runOnUiThread {
+                if (saved == null) {
+                    Toast.makeText(this, "No se pudo guardar la copia: la radio no dejó escribir archivos.", Toast.LENGTH_LONG).show()
+                } else {
+                    val where = saved.publicPath?.let { "Descargas/Tablero" } ?: saved.appFile?.parentFile?.absolutePath ?: ""
+                    AlertDialog.Builder(this)
+                        .setTitle("Copia guardada")
+                        .setMessage("${saved.name}\n\nQuedó en: $where" + (saved.appFile?.let { "\n\nTambién en: ${it.parentFile?.absolutePath}" } ?: "") + "\n\nCópiala a una USB para tenerla a salvo.")
+                        .setPositiveButton("Listo", null)
+                        .show()
+                }
+            }
+        }.start()
+    }
+
+    private fun chooseBackup() {
+        val files = runCatching { BackupStore(this).available() }.getOrDefault(emptyList())
+        val labels = files.map { f ->
+            f.name + "  (" + java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(java.util.Date(f.lastModified())) + ")"
+        } + "Elegir otro archivo…"
+        AlertDialog.Builder(this)
+            .setTitle("Restaurar copia")
+            .setItems(labels.toTypedArray()) { _, which ->
+                if (which < files.size) confirmRestore { readFile(files[which]) } else pickBackupFile()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun pickBackupFile() {
+        try {
+            val intent = android.content.Intent(android.content.Intent.ACTION_OPEN_DOCUMENT)
+                .addCategory(android.content.Intent.CATEGORY_OPENABLE)
+                .setType("*/*")
+            startActivityForResult(intent, REQ_BACKUP_PICK)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Esta radio no trae un explorador de archivos. Copia la copia a la carpeta Descargas/Tablero y vuelve a intentar.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun confirmRestore(then: () -> Unit) {
+        AlertDialog.Builder(this)
+            .setTitle("¿Restaurar esta copia?")
+            .setMessage("Reemplaza tus ajustes actuales por los de la copia.")
+            .setPositiveButton("Restaurar") { _, _ -> then() }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun readFile(f: java.io.File) = restoreFrom { if (f.length() > MAX_BACKUP_BYTES) null else f.readText() }
+
+    private fun readUri(uri: android.net.Uri) = restoreFrom {
+        contentResolver.openInputStream(uri)?.use { input ->
+            val bytes = input.readBytes()
+            if (bytes.size > MAX_BACKUP_BYTES) null else String(bytes, Charsets.UTF_8)
+        }
+    }
+
+    private fun restoreFrom(read: () -> String?) {
+        Thread {
+            val text = runCatching(read).getOrNull()
+            val problem = if (text == null) "No se pudo leer el archivo." else BackupStore(this).restore(text)
+            runOnUiThread {
+                if (problem != null) {
+                    Toast.makeText(this, problem, Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(this, "Copia restaurada.", Toast.LENGTH_LONG).show()
+                    recreate()
+                }
             }
         }.start()
     }
@@ -996,6 +1131,8 @@ class SettingsActivity : Activity() {
         const val REQ_PHOTO = 41
         const val REQ_PHOTO_REAR = 42
         const val REQ_BG = 43
+        const val REQ_BACKUP_PICK = 44
+        const val MAX_BACKUP_BYTES = 12_000_000L
     }
 
     private fun field(hint: String, value: String): EditText {

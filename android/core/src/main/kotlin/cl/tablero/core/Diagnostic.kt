@@ -20,6 +20,8 @@ data class DiagnosticInfo(
     val assignedWheelKeys: Int,
     /** Códigos de tecla que llegaron mientras la pantalla de diagnóstico estaba abierta, del más viejo al más nuevo. */
     val keysSeen: List<Int>,
+    /** Los fallos recientes de la app (ver [CrashLog.summary]). Null = no se leyeron: la sección no aparece. */
+    val crashes: String? = null,
 )
 
 /**
@@ -71,6 +73,12 @@ object Diagnostic {
             appendLine("No llegó ninguna tecla. Aprieta un botón del volante con esta pantalla abierta: si no aparece, esa radio no lo manda como tecla.")
         } else {
             line("Teclas recibidas", info.keysSeen.joinToString(", ") { "${keyName(it)} ($it)" })
+        }
+
+        if (info.crashes != null) {
+            appendLine()
+            appendLine("Fallos recientes de Tablero")
+            appendLine(info.crashes)
         }
     }.trimEnd()
 }

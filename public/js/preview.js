@@ -303,8 +303,10 @@
     if (o.state !== 'connected') return `<section class="card oh"><b>Luz del motor</b><span>Se mostrará cuando el scanner esté conectado.</span></section>`;
     if (!h) return `<section class="card oh"><b>Luz del motor</b><span>Leyendo… Si tu auto no entrega este dato, no aparecerá.</span></section>`;
     if (!h.milOn && !h.count) return `<section class="card oh ok"><b>Luz del motor apagada</b><span>Sin fallas guardadas.</span></section>`;
-    const list = (h.codes || []).map((c) => `<li${c.severity ? ` class="sev${c.severity}"` : ''}><b>${esc(c.code)}</b>${c.system ? `<small>${esc(c.system)}${SEV_TEXT[c.severity] ? ' · ' + SEV_TEXT[c.severity] : ''}</small>` : ''}<p>${esc(c.text || 'Código sin explicación en esta app.')}</p>${c.action ? `<p class="act">${esc(c.action)}</p>` : ''}</li>`).join('');
-    const head = h.milOn ? 'Luz del motor encendida' : 'Hay códigos guardados';
+    const sorted = (h.codes || []).slice().sort((a, b) => (b.severity || 0) - (a.severity || 0));
+    const list = sorted.map((c) => `<li${c.severity ? ` class="sev${c.severity}"` : ''}><b>${esc(c.code)}</b>${c.system ? `<small>${esc(c.system)}${SEV_TEXT[c.severity] ? ' · ' + SEV_TEXT[c.severity] : ''}</small>` : ''}<p>${esc(c.text || 'Código sin explicación en esta app.')}</p>${c.action ? `<p class="act">${esc(c.action)}</p>` : ''}</li>`).join('');
+    const many = sorted.length > 1 ? ` · ${sorted.length} códigos` : '';
+    const head = (h.milOn ? 'Luz del motor encendida' : 'Hay códigos guardados') + many;
     const none = !(h.codes || []).length ? `<span>Tu auto dice que tiene ${h.count} código${h.count === 1 ? '' : 's'}, pero no los entregó.</span>` : '';
     return `<section class="card oh warn"><b>${head}</b>${none}<ul class="codes">${list}</ul><small class="oh-note">Es una ayuda: no reemplaza a un mecánico. Tablero solo lee los códigos, no los borra.</small></section>`;
   }

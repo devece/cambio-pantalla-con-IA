@@ -1,0 +1,95 @@
+/* Tablero · portada (index.html).
+   Identidad: tablero de instrumentos y carretera. Asfalto, amarillo de línea de calzada, números condensados como los letreros viales.
+   Se carga después de styles.css y solo redefine colores, letras y la portada; el configurador conserva su estructura. */
+:root {
+  --page: #14181e;
+  --paper: #1d232b;
+  --paper2: #262e38;
+  --ink: #f1f4f8;
+  --ink2: #a3adb9;
+  --on-ink: #14181e;
+  --verde: #ffc400;
+  --verde-osc: #e0ac00;
+  --amarillo: #ffc400;
+  --amarillo-osc: #e0ac00;
+  --borde: rgba(255, 255, 255, .14);
+  --tint: rgba(255, 196, 0, .13);
+  --tint-line: rgba(255, 196, 0, .42);
+  --font: 'Barlow', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --display: 'Barlow Condensed', 'Arial Narrow', 'Segoe UI', sans-serif;
+}
+body { background: #14181e; font-size: 18px; }
+.topbar { background: rgba(20, 24, 30, .92); }
+.brand { font-weight: 700; font-size: 26px; letter-spacing: .01em; }
+.btn.cta, .btn.primary, .btn.send { color: #14181e; box-shadow: none; }
+.btn { border-radius: 12px; }
+
+/* Portada: título enorme a la izquierda, la pantalla a la derecha */
+.hero3 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 56px; align-items: center; padding: 72px 0 56px; }
+.hero3 h1 { font: 600 clamp(64px, 9.5vw, 132px)/.86 var(--display); letter-spacing: -.01em; }
+.hero3 .sub { margin: 24px 0 0; font-size: 24px; color: var(--ink2); }
+.hero-cta { justify-content: flex-start; }
+.hero3 .hero-cta { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; }
+.hero3 .device-hero { margin: 0; max-width: none; }
+.device-hero, .shots figure { border-radius: 20px; box-shadow: none; background: #0a0d11; }
+.device-hero img, .shots img { border-radius: 12px; }
+.chips { list-style: none; padding: 0; margin: 28px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.chips li { padding: 9px 14px; border: 1px solid var(--borde); border-radius: 8px; font-weight: 500; font-size: 17px; }
+.chips.big { margin-top: 0; gap: 10px; }
+.chips.big li { padding: 16px 22px; font: 600 28px/1 var(--display); border-color: var(--tint-line); }
+
+/* La línea discontinua de la carretera separa la portada */
+.road { border: 0; border-top: 4px dashed var(--amarillo); margin: 0 auto; width: min(var(--wrap), 100% - 32px); opacity: .9; }
+
+/* Secciones: título condensado grande, alineado a la izquierda */
+.sec { padding-top: 96px; }
+.sec-head { text-align: left; max-width: none; margin: 0 0 32px; }
+.sec-head h2, .final h2, .support h2, .faq h2 { font: 600 clamp(44px, 6.2vw, 80px)/.94 var(--display); letter-spacing: -.005em; margin: 0; text-wrap: balance; }
+.sec-head p:not(.eyebrow) { margin-top: 14px; font-size: 21px; max-width: 54ch; }
+.support, .final { text-align: left; }
+.support .hero-cta, .final .hero-cta { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-start; }
+.final { padding: 110px 0 48px; }
+
+/* Funciones: rejilla de celdas separadas por una línea fina, sin tarjetas */
+.feats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--borde); border: 1px solid var(--borde); border-radius: 14px; overflow: hidden; }
+.feats .feat { background: var(--page); border: 0; border-radius: 0; padding: 26px 22px 28px; }
+.feats .feat .ic { display: block; width: auto; height: auto; background: none; border-radius: 0; color: var(--amarillo); margin-bottom: 16px; }
+.feats .feat .ic svg { width: 34px; height: 34px; }
+.feats .feat h3 { font: 600 28px/1 var(--display); margin-bottom: 8px; }
+.feats .feat p { font-size: 17px; }
+
+/* Pasos: paradas sobre una carretera discontinua (aquí sí es una secuencia) */
+.steps { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; padding: 0; margin: 0; list-style: none; counter-reset: s; }
+.steps::before { content: ''; position: absolute; left: 28px; right: 28px; top: 26px; border-top: 4px dashed var(--amarillo); }
+.steps li { background: none; border: 0; border-radius: 0; padding: 78px 4px 0 0; position: relative; counter-increment: s; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: 0; z-index: 1; width: 56px; height: 56px; border-radius: 50%; background: var(--amarillo); color: #14181e; border: 4px solid #14181e; display: grid; place-items: center; font: 700 28px/1 var(--display); }
+.steps b { font: 600 30px/1 var(--display); margin-bottom: 8px; }
+.steps span { font-size: 17px; }
+.after { justify-content: flex-start; text-align: left; max-width: none; }
+
+.faq { max-width: none; padding-top: 96px; }
+.faq details { max-width: 900px; }
+.faq h2 { text-align: left; margin-bottom: 22px; }
+.faq summary { font-size: 21px; }
+.faq p { font-size: 18px; }
+.contact-card { text-align: left; background: var(--paper); border-radius: 14px; }
+.contact-links { justify-content: flex-start; }
+.contact h2 { font: 600 40px/1 var(--display); }
+
+@media (max-width: 1000px) {
+  .feats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .hero3 { grid-template-columns: 1fr; gap: 36px; padding: 40px 0 40px; }
+  .feats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 28px; }
+  .steps::before { display: none; }
+  .sec { padding-top: 72px; }
+}
+@media (max-width: 520px) {
+  .feats .feat { padding: 20px 16px 22px; }
+  .feats .feat h3 { font-size: 24px; }
+  .feats .feat p { font-size: 16px; }
+  .chips.big li { font-size: 24px; padding: 14px 16px; }
+  .steps { grid-template-columns: 1fr; }
+}

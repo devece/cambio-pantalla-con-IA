@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tablero · Tu auto en la pantalla de tu radio</title>
   <meta name="description" content="Diseña gratis la pantalla de inicio de tu radio Android de auto: tu foto sin fondo, mapa, música, Android Auto y avisos de mantención y pico y placa.">
-  <meta name="theme-color" content="#1b2f58">
+  <meta name="theme-color" content="#14181e">
   <link rel="canonical" href="https://tablero-pearl.vercel.app/">
   <!-- Al compartir el enlace (Facebook, WhatsApp, X…) se ve esta tarjeta: título, descripción e imagen de 1200 × 630. -->
   <meta property="og:type" content="website">
@@ -27,9 +27,10 @@
   <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/preview.css">
+  <link rel="stylesheet" href="css/landing.css">
 </head>
 <body>
   <a class="skip" href="#configurador">Ir al configurador</a>
@@ -47,14 +48,11 @@
         <a href="#funciones">Funciones</a>
         <a href="#disenos">Diseños</a>
         <a href="#configurador">Diseñar</a>
-        <a href="#paises">Países</a>
         <a href="#instalar">Instalar</a>
         <a href="#faq">Preguntas</a>
-        <a href="#apoyo">Apoyar</a>
       </nav>
       <div class="bar-cta">
         <a class="btn ghost small" href="/app">Descargar app</a>
-        <a class="btn ghost small" href="https://ko-fi.com/daniexpress" target="_blank" rel="noopener">☕ Un café</a>
         <a class="btn cta small" href="#configurador">Diseñar mi pantalla</a>
       </div>
       <button type="button" class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="menu" aria-label="Abrir el menú">
@@ -64,34 +62,28 @@
   </header>
 
   <main>
-    <section class="hero2 wrap">
-      <p class="pill"><i></i> Gratis · Sin anuncios · Hecho en Chile</p>
-      <h1>Tu auto, <em>en la pantalla de tu radio.</em></h1>
-      <p class="sub">Diseña desde el celular cómo se verá: tu foto sin fondo, tu mapa, tu música y tus avisos de mantención. Después descargas la app con tu diseño ya puesto. Gratis.</p>
-      <div class="hero-cta">
-        <a class="btn cta big" href="#configurador">Diseñar mi pantalla</a>
-        <a class="btn ghost big" href="/app">Descargar la app</a>
+    <section class="hero3 wrap">
+      <div class="hero3-txt">
+        <h1>Tu radio,<br>a tu manera.</h1>
+        <p class="sub">Diséñala gratis en un minuto.</p>
+        <div class="hero-cta">
+          <a class="btn cta big" href="#configurador">Diseñar mi pantalla</a>
+          <a class="btn ghost big" href="/app">Descargar app</a>
+        </div>
+        <ul class="chips" aria-label="Lo básico">
+          <li>Gratis</li><li>Sin anuncios</li><li>Desde Android 5</li>
+        </ul>
       </div>
-      <ul class="checks">
-        <li>Gratis</li><li>Sin anuncios ni cuentas</li><li>Desde Android 5</li><li>No toca el sistema de tu radio</li><li>Se desinstala como cualquier app</li>
-      </ul>
       <figure class="device-hero">
         <img src="img/sitio/consola-noche.jpg" width="1536" height="900" alt="Pantalla de inicio de Tablero en una radio: tu auto, mapa en vivo, música con carátula y accesos a Android Auto y CarPlay">
       </figure>
     </section>
 
-    <section class="stats wrap" aria-label="Datos clave">
-      <div><b>Gratis</b><span>Sin costo, sin registro y sin código</span></div>
-      <div><b>4 países</b><span>Chile, Colombia, Ecuador y México</span></div>
-      <div><b>9 + 9</b><span>Temas y distribuciones para elegir</span></div>
-      <div><b>Android 5+</b><span>Radios de pantalla grande</span></div>
-    </section>
+    <hr class="road" aria-hidden="true">
 
     <section class="sec wrap" id="video">
       <div class="sec-head">
-        <p class="eyebrow">Video</p>
-        <h2>Míralo <em>en dos minutos.</em></h2>
-        <p>Los diseños, tu auto, los avisos y el scanner OBD, con pantallas reales de la app.</p>
+        <h2>Míralo en 2 minutos.</h2>
       </div>
       <figure class="device-hero video-hero">
         <video controls preload="none" playsinline poster="video/tablero-poster.jpg" width="1280" height="720" aria-label="Video de presentación de Tablero (2 minutos y 2 segundos, con música)">
@@ -101,83 +93,51 @@
       </figure>
     </section>
 
-    <section class="sec wrap" id="problema">
-      <div class="sec-head">
-        <p class="eyebrow">¿Te suena?</p>
-        <h2>Tu radio puede más de lo que <em>te muestra.</em></h2>
-        <p>La pantalla de fábrica es igual para todos los autos y casi nada de lo que muestra sirve mientras manejas.</p>
-      </div>
-      <div class="grid3">
-        <article class="feat"><h3>Un menú que no es el tuyo</h3><p>Íconos genéricos y letras chicas, iguales en todos los autos.</p></article>
-        <article class="feat"><h3>Nada útil al manejar</h3><p>Sin velocidad grande, sin la música a la vista y sin avisos cuando te toca restricción.</p></article>
-        <article class="feat"><h3>Tu auto no aparece</h3><p>Ni tu foto ni tu nombre: es la pantalla de fábrica, no la tuya.</p></article>
-      </div>
-      <p class="after">Tablero cambia solo la pantalla de inicio. Todo lo demás de tu radio sigue igual.</p>
-    </section>
-
     <section class="sec wrap" id="funciones">
       <div class="sec-head">
-        <p class="eyebrow">Funciones</p>
-        <h2>Lo que necesitas al volante, <em>sin buscarlo.</em></h2>
+        <h2>Lo útil, a la vista.</h2>
       </div>
-      <div class="grid3">
-        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="10.5" r="1.8"/><path d="M4 17l5-4.5 3.5 3L16 12l4 4"/></svg></span><h3>Tu foto, sin fondo</h3><p>Sube una foto de tu auto: le quitamos el fondo en tu celular y la dejamos de protagonista, con versión de noche y luces encendidas.</p></article>
-        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s6.5-5.6 6.5-10.5a6.5 6.5 0 1 0-13 0C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.3"/></svg></span><h3>Mapa en vivo</h3><p>Tu posición y rumbo sobre el mapa de tu ciudad. Guarda solo los mapas de donde pasas, y con un botón los de toda tu zona, para verlos sin internet.</p></article>
-        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg></span><h3>Android Auto y CarPlay</h3><p>Un botón para cada uno. Abre el de tu pantalla o la app que ya tengas instalada en la radio.</p></article>
-        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V6.5l10-2V16"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></span><h3>Música con carátula</h3><p>La canción, el artista y la carátula de lo que suene, con anillo de progreso y botones para pausar o cambiar.</p></article>
-        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="12" r="3.5"/><path d="M11.5 12H21M17 12v3M20 12v2"/></svg></span><h3>Mantención al día</h3><p>Te muestra cuánto falta para el aceite, la revisión técnica, el permiso de circulación y otras mantenciones.</p></article>
-        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 17a8 8 0 1 1 15 0"/><path d="M12 13l4-4.5"/></svg></span><h3>Velocidad y límite</h3><p>Velocímetro por GPS y un aviso si pasas el límite que tú fijes.</p></article>
-        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s6.5-5.6 6.5-10.5a6.5 6.5 0 1 0-13 0C5.5 15.4 12 21 12 21z"/><path d="M9.5 10.5l2 2 3-3.5"/></svg></span><h3>Restricción y pico y placa</h3><p>Al entrar a la ciudad te avisa si hoy te toca. Santiago, Bogotá, Medellín, Cali y Quito.</p></article>
-        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg></span><h3>Saludo por voz</h3><p>Te saluda por tu nombre al encender el auto, con las frases que tú elijas.</p></article>
-        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></svg></span><h3>De día y de noche</h3><p>Cambia sola entre claro y oscuro, y al encender las luces muestra tu auto de noche.</p></article>
-        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M10 18h4"/></svg></span><h3>Pantalla vertical</h3><p>En radios verticales (como las de 9,7"), las 9 distribuciones se reordenan para ocupar toda la pantalla. Se detecta sola, aunque la radio tenga barras propias, o la eliges en Ajustes.</p></article>
-        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18.5 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg></span><h3>Una pantalla con vida</h3><p>Bienvenida al encender, tu auto que «respira» con un reflejo de luz y, si quieres, una carretera mientras manejas, con las líneas según tu velocidad. Lo eliges o lo apagas en Ajustes, y se apaga solo si la radio va lenta.</p></article>
-        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></span><h3>Cámbiala sin volver al sitio</h3><p>En Ajustes → Apariencia eliges el tema, la distribución, el fondo, la decoración de temporada y el reloj de 12 horas, directo en la radio y sin internet.</p></article>
+      <div class="feats">
+        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="10.5" r="1.8"/><path d="M4 17l5-4.5 3.5 3L16 12l4 4"/></svg></span><h3>Tu foto, sin fondo</h3><p>Tu auto recortado, desde el celular.</p></article>
+        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s6.5-5.6 6.5-10.5a6.5 6.5 0 1 0-13 0C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.3"/></svg></span><h3>Mapa en vivo</h3><p>Tu posición y rumbo, de día y de noche.</p></article>
+        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg></span><h3>Android Auto y CarPlay</h3><p>Un botón para cada uno.</p></article>
+        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V6.5l10-2V16"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></span><h3>Música con carátula</h3><p>Lo que suena, a la vista.</p></article>
+        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="12" r="3.5"/><path d="M11.5 12H21M17 12v3M20 12v2"/></svg></span><h3>Mantención al día</h3><p>Aceite, revisión técnica y permiso.</p></article>
+        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 17a8 8 0 1 1 15 0"/><path d="M12 13l4-4.5"/></svg></span><h3>Velocidad y límite</h3><p>Por GPS, con aviso si te pasas.</p></article>
+        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s6.5-5.6 6.5-10.5a6.5 6.5 0 1 0-13 0C5.5 15.4 12 21 12 21z"/><path d="M9.5 10.5l2 2 3-3.5"/></svg></span><h3>Restricción vehicular</h3><p>Te avisa al entrar si hoy te toca.</p></article>
+        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg></span><h3>Saludo por voz</h3><p>Te saluda por tu nombre.</p></article>
+        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></svg></span><h3>Día y noche</h3><p>Cambia sola cuando enciendes las luces.</p></article>
+        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M10 18h4"/></svg></span><h3>Pantalla vertical</h3><p>Se adapta a radios verticales.</p></article>
+        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18.5 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg></span><h3>Pantalla con vida</h3><p>Bienvenida animada al encender.</p></article>
+        <article class="feat"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></span><h3>Se cambia en la radio</h3><p>Sin volver al sitio.</p></article>
       </div>
     </section>
 
     <section class="sec wrap" id="obd">
       <div class="sec-head">
-        <p class="eyebrow">Scanner OBD</p>
-        <h2>Conecta tu scanner y <em>mira tu auto por dentro.</em></h2>
-        <p>Si tienes un scanner OBD2 ELM327 (el de Bluetooth o Wi-Fi que se enchufa bajo el volante), Tablero puede hablar con él. Es opcional: sin scanner, todo funciona igual.</p>
+        <h2>Tu auto, por dentro.</h2>
+        <p>Con un scanner OBD2 (opcional). Sin él, todo funciona igual.</p>
       </div>
-      <div class="grid3">
-        <article class="feat"><h3>Bluetooth o Wi-Fi <span class="tag on">Disponible</span></h3><p>Funciona con los scanners más comunes, como el «Scanner Automotriz OBD2 ELM327 Bluetooth V2.1». Lo eliges entre los ya emparejados con tu radio, o lo encuentras con «Buscar scanner cerca», sin pasar por los ajustes de Bluetooth de la radio.</p></article>
-        <article class="feat"><h3>Prueba de conexión <span class="tag on">Disponible</span></h3><p>En Ajustes pulsas «Probar conexión» y ves al instante si el scanner conecta, el voltaje, si el auto responde y si la luz del motor está encendida.</p></article>
-        <article class="feat"><h3>Tolerante con los clones <span class="tag on">Disponible</span></h3><p>Muchos scanners baratos responden a medias. Tablero no se rinde a la primera, y si no logra conectar deja de insistir en vez de quedar reintentando sin parar.</p></article>
-        <article class="feat"><h3>Datos en vivo en tu pantalla <span class="tag on">Disponible</span></h3><p>Una pantalla «Auto» con las revoluciones, la temperatura del motor y el voltaje reales, que se actualizan mientras manejas. Las alertas de motor caliente y batería llegan después.</p></article>
-        <article class="feat"><h3>Luz del motor explicada <span class="tag on">Disponible</span></h3><p>Si la luz del motor está encendida, ves los códigos de falla traducidos a palabras simples, sin tecnicismos. Hay explicación para los más comunes; los demás se orientan por su tipo.</p></article>
-        <article class="feat"><h3>Kilometraje al día <span class="tag on">Disponible</span></h3><p>La app ya suma sola los km con el GPS. Si tu auto informa su kilometraje por el scanner (no todos lo hacen), usa ese número, que es el real, para tus avisos de aceite y mantención.</p></article>
-      </div>
-      <h3 class="cmp-h">En qué se diferencia de otras apps de OBD</h3>
-      <ul class="cmp">
-        <li><b>Hecha para la pantalla de tu radio.</b> No es otra app suelta: los datos viven en tu pantalla de inicio, junto al mapa, la música y tus avisos de mantención.</li>
-        <li><b>Gratis, sin anuncios ni cuentas.</b> Nada de planes ni de registrarte para ver tus datos.</li>
-        <li><b>Hecha para leer, no para modificar.</b> Tablero no cambia la configuración de la computadora del auto. Borrar códigos de falla solo ocurrirá si tú lo pides de forma explícita.</li>
-        <li><b>Tus datos no salen de tu radio.</b> Lo que se lee del auto no se envía a ningún servidor.</li>
-        <li><b>Pensada para Chile.</b> Se junta con la restricción vehicular, la revisión técnica, el permiso de circulación y el SOAP.</li>
+      <ul class="chips big" aria-label="Qué hace el scanner">
+        <li>Bluetooth o Wi-Fi</li><li>Datos en vivo</li><li>Fallas explicadas</li><li>Kilometraje real</li>
       </ul>
-      <p class="after">Tablero no reemplaza a un mecánico: los datos del scanner son una ayuda y no todos los autos entregan todos los datos. <a class="btn ghost" href="#faq">Ver preguntas sobre el scanner</a></p>
     </section>
 
     <section class="sec wrap" id="disenos">
       <div class="sec-head">
-        <p class="eyebrow">Diseños</p>
-        <h2>Hazla <em>tuya.</em></h2>
-        <p>12 temas, 9 distribuciones, escenas, decoraciones de temporada (Fiestas Patrias, Halloween, Navidad, Año Nuevo) y tus colores.</p>
+        <h2>Hazla tuya.</h2>
+        <p>12 temas, 9 distribuciones y tus colores.</p>
       </div>
       <div class="shots">
         <figure><img src="img/sitio/consola-noche.jpg" width="1536" height="900" loading="lazy" alt="Tema Sobrio, distribución Consola, de noche"><figcaption><b>Sobrio · Consola</b><span>De noche</span></figcaption></figure>
         <figure><img src="img/sitio/consola-dia.jpg" width="1536" height="900" loading="lazy" alt="Tema Sobrio, distribución Consola, de día"><figcaption><b>Sobrio · Consola</b><span>De día</span></figcaption></figure>
-        <figure><img src="img/sitio/estelar-cristal.jpg" width="1536" height="900" loading="lazy" alt="Tema Cristal, distribución Estelar"><figcaption><b>Cristal · Estelar</b><span>Vidrio sobre fondo de montaña</span></figcaption></figure>
+        <figure><img src="img/sitio/estelar-cristal.jpg" width="1536" height="900" loading="lazy" alt="Tema Cristal, distribución Estelar"><figcaption><b>Cristal · Estelar</b><span>Vidrio</span></figcaption></figure>
       </div>
     </section>
 
     <div class="sec-head wrap" id="disenar">
-      <p class="eyebrow">Diséñala</p>
-      <h2>Arma tu pantalla en <em>4 pasos.</em></h2>
-      <p>Elige tu país y tu radio, sube la foto de tu auto y mira cómo queda en vivo, de día y con las luces encendidas.</p>
+            <h2>Arma tu pantalla.</h2>
+      <p>Mírala en vivo, de día y de noche.</p>
     </div>
 
     <section class="studio wrap" id="configurador" aria-label="Configurador">
@@ -202,7 +162,7 @@
           <div class="device-screen" id="device" role="img" aria-label="Vista previa de la pantalla de tu radio"></div>
           <span class="knob knob-r" aria-hidden="true"></span>
         </div>
-        <p class="stage-note">Al encender las luces del auto, la pantalla pasa sola a modo noche y muestra tu foto con luces. Desliza la pastilla de mantención para ver cada aviso, o tócala para abrir la lista completa. El clima, la canción, la emisora y el límite de velocidad son de ejemplo.</p>
+        <p class="stage-note">El clima, la canción y el límite de velocidad son de ejemplo.</p>
       </div>
 
       <div class="panel" id="panel">
@@ -497,82 +457,64 @@
 
     <section class="sec wrap" id="paises">
       <div class="sec-head">
-        <p class="eyebrow">Países</p>
-        <h2>Tu aviso de restricción, <em>donde estés.</em></h2>
-        <p>Elige tu país al diseñar y la radio usa el GPS para avisarte al entrar a la ciudad si ese día te toca.</p>
+        <h2>Restricción vehicular, donde estés.</h2>
+        <p>Cada regla muestra su fuente y hasta cuándo vale.</p>
       </div>
-      <div class="grid3">
-        <article class="feat"><h3>Chile</h3><p>Restricción vehicular de Santiago, según la tabla del Ministerio de Transportes: con sello verde, sin sello y autos inscritos desde 2011.</p></article>
-        <article class="feat"><h3>Colombia</h3><p>Pico y placa de Bogotá (por día par o impar), Medellín y Valle de Aburrá, y Cali.</p></article>
-        <article class="feat"><h3>Ecuador</h3><p>Pico y placa de Quito, con sus dos franjas horarias.</p></article>
-        <article class="feat"><h3>México</h3><p>Hoy No Circula de la Ciudad de México, de lunes a viernes. No incluye los sábados ni los autos con holograma 0 y 00.</p></article>
-        <article class="feat"><h3>Otro país</h3><p>Si tu país no está, elige «Otro»: no se aplica ninguna restricción y todo lo demás funciona igual.</p></article>
-      </div>
-      <p class="after">Estas reglas cambian cada semestre o cada año. En el configurador ves la fuente de cada una y hasta cuándo vale, y si la regla guardada vence, la radio te avisa que hay que revisarla en vez de afirmar algo equivocado.</p>
+      <ul class="chips big" aria-label="Países">
+        <li>Chile</li><li>Colombia</li><li>Ecuador</li><li>México</li><li>Otro país: sin restricción</li>
+      </ul>
     </section>
 
     <section class="sec wrap" id="instalar">
       <div class="sec-head">
-        <p class="eyebrow">En 4 pasos</p>
-        <h2>Así llega a <em>tu radio.</em></h2>
+        <h2>Así llega a tu radio.</h2>
       </div>
       <ol class="steps">
-        <li><b>Diseña tu pantalla</b><span>Elige tu país, sube la foto de tu auto y arma el diseño aquí mismo. Mira cómo queda antes de instalar.</span></li>
-        <li><b>Descarga la app con tu diseño</b><span>Es un APK que ya trae lo que elegiste. Pásalo a tu radio y permite instalar apps de orígenes desconocidos. Si Google Play Protect lo bloquea, toca «Más detalles» y luego «Instalar de todos modos».</span></li>
-        <li><b>Déjala como inicio</b><span>Presiona Inicio, elige Tablero → Siempre. Al abrirla por primera vez te guía en tres pasos, todos opcionales.</span></li>
-        <li><b>Cámbialo cuando quieras</b><span>En Ajustes → Apariencia y Foto de tu auto puedes ajustar todo, y poner la foto de tu auto. Se guarda en tu radio, sin código ni internet.</span></li>
+        <li><b>Diseña</b><span>Elige y mira cómo queda.</span></li>
+        <li><b>Descarga</b><span>El APK ya trae tu diseño. Si Play Protect avisa, toca «Instalar de todos modos».</span></li>
+        <li><b>Déjala de inicio</b><span>Presiona Inicio y elige Tablero → Siempre.</span></li>
+        <li><b>Cámbiala</b><span>Todo se ajusta en la radio, sin internet.</span></li>
       </ol>
-      <p class="after"><a class="btn ghost" href="/app">Descargar la app</a> <a class="btn link" href="listo.html">Ver la guía con fotos</a></p>
+      <p class="after"><a class="btn cta" href="/app">Descargar app</a> <a class="btn link" href="listo.html">Guía con fotos</a></p>
     </section>
 
     <section class="sec wrap" id="compatibilidad">
       <div class="sec-head">
-        <p class="eyebrow">Compatibilidad</p>
-        <h2>¿Funciona en <em>mi radio?</em></h2>
-        <p>Si es Android y de pantalla grande, horizontal o vertical, muy probablemente sí. En el primer paso del configurador puedes subir una captura de tu radio y la revisamos.</p>
+        <h2>¿Funciona en mi radio?</h2>
+        <p>Si es Android de pantalla grande, casi seguro. Sube una captura en el paso 1 y la revisamos.</p>
       </div>
-      <div class="grid3">
-        <article class="feat"><h3>Android 5.0 o superior</h3><p>Es lo que pide la app. Si tu radio abre la Play Store o instala apps como YouTube o Waze, es Android.</p></article>
-        <article class="feat"><h3>Sin root ni flashear</h3><p>Se instala como cualquier app y solo reemplaza la pantalla de inicio. Si la desinstalas, tu radio queda como antes.</p></article>
-        <article class="feat"><h3>Internet para algunas cosas</h3><p>Para el clima y para bajar mapas nuevos. Los mapas ya guardados se ven sin conexión. Los datos del celular sirven.</p></article>
-      </div>
+      <ul class="chips big" aria-label="Requisitos">
+        <li>Android 5 o más</li><li>Sin root</li><li>Se desinstala como cualquier app</li>
+      </ul>
       <p class="after"><a class="btn cta" href="#configurador">Revisar mi radio</a></p>
     </section>
 
     <section class="faq wrap" id="faq">
-      <h2>Preguntas frecuentes</h2>
-      <details><summary>¿Cómo sé si mi radio es compatible?</summary><p>Si tu radio tiene pantalla grande y puedes abrir la Play Store o instalar apps como YouTube o Waze, es Android y sirve. Si es la radio que vino de fábrica y solo muestra tu celular por Android Auto o CarPlay, no sirve. En el paso 1 puedes subir una captura de la pantalla de tu radio y te decimos si es compatible.</p></details>
-      <details><summary>¿Necesito un scanner OBD para usar Tablero?</summary><p>No. Es opcional: sin scanner todo funciona igual. El kilometraje se suma solo con el GPS y los avisos de mantención siguen igual.</p></details>
-      <details><summary>¿Qué scanner OBD me sirve?</summary><p>Los OBD2 con chip ELM327 por Bluetooth o por Wi-Fi, que se enchufan al puerto bajo el volante. Con Bluetooth, primero empareja el scanner en los ajustes de Android de tu radio y luego lo eliges en Tablero → Ajustes → Scanner OBD. Los scanners solo Bluetooth LE todavía no están soportados.</p></details>
-      <details><summary>¿Qué puedo ver hoy con el scanner?</summary><p>En Ajustes puedes probar la conexión. Y en la pantalla «Auto» ves en vivo las revoluciones, la temperatura del motor y el voltaje, la luz del motor y los códigos de falla explicados en palabras simples. Es una función nueva: no todos los autos ni todos los scanners entregan todos los datos.</p></details>
-      <details><summary>¿Qué pasa con mis apps y con Android Auto o CarPlay?</summary><p>Nada: siguen funcionando igual. La app solo cambia la pantalla de inicio y abre las apps que ya tienes.</p></details>
-      <details><summary>¿Cuánto cuesta?</summary><p>Nada: Tablero es gratis, sin anuncios, sin cuenta y sin código.</p></details>
-      <details><summary>¿Qué foto de mi auto debo usar?</summary><p>Una sola, como la tengas: con el auto completo, de lado o en diagonal, de día y sin gente delante. En este sitio le quitamos el fondo en tu celular. Si descargas la app con tu diseño, la foto viene dentro; también puedes elegirla después en la app, en Ajustes → Foto de tu auto.</p></details>
-      <details><summary>¿Cómo se instala?</summary><p>Descargas el APK (con tu diseño ya puesto, o el normal para elegir todo desde la radio), lo instalas, presionas Inicio y eliges Tablero → Siempre. Tienes la guía paso a paso en <a href="listo.html">esta página</a>.</p></details>
-      <details><summary>¿Necesito internet?</summary><p>Para instalar y usar la app no. El clima y los mapas nuevos sí usan internet (sirven los datos de tu celular). Los mapas de donde ya pasaste, o que guardaste con el botón «Guardar mapa», se ven sin conexión, y el resto de la pantalla también.</p></details>
-      <details><summary>¿La restricción vehicular sirve en mi ciudad?</summary><p>La restricción vehicular permanente para autos particulares solo existe en Santiago (Provincia de Santiago, San Bernardo y Puente Alto). La radio usa el GPS y te avisa al entrar a esa zona, solo cuando ese día te toca. En el resto del país no te molesta.</p></details>
-      <details><summary>¿Y si no funciona en mi radio?</summary><p>Escríbenos con una foto o video del problema y lo revisamos. Si no se puede resolver, desinstalas la app como cualquier otra: tu radio queda como antes.</p></details>
+      <h2>Preguntas</h2>
+      <details><summary>¿Cuánto cuesta?</summary><p>Nada. Sin anuncios, sin cuenta y sin código.</p></details>
+      <details><summary>¿Mi radio es compatible?</summary><p>Si puedes instalar apps como YouTube o Waze, sí. Si solo muestra tu celular por Android Auto o CarPlay, no.</p></details>
+      <details><summary>¿Necesito un scanner OBD?</summary><p>No. Es opcional. Sirven los ELM327 por Bluetooth o Wi-Fi; los solo Bluetooth LE aún no.</p></details>
+      <details><summary>¿Qué pasa con mis otras apps?</summary><p>Siguen igual. Tablero solo cambia la pantalla de inicio.</p></details>
+      <details><summary>¿Necesito internet?</summary><p>No para usarla. El clima y los mapas nuevos sí; los mapas guardados se ven sin conexión.</p></details>
+      <details><summary>¿Y si no funciona?</summary><p>Escríbenos con una foto o video. Si no se arregla, la desinstalas y tu radio queda como antes.</p></details>
     </section>
 
     <section class="contact wrap" id="contacto">
       <div class="contact-card">
-        <h2>¿Tienes preguntas?</h2>
-        <p id="contact-text">Escríbenos y te respondemos. Te respondemos por WhatsApp.</p>
+        <h2>¿Dudas?</h2>
+        <p id="contact-text">Escríbenos y te respondemos.</p>
         <p class="contact-links" id="contact-links"></p>
       </div>
     </section>
 
-
     <section class="sec wrap support" id="apoyo">
-      <h2>¿Te sirve Tablero? <em>Invítame un café.</em></h2>
-      <p>Tablero es gratis y lo hace una sola persona. Si te gusta, un café ayuda a seguir mejorándolo: probar más radios, el scanner OBD y nuevas pantallas. Es totalmente opcional.</p>
-      <div class="hero-cta"><a class="btn cta big" href="https://ko-fi.com/daniexpress" target="_blank" rel="noopener">☕ Invítame un café</a></div>
+      <h2>¿Te sirve? Invítame un café.</h2>
+      <div class="hero-cta"><a class="btn ghost big" href="https://ko-fi.com/daniexpress" target="_blank" rel="noopener">☕ Un café</a></div>
     </section>
 
     <section class="final wrap">
-      <h2>Dale a tu radio la pantalla <em>que se merece.</em></h2>
-      <p>Diséñala en minutos y pruébala. Si no te convence, la desinstalas y listo.</p>
-      <div class="hero-cta"><a class="btn cta big" href="#configurador">Diseñar mi pantalla</a><a class="btn ghost big" href="/app">Descargar la app</a></div>
+      <h2>Dale a tu radio su pantalla.</h2>
+      <div class="hero-cta"><a class="btn cta big" href="#configurador">Diseñar mi pantalla</a><a class="btn ghost big" href="/app">Descargar app</a></div>
     </section>
 
   </main>

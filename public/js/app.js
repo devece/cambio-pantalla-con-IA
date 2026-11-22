@@ -1058,7 +1058,7 @@
     $('#contact-links').innerHTML = links.join('') || 'Pronto publicaremos aquí nuestros datos de contacto.';
     const extra = [site.supportEmail && 'por correo', site.instagram && 'por Instagram'].filter(Boolean).join(' o ');
     const how = web ? `Contáctanos en ${web.name}${extra ? ' o ' + extra : ''}` : extra ? `Escríbenos ${extra}` : '';
-    if (how) $('#contact-text').textContent = `${how} y te respondemos. Te respondemos por WhatsApp.`;
+    if (how) $('#contact-text').textContent = `${how} y te respondemos.`;
 
     load();
     build();

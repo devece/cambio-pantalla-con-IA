@@ -7,6 +7,9 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 
 ## [Sin publicar]
 
+### Cambiado
+- **El sitio se rediseñó con mucho menos texto.** La portada pasó de unas 3.500 palabras a menos de la mitad: títulos cortos, íconos y frases de una línea. Se quitaron las secciones largas (el problema, la comparación del scanner, las tarjetas por país) y las preguntas frecuentes bajaron a las 6 más útiles. Nueva identidad visual: tablero de instrumentos y carretera (asfalto, amarillo de calzada, letras condensadas) y los pasos de instalación como paradas en una carretera. El configurador funciona igual. Corrige además una frase repetida en la tarjeta de contacto.
+
 ### Agregado
 - **Mapa de Google en la pantalla de inicio.** La app puede mostrar el mapa de Google Maps (tu posición y rumbo, de día y de noche) y, si no hay llave o internet, vuelve al mapa de OpenStreetMap. Funciona también en radios sin Google Play. Con el mapa de Google no aparece «Guardar mapa» (Google no permite guardar sus imágenes). Cómo activarlo: `docs/MAPA_GOOGLE.md`.
 - **El mapa de Google cubre todo el recuadro** también en radios verticales y muestra «Google Maps» en una esquina.

@@ -198,7 +198,16 @@
   const MAP_PLACEHOLDER = '<svg class="mapsvg" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-opacity=".14" stroke-width="9" stroke-linecap="round"><path d="M-10 120 L120 108 L170 56 L310 66"/><path d="M60 -10 L82 90 L70 170"/><path d="M205 -10 L192 70 L232 170"/><path d="M-10 40 L300 24"/></g><g transform="translate(150 84)"><circle r="15" fill="var(--accent)" opacity=".22"/><path d="M0 -9 L7 8 L0 4 L-7 8z" fill="var(--accent)"/></g></svg>';
   /* Google Maps (imagen del mapa de Google): la app le pone la llave y la pide por su cuenta (WebLauncher.googleMapResponse).
      Se baja una imagen de 640 x 640 centrada en un punto y se va deslizando mientras avanzas; solo se pide otra al alejarte del centro. */
-  const GMAP = { size: 640, recenter: 60, c: null, night: null };
+  const GMAP = { size: 640, recenter: 60, c: null, night: null, k: 1.6 };
+  /** Cuánto hay que agrandar la imagen para que cubra todo el recuadro del mapa aunque te alejes `recenter` px del centro. */
+  function googleScale() {
+    const el = scr && scr.querySelector('.map-view');
+    if (el && el.offsetWidth > 0) {
+      const half = Math.max(el.offsetWidth, el.offsetHeight) / 2;
+      GMAP.k = Math.max(1, Math.min(3, half / (GMAP.size / 2 - GMAP.recenter)));
+    }
+    return GMAP.k;
+  }
   function googleMapInner(night, loc) {
     const world = 256 * Math.pow(2, MAP_Z);
     const lr = (loc.lat * Math.PI) / 180;
@@ -210,11 +219,12 @@
       GMAP.night = night;
     }
     const k = GMAP.c;
-    const dx = Math.round(wx - k.x);
-    const dy = Math.round(wy - k.y);
+    const f = googleScale();
+    const dx = Math.round((wx - k.x) * f);
+    const dy = Math.round((wy - k.y) * f);
+    const side = Math.round(GMAP.size * f);
     const src = `https://maps.googleapis.com/maps/api/staticmap?center=${k.lat.toFixed(5)},${k.lon.toFixed(5)}&zoom=${MAP_Z}&size=${GMAP.size}x${GMAP.size}&scale=2&maptype=roadmap${night ? '&night=1' : ''}`;
-    const off = GMAP.size / 2;
-    return `${MAP_PLACEHOLDER}<img class="map-gimg" alt="" draggable="false" onerror="this.style.visibility='hidden'" style="left:calc(50% - ${off + dx}px);top:calc(50% - ${off + dy}px)" src="${src}"><div class="map-me" style="transform:translate(-50%,-50%) rotate(${Math.round(loc.bearing || 0)}deg)">${icon('nav', 22)}</div>`;
+    return `${MAP_PLACEHOLDER}<img class="map-gimg" alt="" draggable="false" onerror="this.style.visibility='hidden'" style="width:${side}px;height:${side}px;left:calc(50% - ${side / 2 + dx}px);top:calc(50% - ${side / 2 + dy}px)" src="${src}"><div class="map-me" style="transform:translate(-50%,-50%) rotate(${Math.round(loc.bearing || 0)}deg)">${icon('nav', 22)}</div><span class="map-credit gcredit">Google Maps</span>`;
   }
   function mapInner(night) {
     const app = TB.preview.app;

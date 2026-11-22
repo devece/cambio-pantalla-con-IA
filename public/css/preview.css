@@ -365,7 +365,8 @@
 .scr .c-map { grid-area: map; position: relative; padding: 0; }
 .scr .map-view { position: absolute; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden; color: var(--ink); background: rgba(127,127,127,.1); }
 .scr .map-view .mapsvg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }
-.scr .map-gimg { position: absolute; width: 640px; height: 640px; max-width: none; display: block; }
+.scr .map-gimg { position: absolute; max-width: none; display: block; }
+.scr .map-credit.gcredit { right: auto; left: 8px; top: auto; bottom: 5px; opacity: .85; font-weight: 500; color: #222; background: rgba(255,255,255,.75); padding: 1px 6px; border-radius: 6px; }
 .scr .t-map { position: relative; overflow: hidden; }
 .scr .map-tiles { position: absolute; width: 768px; height: 768px; }
 .scr .map-tiles img { position: absolute; width: 256px; height: 256px; display: block; }

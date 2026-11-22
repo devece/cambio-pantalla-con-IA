@@ -323,10 +323,13 @@
 .scr .l-estelar .st-spd b { font-size: 42px; }
 .scr .l-estelar .st-car .car-photo { height: 170px; }
 .scr .l-estelar .st-car .car-svg { max-height: 170px; }
-.scr .l-estelar .st-player .art { width: 80px; height: 80px; }
+.scr .l-estelar .st-player .art { width: 48px; height: 48px; margin: 0; }
 .scr .l-estelar .st-player .rbtn { width: 40px; height: 40px; }
 .scr .l-estelar .st-player .rbtn.play { width: 50px; height: 50px; }
-.scr .l-estelar .st-right { grid-template-rows: 1.9fr 1fr; }
+.scr .l-estelar .st-right { grid-template-rows: 2.5fr 1.05fr .8fr; }
+.scr .l-estelar .st-player { padding: 8px 14px; }
+.scr .st-map { position: relative; padding: 0; overflow: hidden; min-height: 0; }
+.scr .st-map .c-maplabel { left: 8px; top: 8px; padding: 4px 10px; font-size: 13px; gap: 6px; }
 
 /* ---- Tema Sobrio y diseño Consola ---- */
 .scr[data-theme='sobrio'] .tint, .scr[data-layout='consola'] .tint { display: none; }
@@ -362,6 +365,8 @@
 .scr .c-map { grid-area: map; position: relative; padding: 0; }
 .scr .map-view { position: absolute; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden; color: var(--ink); background: rgba(127,127,127,.1); }
 .scr .map-view .mapsvg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }
+.scr .map-gimg { position: absolute; width: 640px; height: 640px; max-width: none; display: block; }
+.scr .t-map { position: relative; overflow: hidden; }
 .scr .map-tiles { position: absolute; width: 768px; height: 768px; }
 .scr .map-tiles img { position: absolute; width: 256px; height: 256px; display: block; }
 .scr .map-me { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; border-radius: 50%; background: rgba(255,58,26,.25); display: grid; place-items: center; transition: transform .6s; }
@@ -551,7 +556,7 @@
 .scr[data-orient='v'] .l-estelar { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: 'left' 'stage' 'right'; }
 .scr[data-orient='v'] .l-estelar .st-left { flex-direction: row; align-items: center; padding: 0 8px; }
 .scr[data-orient='v'] .l-estelar .st-clock b { font-size: 96px; }
-.scr[data-orient='v'] .l-estelar .st-right { grid-template-rows: 1fr; grid-template-columns: 1.2fr 1fr; }
+.scr[data-orient='v'] .l-estelar .st-right { grid-template-rows: 1fr; grid-template-columns: 1.2fr 1fr 1fr; }
 .scr[data-orient='v'] .l-estelar .st-car { width: 62%; justify-self: center; align-self: center; margin-bottom: 0; }
 .scr[data-orient='v'] .l-estelar .st-car .car-photo { height: 220px; }
 .scr[data-orient='v'] .l-estelar .st-car .car-svg { max-height: 240px; }

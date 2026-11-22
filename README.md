@@ -29,6 +29,8 @@ npm run dev       # http://localhost:3000
 
 Sin variables de entorno funciona en **modo demostración** (el pedido se acepta pero no se guarda).
 
+**Mapa de Google:** la app lo usa si se compila con la llave `GOOGLE_MAPS_API_KEY` (ver `docs/MAPA_GOOGLE.md`); sin llave usa OpenStreetMap.
+
 Las reglas de la app Android se prueban con Gradle: `cd android && ./gradlew :core:test`.
 
 ## Variables de entorno

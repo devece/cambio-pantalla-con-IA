@@ -55,6 +55,7 @@
    * Dentro de la app de la radio (js/launcher.js) `TB.preview.app` trae datos reales: velocidad por GPS, clima y
    * acciones para abrir apps. Sin él (en el sitio) todo es la demostración de siempre. */
   const appMode = () => !!TB.preview.app;
+  const googleMap = () => appMode() && TB.preview.app.mapProvider === 'google';
   const WX = (c) => (c >= 51 && c <= 67) || (c >= 80 && c <= 99) ? 'lluvia' : 'sol';
   /** ¿La app de radio FM de la radio publica la emisora? Solo entonces la pantalla de Radio puede controlarla. */
   const radioFound = () => appMode() && !!(TB.preview.app.radio && TB.preview.app.radio.found);
@@ -195,12 +196,33 @@
   TB.icons.cel = '<rect x="7" y="2.500" width="10" height="19" rx="2.200"/><path d="M11 18.500h2"/>';
   const MAP_Z = 15;
   const MAP_PLACEHOLDER = '<svg class="mapsvg" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-opacity=".14" stroke-width="9" stroke-linecap="round"><path d="M-10 120 L120 108 L170 56 L310 66"/><path d="M60 -10 L82 90 L70 170"/><path d="M205 -10 L192 70 L232 170"/><path d="M-10 40 L300 24"/></g><g transform="translate(150 84)"><circle r="15" fill="var(--accent)" opacity=".22"/><path d="M0 -9 L7 8 L0 4 L-7 8z" fill="var(--accent)"/></g></svg>';
+  /* Google Maps (imagen del mapa de Google): la app le pone la llave y la pide por su cuenta (WebLauncher.googleMapResponse).
+     Se baja una imagen de 640 x 640 centrada en un punto y se va deslizando mientras avanzas; solo se pide otra al alejarte del centro. */
+  const GMAP = { size: 640, recenter: 60, c: null, night: null };
+  function googleMapInner(night, loc) {
+    const world = 256 * Math.pow(2, MAP_Z);
+    const lr = (loc.lat * Math.PI) / 180;
+    const wx = ((loc.lon + 180) / 360) * world;
+    const wy = ((1 - Math.log(Math.tan(lr) + 1 / Math.cos(lr)) / Math.PI) / 2) * world;
+    const c = GMAP.c;
+    if (!c || GMAP.night !== night || Math.abs(wx - c.x) > GMAP.recenter || Math.abs(wy - c.y) > GMAP.recenter) {
+      GMAP.c = { lat: loc.lat, lon: loc.lon, x: wx, y: wy };
+      GMAP.night = night;
+    }
+    const k = GMAP.c;
+    const dx = Math.round(wx - k.x);
+    const dy = Math.round(wy - k.y);
+    const src = `https://maps.googleapis.com/maps/api/staticmap?center=${k.lat.toFixed(5)},${k.lon.toFixed(5)}&zoom=${MAP_Z}&size=${GMAP.size}x${GMAP.size}&scale=2&maptype=roadmap${night ? '&night=1' : ''}`;
+    const off = GMAP.size / 2;
+    return `${MAP_PLACEHOLDER}<img class="map-gimg" alt="" draggable="false" onerror="this.style.visibility='hidden'" style="left:calc(50% - ${off + dx}px);top:calc(50% - ${off + dy}px)" src="${src}"><div class="map-me" style="transform:translate(-50%,-50%) rotate(${Math.round(loc.bearing || 0)}deg)">${icon('nav', 22)}</div>`;
+  }
   function mapInner(night) {
     const app = TB.preview.app;
     const loc = app && app.loc;
     if (!loc) {
       return MAP_PLACEHOLDER;
     }
+    if (app.mapProvider === 'google') return googleMapInner(night, loc);
     const n = Math.pow(2, MAP_Z);
     const x = ((loc.lon + 180) / 360) * n;
     const lr = (loc.lat * Math.PI) / 180;
@@ -396,13 +418,13 @@
     consola: (p) => `
       <header class="c-top"><div class="c-clock"><b data-clock>${p.time}</b><span>${esc(p.date)}</span></div><div class="c-right">${p.wxMini}<span class="c-greet">${p.hello}</span></div></header>
       <section class="card c-veh"><div class="c-vhead"><h3>${esc(p.vehName)}</h3>${p.plate}</div><div class="car c-car">${p.car}</div>${p.speedBlock}</section>
-      <section class="card c-map"><div class="map-view">${p.mapLive}</div><span class="c-maplabel">${icon('maps', 18)} Mapa en vivo</span>${appMode() ? '<button type="button" class="map-save" data-open="mapsave"><span data-mapsave>Guardar mapa</span></button>' : ''}<div class="c-proj"><button type="button" class="pj on" data-open="androidauto"><span class="pj-ic">${icon('nav', 26)}</span><span><b>Android Auto</b><small>USB o tu pantalla</small></span></button><button type="button" class="pj" data-open="carplay"><span class="pj-ic">${icon('cel', 26)}</span><span><b>CarPlay</b><small>Pantalla o adaptador</small></span></button></div></section>
+      <section class="card c-map"><div class="map-view">${p.mapLive}</div><span class="c-maplabel">${icon('maps', 18)} Mapa en vivo</span>${appMode() && !googleMap() ? '<button type="button" class="map-save" data-open="mapsave"><span data-mapsave>Guardar mapa</span></button>' : ''}<div class="c-proj"><button type="button" class="pj on" data-open="androidauto"><span class="pj-ic">${icon('nav', 26)}</span><span><b>Android Auto</b><small>USB o tu pantalla</small></span></button><button type="button" class="pj" data-open="carplay"><span class="pj-ic">${icon('cel', 26)}</span><span><b>CarPlay</b><small>Pantalla o adaptador</small></span></button></div></section>
       <section class="card c-music"><div class="music cm-player">${p.consolaPlayer}</div></section>`,
     estelar: (p) => `
       <section class="st-left"><div class="st-clock"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div>
         <div class="st-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" class="trk"/><circle cx="60" cy="60" r="52" class="val" data-ring pathLength="100" stroke-dasharray="0 100"/></svg><div class="st-spd"><b data-speed>${p.spd}</b><span>${p.su}</span></div></div></section>
       <section class="st-stage"><div class="st-hello"><h2>${p.hello}</h2><p>${esc(p.sub)}</p></div><div class="st-streaks" aria-hidden="true"></div><div class="st-glow" aria-hidden="true"></div><div class="car st-car">${p.car}</div></section>
-      <section class="st-right"><div class="card music-card st-player">${p.player}</div><div class="card st-wx">${p.weather}</div></section>`,
+      <section class="st-right"><div class="card music-card st-player">${p.player}</div><section class="card st-map"><div class="map-view">${p.mapLive}</div><span class="c-maplabel">${icon('maps', 16)} Mapa</span></section><div class="card st-wx">${p.weather}</div></section>`,
     tarjetas: (p) => `
       <section class="card greet"><div class="greet-txt"><h2>${p.hello}</h2><p>${esc(p.sub)}</p></div><div class="car">${p.car}</div>${p.weather}</section>
       <section class="card clock"><div class="clk"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div>${p.speed}</section>
@@ -422,7 +444,7 @@
     tablero: (p) => `
       <section class="card t-left"><div class="t-speed"><b data-speed>${p.spd}</b><span>${p.su}</span></div><div class="car">${p.car}${p.plate}</div><div class="t-clock"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div></section>
       <section class="card t-route">${p.routeCard}</section>
-      <section class="card t-map">${p.mapCard}</section>`,
+      <section class="card t-map">${appMode() ? `<div class="map-view">${p.mapLive}</div><span class="c-maplabel">${icon('maps', 18)} Mapa en vivo</span>` : p.mapCard}</section>`,
     lateral: (p) => `
       ${p.menu}
       <section class="card clock"><div class="clk"><b data-clock>${p.time}</b><span>${esc(p.dateShort)}</span></div>${p.speed}</section>

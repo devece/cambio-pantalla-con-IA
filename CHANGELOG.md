@@ -7,6 +7,10 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 
 ## [Sin publicar]
 
+### Agregado
+- **Mapa de Google en la pantalla de inicio.** La app puede mostrar el mapa de Google Maps (tu posición y rumbo, de día y de noche) y, si no hay llave o internet, vuelve al mapa de OpenStreetMap. Funciona también en radios sin Google Play. Con el mapa de Google no aparece «Guardar mapa» (Google no permite guardar sus imágenes). Cómo activarlo: `docs/MAPA_GOOGLE.md`.
+- **El mapa ya se ve en la pantalla principal.** El diseño Estelar (el de fábrica) ahora trae un mapa en vivo entre la música y el clima, y el diseño Tablero muestra el mapa real en vez del dibujo de ejemplo. Antes solo lo tenía Consola.
+
 ## [0.5.0] - 2026-11-21
 
 Tres temas nuevos para la pantalla de tu radio: Arco, Azul noche y Carbón.

@@ -104,6 +104,8 @@ jobs:
           TB_KEYSTORE_PASSWORD: ${{ github.ref == 'refs/heads/main' && secrets.TB_KEYSTORE_PASSWORD || '' }}
           TB_KEY_ALIAS: ${{ github.ref == 'refs/heads/main' && secrets.TB_KEY_ALIAS || '' }}
           TB_KEY_PASSWORD: ${{ github.ref == 'refs/heads/main' && secrets.TB_KEY_PASSWORD || '' }}
+          # Llave de Google Maps (opcional; restringida en Google Cloud a este paquete y firma). Sin ella el mapa usa OpenStreetMap.
+          GOOGLE_MAPS_API_KEY: ${{ github.ref == 'refs/heads/main' && secrets.GOOGLE_MAPS_API_KEY || '' }}
         run: |
           if [ "${{ steps.sign.outputs.signed }}" = "true" ]; then TASK=:app:assembleRelease; else TASK=:app:assembleDebug; fi
           # Cada compilación lleva un número que solo sube (1000 + commits de main) y el commit del que salió.

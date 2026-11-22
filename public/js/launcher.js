@@ -78,6 +78,8 @@
     // El scanner OBD, si hay uno elegido: { state, detail, values: { rpm, speed, coolant, ... }, health } (ver ObdClient). Lo dibuja la pantalla «Auto».
     obd: null,
     loc: null,
+    // De dónde sale el mapa: 'google' (imagen de Google Maps, si la app trae su llave) o 'osm' (cuadros de OpenStreetMap, con copia sin internet).
+    mapProvider: 'osm',
     media(cmd) { bridge('media', cmd); },
     open(kind) {
       if (kind === 'drawer') { openDrawer(); return; }
@@ -238,6 +240,10 @@
       if (TB.motion && !(opts && opts.welcome === false)) TB.motion.welcome();
     },
     setSpeed(kmh) { app.speed = Number(kmh) || 0; if (TB.motion) TB.motion.setSpeed(app.speed); },
+    setMapProvider(name) {
+      app.mapProvider = name === 'google' ? 'google' : 'osm';
+      if (mounted) render();
+    },
     setLocation(lat, lon, bearing) {
       if (!isFinite(lat) || !isFinite(lon)) return;
       rememberPlace(lat, lon);

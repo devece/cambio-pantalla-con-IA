@@ -98,6 +98,8 @@ jobs:
           TB_KEYSTORE_PASSWORD: ${{ secrets.TB_KEYSTORE_PASSWORD }}
           TB_KEY_ALIAS: ${{ secrets.TB_KEY_ALIAS }}
           TB_KEY_PASSWORD: ${{ secrets.TB_KEY_PASSWORD }}
+          # Llave de Google Maps (opcional; restringida en Google Cloud a este paquete y firma). Sin ella el mapa usa OpenStreetMap.
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
         run: |
           ./gradlew --no-daemon :app:assembleRelease \
             -PtableroVersion="${{ steps.version.outputs.version }}" \

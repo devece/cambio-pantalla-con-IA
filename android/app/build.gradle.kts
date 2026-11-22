@@ -17,6 +17,10 @@ android {
         versionName = providers.gradleProperty("tableroVersion").getOrElse("0.1.0")
         // El commit del que salió esta APK (se ve en Ajustes y en el diagnóstico de la radio).
         buildConfigField("String", "GIT_COMMIT", "\"${providers.gradleProperty("tableroCommit").getOrElse("desarrollo")}\"")
+        // Llave de Google Maps (Maps Static API) para el mapa de la pantalla de inicio. Sin llave, el mapa sale de OpenStreetMap.
+        // Se pasa con -PgoogleMapsApiKey=... o con la variable GOOGLE_MAPS_API_KEY; restríngela en Google Cloud a este paquete y a la firma de la app (docs/MAPA_GOOGLE.md).
+        val googleMapsKey = providers.gradleProperty("googleMapsApiKey").orElse(providers.environmentVariable("GOOGLE_MAPS_API_KEY")).getOrElse("").trim()
+        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"${googleMapsKey.replace("\\", "").replace("\"", "")}\"")
         // La descarga directa se actualiza sola con el aviso de la app; la variante de Play Store no (Play lo prohíbe y es Play quien actualiza).
         buildConfigField("boolean", "IN_APP_UPDATE", "true")
 

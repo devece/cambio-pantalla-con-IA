@@ -33,6 +33,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import cl.tablero.core.FmRadio
+import cl.tablero.core.GoogleMaps
 import cl.tablero.core.LauncherConfig
 import cl.tablero.core.Maintenance
 import cl.tablero.core.Reminders
@@ -56,6 +57,7 @@ class WebLauncher(private val activity: Activity, private val designJson: String
     private val handler = Handler(Looper.getMainLooper())
     private var lastMusicSig = ""
     private val tiles = TileCache(activity)
+    private val googleMapsKey: String = BuildConfig.GOOGLE_MAPS_API_KEY
     @Volatile private var saving = false
     @Volatile private var closed = false
     private var lastArt = ""
@@ -96,6 +98,7 @@ class WebLauncher(private val activity: Activity, private val designJson: String
             /** Los cuadros del mapa pasan por la copia guardada en la radio: se ven sin internet y no se bajan dos veces. */
             override fun shouldInterceptRequest(v: WebView, request: WebResourceRequest): WebResourceResponse? {
                 val host = request.url.host ?: return null
+                if (host == GoogleMaps.HOST) return googleMapResponse(request)
                 if (!host.endsWith("basemaps.cartocdn.com")) return null
                 val tile = Tiles.parse(request.url.path ?: "") ?: return null
                 val bytes = tiles.getOrFetch(tile)
@@ -108,12 +111,58 @@ class WebLauncher(private val activity: Activity, private val designJson: String
                 // La bienvenida (movimiento) corre una vez por arranque de la app, no cada vez que se vuelve de Ajustes y se recrea esta vista.
                 v.evaluateJavascript("TBApp.init(" + JSONObject.quote(designJson) + ", {welcome:" + playWelcome + "})", null)
                 v.evaluateJavascript("TBApp.setOrient(" + JSONObject.quote(settings.orient()) + ")", null)
+                if (googleMapsKey.isNotEmpty()) v.evaluateJavascript("TBApp.setMapProvider('google')", null)
                 progressJson(settings.load())?.let { v.evaluateJavascript("TBApp.setProgress(" + JSONObject.quote(it) + ")", null) }
                 pending.forEach { v.evaluateJavascript(it, null) }
                 pending.clear()
             }
         }
         view.loadUrl("file:///android_asset/web/launcher.html")
+    }
+
+    /**
+     * El mapa de Google: la pantalla pide la imagen sin llave y aquí se le pone. Solo pasan las peticiones que la pantalla hace
+     * (ver GoogleMaps.parse). Se identifica a la app (paquete y firma) para que la llave, restringida en Google Cloud, solo
+     * sirva desde Tablero. Si Google no responde, la pantalla deja a la vista el dibujo de fondo.
+     */
+    private fun googleMapResponse(request: WebResourceRequest): WebResourceResponse? {
+        if (googleMapsKey.isEmpty() || request.url.path != GoogleMaps.PATH) return null
+        val params = request.url.queryParameterNames.associateWith { request.url.getQueryParameter(it).orEmpty() }
+        val req = GoogleMaps.parse(params)
+            ?: return WebResourceResponse("image/png", null, 400, "Petición no válida", emptyMap(), ByteArrayInputStream(ByteArray(0)))
+        val empty = WebResourceResponse("image/png", null, 404, "Sin mapa", emptyMap(), ByteArrayInputStream(ByteArray(0)))
+        var conn: java.net.HttpURLConnection? = null
+        return try {
+            conn = java.net.URL(GoogleMaps.url(req, googleMapsKey)).openConnection() as java.net.HttpURLConnection
+            conn.connectTimeout = 6_000
+            conn.readTimeout = 8_000
+            conn.setRequestProperty("User-Agent", TileCache.USER_AGENT)
+            conn.setRequestProperty("X-Android-Package", activity.packageName)
+            signerSha1()?.let { conn.setRequestProperty("X-Android-Cert", it) }
+            if (conn.responseCode != 200) return empty
+            val bytes = conn.inputStream.use { it.readBytes() }
+            if (bytes.size < 100 || bytes.size > 2_000_000 || bytes[1] != 'P'.code.toByte()) return empty // solo PNG
+            WebResourceResponse("image/png", null, 200, "OK", mapOf("Cache-Control" to "max-age=3600"), ByteArrayInputStream(bytes))
+        } catch (e: Exception) {
+            empty
+        } finally {
+            conn?.disconnect()
+        }
+    }
+
+    /** Huella SHA-1 (en mayúsculas, sin separadores) de la firma de esta app: es lo que Google compara con la restricción de la llave. */
+    private fun signerSha1(): String? = try {
+        val pm = activity.packageManager
+        val sig = if (Build.VERSION.SDK_INT >= 28) {
+            val signing = pm.getPackageInfo(activity.packageName, android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES).signingInfo
+            (if (signing.hasMultipleSigners()) signing.apkContentsSigners else signing.signingCertificateHistory).firstOrNull()
+        } else {
+            @Suppress("DEPRECATION")
+            pm.getPackageInfo(activity.packageName, android.content.pm.PackageManager.GET_SIGNATURES).signatures.firstOrNull()
+        }
+        sig?.let { java.security.MessageDigest.getInstance("SHA-1").digest(it.toByteArray()).joinToString("") { b -> "%02X".format(b) } }
+    } catch (e: Exception) {
+        null
     }
 
     private fun js(code: String) {

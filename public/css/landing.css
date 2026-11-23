@@ -93,3 +93,14 @@ body { background: #14181e; font-size: 18px; }
   .chips.big li { font-size: 24px; padding: 14px 16px; }
   .steps { grid-template-columns: 1fr; }
 }
+
+/* El café: visible pero sin competir con «Diseñar mi pantalla» */
+.btn.coffee { background: transparent; color: var(--amarillo); border-color: var(--tint-line); }
+.btn.coffee:hover { background: var(--tint); border-color: var(--amarillo); }
+.chips li:has(.coffee-chip) { padding: 0; border-color: var(--tint-line); }
+.coffee-chip { display: block; padding: 9px 14px; color: var(--amarillo); text-decoration: none; font-weight: 600; }
+.coffee-chip:hover { background: var(--tint); }
+.coffee-note { margin-top: 18px; font-size: 18px; color: var(--ink2); }
+.coffee-note a { color: var(--amarillo); font-weight: 600; }
+.support .coffee-lead { margin: 16px 0 0; max-width: 46ch; font-size: 21px; color: var(--ink2); text-align: left; }
+@media (max-width: 1100px) { .bar-cta .btn.coffee { display: none; } }

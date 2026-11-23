@@ -8,6 +8,7 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 ## [Sin publicar]
 
 ### Cambiado
+- **El café de regalo se ve en todo el sitio.** «Invítame un café» ahora aparece en la barra de arriba, en la portada, después de los pasos de instalación, en dos preguntas frecuentes, en su propia sección, en el cierre de la página y en el pie. Sigue siendo opcional y abre Ko-fi.
 - **El sitio se rediseñó con mucho menos texto.** La portada pasó de unas 3.500 palabras a menos de la mitad: títulos cortos, íconos y frases de una línea. Se quitaron las secciones largas (el problema, la comparación del scanner, las tarjetas por país) y las preguntas frecuentes bajaron a las 6 más útiles. Nueva identidad visual: tablero de instrumentos y carretera (asfalto, amarillo de calzada, letras condensadas) y los pasos de instalación como paradas en una carretera. El configurador funciona igual. Corrige además una frase repetida en la tarjeta de contacto.
 
 ### Agregado

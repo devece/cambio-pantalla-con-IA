@@ -55,6 +55,32 @@ await check('con las opciones del cliente, Mantención muestra aceite, otros man
   assert.match(t, /Combustible/, 'falta el combustible');
 });
 
+await check('el engranaje de ajustes no tapa la hora en ninguna distribución, horizontal ni vertical', async () => {
+  const layouts = ['consola', 'estelar', 'tarjetas', 'centro', 'manejo', 'minimal', 'tablero', 'lateral', 'todoterreno'];
+  const sizes = [[1024, 600, 'h'], [768, 1024, 'v']];
+  const bad = [];
+  for (const [w, h, o] of sizes) {
+    const page = await browser.newPage({ viewport: { width: w, height: h } });
+    await page.addInitScript(() => { window.Android = { apps: () => '[]', mapInfo: () => '{"tiles":0,"bytes":0}', openApp() {}, launchPkg() {}, open() {}, media() {}, radio() {} }; });
+    await page.goto(base + '/launcher.html');
+    await page.waitForFunction(() => window.TBApp && window.TB);
+    for (const l of layouts) {
+      await page.evaluate(([l, o]) => { window.TBApp.init(JSON.stringify({ config: { style: { layout: l } } }), { welcome: false }); window.TBApp.setOrient(o); }, [l, o]);
+      await page.waitForTimeout(150);
+      const hit = await page.evaluate(() => {
+        const g = document.getElementById('gear').getBoundingClientRect();
+        return [...document.querySelectorAll('#host .status b, #host [data-clock]')].some((el) => {
+          const r = el.getBoundingClientRect();
+          return r.width > 0 && r.left < g.right && r.right > g.left && r.top < g.bottom && r.bottom > g.top;
+        });
+      });
+      if (hit) bad.push(l + '/' + o);
+    }
+    await page.close();
+  }
+  assert.deepEqual(bad, [], 'el engranaje tapa la hora en: ' + bad.join(', '));
+});
+
 await check('sin opciones (lo que mandaba la app antes) se ve el aceite de fábrica: el contraste prueba que el perfil con opciones sí cambia la pantalla', async () => {
   const t = await screenText({ name: 'Ana', greeting: 'Hola', type: 'auto', color: '#b3261e' }, progress, 'mantenimiento');
   assert.match(t, /Aceite faltan 2\.000 km/);

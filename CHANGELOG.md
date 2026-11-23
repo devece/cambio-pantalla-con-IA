@@ -16,6 +16,9 @@ Cómo se publica una versión: `docs/RELEASE.md`.
 - **El mapa de Google cubre todo el recuadro** también en radios verticales y muestra «Google Maps» en una esquina.
 - **El mapa ya se ve en la pantalla principal.** El diseño Estelar (el de fábrica) ahora trae un mapa en vivo entre la música y el clima, y el diseño Tablero muestra el mapa real en vez del dibujo de ejemplo. Antes solo lo tenía Consola.
 
+### Arreglado
+- **El engranaje de ajustes ya no tapa la hora.** En la pantalla de la radio, el engranaje de arriba a la derecha quedaba encima de la hora pequeña en 8 de las 9 distribuciones (todas menos Consola), tanto horizontal como vertical. Ahora la hora se corre a su izquierda.
+
 ## [0.5.0] - 2026-11-21
 
 Tres temas nuevos para la pantalla de tu radio: Arco, Azul noche y Carbón.
